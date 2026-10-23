@@ -1,0 +1,87 @@
+/* Chessbook design tokens — extracted from chessbook.com */
+@font-face {
+  font-family: "Jost Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../assets/fonts/jost-latin-wght-normal-ObQm3Zd1.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../assets/fonts/inter-latin-wght-normal-Dx4kXJAl.woff2") format("woff2-variations");
+}
+
+:root {
+  --font-display: "Jost Variable", Jost, "Inter Variable", Inter, sans-serif;
+  --font-body: "Inter Variable", Inter, Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --gray-19: oklch(19% 0.0051 243);
+  --gray-21: oklch(21% 0.0056 243);
+  --gray-26: oklch(26% 0.0069 243);
+  --gray-27: oklch(27% 0.0072 243);
+  --gray-28: oklch(28% 0.0075 243);
+  --gray-32: oklch(32% 0.0085 243);
+  --gray-40: oklch(40% 0.0107 243);
+  --gray-46: oklch(46% 0.0123 243);
+  --gray-51: oklch(51% 0.0136 243);
+  --gray-60: oklch(60% 0.016 243);
+  --gray-70: oklch(70% 0.012 243);
+  --gray-80: oklch(80% 0.008 243);
+  --gray-84: oklch(84% 0.0064 243);
+  --gray-85: oklch(85% 0.006 243);
+  --gray-96: oklch(96% 0.0016 243);
+
+  --bg: var(--gray-19);
+  --surface: var(--gray-26);
+  --surface-raised: var(--gray-28);
+  --surface-button: oklch(34% 0.0091 243);
+  --surface-button-hover: oklch(38% 0.0098 243);
+  --border-subtle: var(--gray-32);
+
+  --text-primary: var(--gray-96);
+  --text-secondary: var(--gray-84);
+  --text-tertiary: var(--gray-60);
+
+  --orange: oklch(75% 0.2118 51);
+  --orange-soft: oklch(65% 0.1458 50);
+  --orange-hover: oklch(80% 0.1625 51);
+  --yellow: oklch(75% 0.1494 76);
+  --blue: oklch(75% 0.1417 230);
+  --blue-70: oklch(70% 0.1501 230);
+  --green: oklch(70% 0.1708 141);
+  --red: oklch(70% 0.1648 22);
+  --focus-ring: oklch(70% 0.1501 230);
+
+  --board-light: rgb(99, 158, 97);
+  --board-dark: rgb(63, 131, 92);
+  --board-highlight: oklch(75% 0.1417 230 / 0.5);
+  --board-legal: oklch(75% 0.1417 230 / 0.45);
+
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-panel: 0 10px 30px 0 rgb(0 0 0 / 0.5);
+
+  --board-width: var(--board-width-xl);
+  --sidebar-width-xl: 650px;
+  --sidebar-width-lg: 500px;
+  --sidebar-width-md: 480px;
+  --board-width-xl: 520px;
+  --board-width-2xl: 650px;
+  --board-width-lg: 480px;
+  --content-max: 1218px;
+
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration: 150ms;
+}

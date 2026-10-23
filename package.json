@@ -1,0 +1,24 @@
+{
+  "name": "chessbook",
+  "version": "1.0.0",
+  "description": "Pixel-accurate static clone of chessbook.com",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "serve": "python3 -m http.server 4173",
+    "build": "python3 tools/build_pages.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
+  },
+  "dependencies": {
+    "chess.js": "^1.4.0"
+  },
+  "private": true
+}
