@@ -12,11 +12,9 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       "/api": "http://localhost:8787",
-      "/signup": "http://localhost:8787",
       "/_build": "http://localhost:8787",
       "/homepage_imgs": "http://localhost:8787",
       "/pieces": "http://localhost:8787",
-      "/site_manifest.json": "http://localhost:8787",
     },
   },
   build: {

@@ -38,8 +38,7 @@ export function LandingPage() {
         clickable &&
         (text === "Try it for free" ||
           text === "Get started" ||
-          text === "Log in" ||
-          text === "Sign up")
+          text === "Open app")
       ) {
         node.dataset.cbCta = "enter";
       }
