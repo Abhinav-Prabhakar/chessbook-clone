@@ -2,6 +2,8 @@
 
 A pixel-accurate, front-end clone of [chessbook.com](https://chessbook.com/), built as a static site from the real rendered application DOM and the original production CSS.
 
+**Live demo:** <https://abhinav-prabhakar.github.io/chessbook-clone/>
+
 The goal of this project is **visual fidelity first**: every screen is captured from the live app, with its real layout, typography, colors, board pieces and CSS, then made navigable with a thin vanilla-JS interaction layer. There is no backend, account system or database.
 
 ![Chessbook desktop dashboard](docs/assets/dashboard.png)
@@ -111,7 +113,11 @@ The site is designed to work from a GitHub Pages project subpath (for example `/
 - Desktop pages redirect to `m/<page>` under 768 px.
 - The root-absolute URLs from production (`/pieces/`, `/_build/`, `/homepage_imgs/`, inline `url(...)` and `srcset`) are rewritten at generation time.
 
-Deploy by pushing to a GitHub repository and enabling Pages on the `main` branch root.
+The repository is deployed to GitHub Pages with a branch source (`main`, `/`) and a `.nojekyll` file so the `_build/` directory is published:
+
+**<https://abhinav-prabhakar.github.io/chessbook-clone/>**
+
+To deploy a fork, push it to GitHub and enable Pages on the `main` branch root.
 
 ## Testing
 

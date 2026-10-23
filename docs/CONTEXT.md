@@ -107,18 +107,22 @@ Full details in `docs/design.md`.
 - [x] Local mobile tests pass.
 - [x] Local subpath test passes with zero 404s.
 - [x] Design/site-map/plan/context docs written.
-- [ ] `git add` + commit.
-- [ ] `gh repo create` + push.
-- [ ] Enable Pages (`main`, root).
-- [ ] Open the deployed Pages URL and smoke-test:
+- [x] `git add` + commit.
+- [x] `gh repo create` + push.
+- [x] Enable Pages (`main`, root) + `.nojekyll`.
+- [x] Open the deployed Pages URL and smoke-test:
   - dashboard loads with CSS/fonts/pieces
   - white repertoire → build → gap
   - practice move `Nf3`
   - mobile redirect and mobile nav
   - marketing → login → dashboard
   - legal links resolve
-- [ ] Record the live URL in the README.
+- [x] Record the live URL in the README.
 
-## Git state at handoff
+## Git / deploy state
 
-Only the initial `chore: init repo` commit existed before the snapshot work. All clone files are uncommitted at the time of writing. `recon/`, `node_modules/`, `.DS_Store`, logs and Playwright reports are ignored.
+- Repository: <https://github.com/Abhinav-Prabhakar/chessbook-clone>
+- Live site: <https://abhinav-prabhakar.github.io/chessbook-clone/>
+- Branch: `main`
+- Pages source: `main` branch root, with `.nojekyll` so `_build/` is served.
+- `recon/`, `node_modules/`, `.DS_Store`, logs and Playwright reports are ignored.

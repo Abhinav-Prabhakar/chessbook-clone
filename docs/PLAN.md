@@ -81,12 +81,14 @@ This guarantees the layout, inline styles, typography and assets match the real 
 - [x] `docs/SITE-MAP.md`.
 - [x] `docs/PLAN.md`.
 - [x] `docs/CONTEXT.md`.
-- [ ] Commit and push to GitHub.
-- [ ] Enable GitHub Pages and verify the live subpath.
+- [x] Commit and push to GitHub.
+- [x] Enable GitHub Pages and verify the live subpath.
 
 ## Current status
 
-**Static clone complete; deployment pending.**
+**Static clone complete and deployed.**
+
+Live: <https://abhinav-prabhakar.github.io/chessbook-clone/>
 
 Working:
 
@@ -108,9 +110,9 @@ Known gaps (intentional):
 
 ## Next steps
 
-1. Create the GitHub repository and push the current tree.
-2. Enable Pages from the `main` branch root.
-3. Open the deployed URL under the project subpath and re-run the subpath smoke test.
+1. ~~Create the GitHub repository and push the current tree.~~ Done.
+2. ~~Enable Pages from the `main` branch root.~~ Done.
+3. ~~Open the deployed URL under the project subpath and re-run the subpath smoke test.~~ Done.
 4. Optional: capture a few more real positions for practice.
 5. Optional: wire a small localStorage layer for repertoire edits.
 6. Optional: add visual-regression snapshots to CI.
