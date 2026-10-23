@@ -1,5 +1,5 @@
 /* Chessbook service worker — installable shell, offline reads, no install UI. */
-const VERSION = "chessbook-v3";
+const VERSION = "chessbook-v4";
 const SHELL_CACHE = `${VERSION}-shell`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 const API_CACHE = `${VERSION}-api`;

@@ -27,7 +27,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     }
   }
   if (!res.ok) {
-    if (res.status === 401) window.dispatchEvent(new CustomEvent("cb:unauthorized"));
     throw new ApiError(data?.error || `Request failed (${res.status})`, res.status);
   }
   return data as T;

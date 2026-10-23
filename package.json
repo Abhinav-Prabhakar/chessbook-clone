@@ -12,7 +12,6 @@
     "dev:app": "vite --config app/vite.config.ts",
     "build": "npm run build:app",
     "build:app": "vite build --config app/vite.config.ts",
-    "build:static": "python3 tools/build_pages.py",
     "start": "node server/index.js",
     "preview": "vite preview --config app/vite.config.ts",
     "db:reset": "node server/reset.js",

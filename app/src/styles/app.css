@@ -1313,8 +1313,8 @@ a {
   }
 }
 
-/* ------------------------------------------------------------- auth pages --- */
-.cb-auth-page {
+/* ------------------------------------------------------------ empty states --- */
+.cb-notfound-page {
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -1324,7 +1324,7 @@ a {
     var(--cb-bg);
 }
 
-.cb-auth-card {
+.cb-notfound-card {
   width: min(410px, 100%);
   padding: 30px;
   border: 1px solid var(--cb-border);
@@ -1333,11 +1333,11 @@ a {
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
 }
 
-.cb-auth-card .cb-logo {
+.cb-notfound-card .cb-logo {
   margin-bottom: 26px;
 }
 
-.cb-auth-card h1 {
+.cb-notfound-card h1 {
   margin: 0 0 6px;
   font-family: var(--cb-font-display);
   font-size: 30px;
@@ -1345,7 +1345,7 @@ a {
   letter-spacing: -0.02em;
 }
 
-.cb-auth-card .cb-auth-sub {
+.cb-notfound-card .cb-notfound-sub {
   margin: 0 0 22px;
   color: var(--cb-text-3);
   font-size: 13px;
@@ -1828,7 +1828,7 @@ a {
     margin-top: 40px;
   }
 
-  .cb-auth-card {
+  .cb-notfound-card {
     padding: 24px;
   }
 }
@@ -3418,7 +3418,7 @@ a {
   cursor: pointer;
 }
 
-.cb-auth-submit {
+.cb-notfound-submit {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -3435,11 +3435,11 @@ a {
   transition: background 140ms ease;
 }
 
-.cb-auth-submit:hover {
+.cb-notfound-submit:hover {
   background: var(--cb-button-hover);
 }
 
-.cb-auth-submit:disabled {
+.cb-notfound-submit:disabled {
   opacity: 0.55;
   cursor: default;
 }

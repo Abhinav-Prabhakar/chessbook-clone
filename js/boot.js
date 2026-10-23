@@ -3,7 +3,7 @@
  *
  * The page markup and CSS are the real rendered app (see tools/build_pages.py).
  * This module adds only the behaviour the original SolidJS app would have:
- * routing, auth form submission, practice-board moves, and a few actions.
+ * routing, practice-board moves, and a few actions.
  */
 const page = document.body.dataset.page || "";
 const root = document.body.dataset.root || "./";
@@ -382,84 +382,6 @@ function showAnswer() {
   if (p) p.textContent = p.textContent.replace("＿", practice.expected);
 }
 
-/* ------------------------------------------------------------------ auth --- */
-function initAuthForms() {
-  const email = document.querySelector('input[type="email"]');
-  const password = document.querySelector('input[type="password"]');
-  if (email) email.value = "local@chessbook.local";
-  if (password) password.value = "local-only";
-
-  const submit = (event) => {
-    event?.preventDefault?.();
-    const ok = !email || email.value.trim().length > 0;
-    if (!ok) {
-      toast("Enter your email address.", "bad");
-      return;
-    }
-    toast("Logging in…");
-    setTimeout(() => go("index.html"), 550);
-  };
-
-  const form = document.querySelector("form");
-  if (form) form.addEventListener("submit", submit);
-  document.querySelectorAll("button").forEach((button) => {
-    const text = button.innerText.trim();
-    const rect = button.getBoundingClientRect();
-    if (text === "Log in" && rect.y > 160) button.addEventListener("click", submit);
-  });
-  // The large Log in action is a styled div in the production markup.
-  const focusAction = document.querySelector('[data-testid="sidebar-focus-action"]');
-  if (focusAction && focusAction.innerText.trim() === "Log in") {
-    focusAction.style.cursor = "pointer";
-    focusAction.addEventListener("click", submit);
-  }
-  [email, password].forEach((input) => {
-    input?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") submit(event);
-    });
-  });
-}
-
-/* ------------------------------------------------------------- marketing --- */
-function initMarketing() {
-  const marketing = page === "signup/index.html";
-  const mobile = matchMedia("(max-width: 767px)").matches;
-  if (marketing) {
-    const loginRoute = mobile ? "m/login.html" : "login.html";
-    const welcomeRoute = mobile ? "m/welcome.html" : "welcome.html";
-    const homeRoute = mobile ? "m/index.html" : "index.html";
-    document.querySelectorAll("a,button,.cursor-pointer").forEach((el) => {
-      const text = el.innerText.trim();
-      if (text === "Log in") el.setAttribute("data-nav", loginRoute);
-      if (text === "Sign up") el.setAttribute("data-nav", "signup/index.html");
-      if (/^(Try it for free|Get started)/.test(text) && !el.closest("footer")) {
-        el.setAttribute("data-nav", welcomeRoute);
-      }
-    });
-    const logo = document.querySelector('header img[alt="Chessbook"]');
-    if (logo) {
-      logo.style.cursor = "pointer";
-      logo.addEventListener("click", () => go(homeRoute));
-    }
-    return;
-  }
-  if (page === "welcome.html" || page === "login.html") {
-    document.querySelectorAll("button,a").forEach((el) => {
-      const text = el.innerText.trim();
-      const y = el.getBoundingClientRect().y;
-      if (text === "Log in" && (page === "welcome.html" || y < 150)) {
-        el.setAttribute("data-nav", "login.html");
-      }
-      if (text === "Sign up") el.setAttribute("data-nav", mobile ? "../signup/index.html" : "signup/index.html");
-      if (text === "Get started" && el.closest("[data-testid]") == null) {
-        el.setAttribute("data-nav", "index.html");
-      }
-      if (text === "Back") el.setAttribute("data-nav", "index.html");
-    });
-    if (page === "login.html") initAuthForms();
-  }
-}
-
 /* ------------------------------------------------------------------ init --- */
 function initTextRoutes() {
   // Convert the empty logo button into a home link.
@@ -584,7 +506,6 @@ function main() {
     "index.html", "repertoire-white.html", "repertoire-black.html",
     "build-white.html", "gap-white.html", "learn-white.html",
     "practice-white.html", "settings.html", "model.html", "add.html",
-    "welcome.html", "login.html",
   ]);
   if (mobile && mobileScreens.has(page) && !location.pathname.includes("/m/")) {
     location.replace(root + "m/" + page);
@@ -592,7 +513,6 @@ function main() {
   }
   document.addEventListener("click", handleClick, true);
   initTextRoutes();
-  initMarketing();
   if (page === "practice-white.html") initPractice();
 }
 

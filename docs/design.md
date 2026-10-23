@@ -209,4 +209,4 @@ This is why mobile pages under `m/` are separate captures. Desktop pages redirec
 - Introduce a new accent hue for ordinary actions.
 - Add large shadows, gradients or rounded-pill buttons; the app is restrained.
 - Try to make the captured desktop DOM reflow into mobile; use the `m/` captures.
-- Add backend calls or auth assumptions; this is a front-end clone.
+- Avoid cloud or account assumptions; the app is local-first.

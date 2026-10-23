@@ -234,7 +234,7 @@ app/
     pages/          React screens and the captured landing body
     components/     Board, sidebar/rows, toasts, confetti
     styles/app.css  production shell + component styles
-    api.ts/auth.tsx/prefs.ts/chess.ts/sounds.ts
+    api.ts/profile.tsx/prefs.ts/chess.ts/sounds.ts
   public/           manifest, service worker, offline page, fonts, pieces, icons
   dist/             production build (generated)
 server/

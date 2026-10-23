@@ -10,20 +10,20 @@ import { api } from "./api";
 import type { Settings, User } from "./types";
 import { applySettingsPrefs } from "./prefs";
 
-interface AuthValue {
+interface ProfileValue {
   user: User | null;
   loading: boolean;
   refresh: () => Promise<void>;
   setUser: (user: User | null) => void;
 }
 
-const AuthContext = createContext<AuthValue | null>(null);
+const ProfileContext = createContext<ProfileValue | null>(null);
 
 /**
  * Local-first profile hydration. There is no session or credential exchange:
  * the API resolves every request to the single profile stored on this machine.
  */
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,11 +57,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({ user, loading, refresh, setUser }),
     [user, loading, refresh]
   );
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+export function useProfile() {
+  const ctx = useContext(ProfileContext);
+  if (!ctx) throw new Error("useProfile must be used inside ProfileProvider");
   return ctx;
 }

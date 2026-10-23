@@ -7,7 +7,7 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
-import { AuthProvider, useAuth } from "./auth";
+import { ProfileProvider, useProfile } from "./profile";
 import { ToastProvider } from "./components/Toast";
 import { Splash } from "./components/ui";
 import { Dashboard } from "./pages/Dashboard";
@@ -32,7 +32,7 @@ function ScrollToTop() {
 }
 
 function LocalProfile() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useProfile();
   if (loading) return <Splash />;
   if (!user) {
     return (
@@ -48,7 +48,7 @@ function LocalProfile() {
 }
 
 function HomeRoute() {
-  const { loading } = useAuth();
+  const { loading } = useProfile();
   if (loading) return <Splash />;
   let entered = false;
   try {
@@ -62,10 +62,10 @@ function HomeRoute() {
 
 function NotFound() {
   return (
-    <div className="cb-auth-page">
-      <div className="cb-auth-card">
+    <div className="cb-notfound-page">
+      <div className="cb-notfound-card">
         <h1>Page not found</h1>
-        <p className="cb-auth-sub">That page has wandered off the board.</p>
+        <p className="cb-notfound-sub">That page has wandered off the board.</p>
         <Link to="/" className="cb-btn primary wide">
           Back to Chessbook
         </Link>
@@ -77,14 +77,11 @@ function NotFound() {
 export default function App() {
   return (
     <Router>
-      <AuthProvider>
+      <ProfileProvider>
         <ToastProvider>
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<HomeRoute />} />
-            <Route path="/welcome" element={<Navigate to="/" replace />} />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="/register" element={<Navigate to="/" replace />} />
             <Route path="/legal/:kind" element={<LegalPage />} />
             <Route path="/legal" element={<Navigate to="/legal/privacy" replace />} />
 
@@ -105,7 +102,7 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </ToastProvider>
-      </AuthProvider>
+      </ProfileProvider>
     </Router>
   );
 }
