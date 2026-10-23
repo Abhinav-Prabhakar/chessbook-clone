@@ -1,146 +1,110 @@
-# Chessbook — static clone
+# Chessbook — full-stack clone
 
-A pixel-accurate, front-end clone of [chessbook.com](https://chessbook.com/), built as a static site from the real rendered application DOM and the original production CSS.
+A working, full-stack recreation of [chessbook.com](https://chessbook.com/): a React front end, an Express + SQLite API, real chess opening data, accounts, and a complete opening-training loop.
 
-**Live demo:** <https://abhinav-prabhakar.github.io/chessbook-clone/>
+The original captured marketing page is preserved pixel-for-pixel and is still served at `/signup/`. The React app uses the same production CSS, typography, board colours, piece SVGs, and shell geometry (board 520 × 520, 48 px gutter, 650 px sidebar).
 
-The goal of this project is **visual fidelity first**: every screen is captured from the live app, with its real layout, typography, colors, board pieces and CSS, then made navigable with a thin vanilla-JS interaction layer. There is no backend, account system or database.
+## What works
 
-![Chessbook desktop dashboard](docs/assets/dashboard.png)
+- **Exact landing page** — the captured production landing page markup and CSS render at `/`, with working Log in, Sign up, and Try it for free actions.
+- **No-signup trial** — “Try it for free” starts a disposable guest account and drops you straight into the app. No registration or payment details.
+- **Accounts** — register, log in, log out, HttpOnly `cb_session` cookies, bcrypt password hashes, 30-day sessions.
+- **Multiple repertoires** — white/black repertoires, create new ones, and switch between them by ID.
+- **Opening database** — 3,865 real ECO openings imported from the open-source [Lichess chess-openings](https://github.com/lichess-org/chess-openings) TSV set.
+- **Builder tree** — walk from the first move through your repertoire branch by branch, see candidate moves with mastery/eval/peer columns, disable or remove branches, autofill gaps, add alternatives, and import PGN.
+- **Gap finder** — identifies the least-mastered line, shows candidate continuations from the position, and lets you add one directly.
+- **Learn** — practice everything due, just past mistakes, all moves, or a specific opening.
+- **Practice** — click-to-move board with legal move dots, API-validated answers, wrong-move feedback, show-answer, per-session accuracy, and spaced scheduling (3 days correct / 30 days mastered).
+- **Model games** — play through annotated master games with an evaluation graph, move list, keyboard controls, hints, and saved progress.
+- **Settings** — rating, coverage, connected accounts, daily goal, board theme, coordinates, legal-move dots, sound, haptics, and progress reset. Board preferences apply throughout the app.
+- **Legal pages** — privacy, fulfillment, and terms.
+- **Responsive layout** — desktop and mobile shells, including a mobile board/sidebar stack.
+- **SQLite persistence** — users, sessions, repertoires, lines, attempts, settings, openings, and model games.
 
-## What is included
+## Stack
 
-- **Desktop app screens** — dashboard, white/black repertoires, build, biggest gap, learn, practice, settings, model games, add-new.
-- **Mobile app screens** — captured at 390 × 844 and served from `m/`; desktop pages redirect automatically below 768 px.
-- **Auth/onboarding** — welcome tutorial and login screens, with the supplied demo credentials prefilled.
-- **Marketing site** — the full signup/landing page at `signup/index.html`.
-- **Legal pages** — privacy policy and fulfillment policy.
-- **Working interactions**:
-  - sidebar + breadcrumb navigation
-  - back buttons per screen
-  - practice board: select a piece, see legal moves, play `Nf3`, get correct/wrong feedback
-  - “show me the answer” and “view in build mode”
-  - autofill-gap flow
-  - fake login/signup/logout navigation
-  - toasts and move highlights
-- **Premium/demo state unlocked** — the captured account is a logged-in Pro account with 4% white repertoire, 7 saved lines, 34% mastered, 6 due.
+- **Frontend:** React 19, React Router 7, Vite 8, TypeScript, `chess.js`
+- **Backend:** Express 5, Node 26 built-in `node:sqlite`, `bcryptjs`, `cookie-parser`
+- **Data:** Lichess ECO openings TSV files in `server/data/`
+- **Styles/assets:** original production CSS (`_build/assets`), Jost/Inter fonts, and Chessbook monochrome piece SVGs
 
-![Chessbook mobile dashboard](docs/assets/dashboard-mobile.png)
-
-## Quick start
-
-Any static file server works. From the repository root:
-
-```bash
-python3 -m http.server 4173
-# open http://localhost:4173/
-```
-
-Or use the Node dev dependency:
+## Run it
 
 ```bash
 npm install
-npx serve .
+npm run dev
 ```
 
-The site is plain HTML/CSS/JS. There is no build step required to run it.
+- React/Vite: <http://localhost:5173>
+- API/Express: <http://localhost:8787>
 
-## Demo login
+The Vite dev server proxies `/api`, `/signup`, `/_build`, `/homepage_imgs`, `/pieces`, and `/site_manifest.json` to Express.
 
-The login screen is prefilled with:
+### Production
+
+```bash
+npm run build
+npm start
+# open http://localhost:8787
+```
+
+Express serves the built React app from `app/dist`, the original marketing page at `/signup/`, and the shared production assets.
+
+### Reset the demo database
+
+```bash
+npm run db:reset
+```
+
+This deletes `server/data/chessbook.db*` and recreates the demo account, both 50-line repertoires, the opening DB, model game, and settings.
+
+## Demo account
 
 - **Email:** `local@chessbook.local`
 - **Password:** `local-only`
 
-Submitting the form (or pressing Enter) goes to the dashboard. No request is sent anywhere.
+The demo starts with the captured state: 4 % white completion, 34 % mastery, 7 saved lines, 6 lines due, and a black repertoire ready to start.
+
+Or click **Try it for free** on the landing page for a guest account with the same starter repertoire, no signup needed.
 
 ## Routes
 
 | Route | Screen |
 | --- | --- |
-| `/index.html` | Dashboard |
-| `/repertoire-white.html` | White repertoire overview |
-| `/repertoire-black.html` | Black repertoire overview |
-| `/build-white.html` | Build / line editor |
-| `/gap-white.html` | Biggest gap |
-| `/learn-white.html` | Learn |
-| `/practice-white.html` | Practice session |
-| `/settings.html` | Settings |
-| `/model.html` | Model game |
-| `/add.html` | Add new repertoire |
-| `/welcome.html` | Onboarding tutorial |
-| `/login.html` | Log in |
-| `/signup/index.html` | Marketing / signup landing page |
-| `/privacy-policy.html` | Privacy policy |
-| `/fulfillment_policy.html` | Fulfillment policy |
-| `/m/...` | Mobile versions of the app/auth screens |
+| `/` | Landing page when logged out; dashboard when logged in |
+| `/login`, `/register` | Account screens |
+| `/repertoire/:id` | Repertoire overview (also accepts `white`/`black`) |
+| `/build/:id` | Builder tree (`?path=e4,c5`, `?line=…`, `?add=1`) |
+| `/gap/:id` | Biggest-gap candidate finder |
+| `/learn/:id` | Training mode selector |
+| `/practice/:id` | Practice session (`?mode=due|weak|all`, `?line=…`) |
+| `/model`, `/model/:id` | Model games |
+| `/settings` | Settings |
+| `/add` | Create a repertoire |
+| `/legal/:kind` | Privacy, fulfillment, terms |
+| `/signup/` | Original captured marketing page |
 
-## Project structure
+## Project layout
 
 ```text
-.
-├── index.html … add.html      # desktop app screens (real captured DOM)
-├── welcome.html, login.html   # auth screens
-├── signup/index.html          # marketing page
-├── privacy-policy.html        # legal pages
-├── fulfillment_policy.html
-├── m/                         # mobile captures (390 × 844)
-├── _build/assets/             # original production CSS + fonts
-├── pieces/chessbook_monochrome/  # piece SVGs
-├── homepage_imgs/             # marketing imagery
-├── js/boot.js                 # all clone interactivity
-├── js/vendor/chess.js         # legal-move validation for the practice board
-├── tools/build_pages.py       # regenerates pages from local snapshots
-├── docs/                      # design system, site map, plan, handoff notes
-└── legacy/                    # superseded hand-built first pass (not loaded)
+app/
+  src/
+    pages/          React screens, including the exact landing body
+    components/     Board, sidebar/rows, toasts
+    styles/app.css  production shell + component styles
+    api.ts/auth.tsx/prefs.ts/chess.ts
+  public/           fonts, pieces, images, favicons
+  dist/             production build (generated)
+server/
+  api.js            auth, repertoires, practice, settings, model games
+  db.js             schema, opening import, seed data
+  index.js          Express app + marketing bridge + SPA serving
+  data/*.tsv        3,865 Lichess ECO openings
+  reset.js          demo database reset
 ```
 
-## How it was built
+The old static clone pages are still in the repository root for reference and GitHub Pages, but the React app is the primary experience.
 
-1. **Capture**: the authenticated app was driven with Playwright at 1440 × 900 and 390 × 844; the rendered `#app` DOM was saved for each route.
-2. **Localize**: production CSS bundles, fonts, piece SVGs, favicons and marketing images were downloaded locally.
-3. **Generate**: `tools/build_pages.py` extracts the `#app` subtree, strips the framework hydration scripts, rewrites root-absolute URLs for GitHub Pages subpaths, injects navigation attributes, and writes the static pages.
-4. **Animate/behave**: `js/boot.js` adds routing, auth-form behaviour, the practice board, toasts and feedback. It loads `chess.js` only on the practice page.
+## Data and attribution
 
-The raw capture workspace (`recon/`) is intentionally gitignored; the committed HTML is already generated. To regenerate from scratch you need those local snapshots and the original production assets.
-
-## Deployment
-
-The site is designed to work from a GitHub Pages project subpath (for example `/chessbook/`):
-
-- All asset URLs are relative.
-- `signup/index.html` uses `<base href="../">` so its marketing links resolve from the repo root.
-- Desktop pages redirect to `m/<page>` under 768 px.
-- The root-absolute URLs from production (`/pieces/`, `/_build/`, `/homepage_imgs/`, inline `url(...)` and `srcset`) are rewritten at generation time.
-
-The repository is deployed to GitHub Pages with a branch source (`main`, `/`) and a `.nojekyll` file so the `_build/` directory is published:
-
-**<https://abhinav-prabhakar.github.io/chessbook-clone/>**
-
-To deploy a fork, push it to GitHub and enable Pages on the `main` branch root.
-
-## Testing
-
-The local Playwright checks used during development live in `recon/` (not committed). They cover:
-
-- desktop navigation across all primary flows
-- mobile redirect + mobile navigation
-- practice-board move validation and show-answer
-- login/signup/welcome flows
-- a simulated GitHub Pages subpath with zero 404s
-
-## Known limitations
-
-- Static UI clone only: no real authentication, repertoire editing, sync or persistence.
-- Practice contains the captured position after `1.e4 c5` with `Nf3` as the expected move; other training content is presentational.
-- The desktop DOM contains inline styles captured at 1440 px. That is why mobile screens are separate captures rather than a reflow of the desktop markup.
-- Some production controls are intentionally inert; only the main navigation and training loop are wired.
-- External links (Lichess analysis, social links, app stores) go to the real services.
-- This is a study/portfolio clone, not affiliated with Chessbook.
-
-## Design documentation
-
-- [Design system](docs/design.md)
-- [Site map](docs/SITE-MAP.md)
-- [Build plan](docs/PLAN.md)
-- [Handoff / context](docs/CONTEXT.md)
+Opening data comes from the open-source [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) dataset. Chessbook branding and the captured page design belong to Chessbook; this is a study/portfolio recreation and is not affiliated with Chessbook.

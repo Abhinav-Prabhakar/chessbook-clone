@@ -1,24 +1,46 @@
 {
   "name": "chessbook",
   "version": "1.0.0",
-  "description": "Pixel-accurate static clone of chessbook.com",
+  "description": "Chessbook \u2014 full-stack opening repertoire trainer (React + Express + SQLite)",
   "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "serve": "python3 -m http.server 4173",
-    "build": "python3 tools/build_pages.py"
+    "dev": "concurrently -k -n api,web -c cyan,green \"npm:dev:server\" \"npm:dev:app\"",
+    "dev:server": "node server/index.js",
+    "dev:app": "vite --config app/vite.config.ts",
+    "build": "npm run build:app",
+    "build:app": "vite build --config app/vite.config.ts",
+    "build:static": "python3 tools/build_pages.py",
+    "start": "node server/index.js",
+    "preview": "vite preview --config app/vite.config.ts",
+    "db:reset": "node server/reset.js",
+    "serve:static": "python3 -m http.server 4173"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
-    "playwright-core": "^1.64.1"
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
+    "playwright-core": "^1.64.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
   },
   "dependencies": {
-    "chess.js": "^1.4.0"
+    "bcryptjs": "^3.0.3",
+    "chess.js": "^1.4.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.4"
   },
   "private": true
 }
