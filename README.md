@@ -1,14 +1,13 @@
 # Chessbook — full-stack clone
 
-A working, full-stack recreation of [chessbook.com](https://chessbook.com/): a React front end, an Express + SQLite API, real chess opening data, accounts, and a complete opening-training loop.
+A working, local-first recreation of [chessbook.com](https://chessbook.com/): a React front end, an Express + SQLite API, real chess opening data, and a complete opening-training loop. There are no accounts or sign-in screens; your repertoires and progress are stored on the machine running the app.
 
 The original captured marketing page is preserved pixel-for-pixel and is still served at `/signup/`. The React app uses the same production CSS, typography, board colours, piece SVGs, and shell geometry (board 520 × 520, 48 px gutter, 650 px sidebar).
 
 ## What works
 
 - **Exact landing page** — the captured production landing page markup and CSS render at `/`, with working Log in, Sign up, and Try it for free actions.
-- **No-signup trial** — “Try it for free” starts a disposable guest account and drops you straight into the app. No registration or payment details.
-- **Accounts** — register, log in, log out, HttpOnly `cb_session` cookies, bcrypt password hashes, 30-day sessions.
+- **Local-first** — “Try it for free” opens the trainer immediately. There is no signup, login, cookie session, or remote account; a single local profile lives in the SQLite database beside the app.
 - **Multiple repertoires** — white/black repertoires, create new ones, and switch between them by ID.
 - **Opening database** — 3,865 real ECO openings imported from the open-source [Lichess chess-openings](https://github.com/lichess-org/chess-openings) TSV set.
 - **Builder tree** — walk from the first move through your repertoire branch by branch, see candidate moves with mastery/eval/peer columns, disable or remove branches, autofill gaps, add alternatives, and import PGN.
@@ -24,7 +23,7 @@ The original captured marketing page is preserved pixel-for-pixel and is still s
 ## Stack
 
 - **Frontend:** React 19, React Router 7, Vite 8, TypeScript, `chess.js`
-- **Backend:** Express 5, Node 26 built-in `node:sqlite`, `bcryptjs`, `cookie-parser`
+- **Backend:** Express 5, Node 26 built-in `node:sqlite`
 - **Data:** Lichess ECO openings TSV files in `server/data/`
 - **Styles/assets:** original production CSS (`_build/assets`), Jost/Inter fonts, and Chessbook monochrome piece SVGs
 
@@ -50,29 +49,19 @@ npm start
 
 Express serves the built React app from `app/dist`, the original marketing page at `/signup/`, and the shared production assets.
 
-### Reset the demo database
+### Reset local data
 
 ```bash
 npm run db:reset
 ```
 
-This deletes `server/data/chessbook.db*` and recreates the demo account, both 50-line repertoires, the opening DB, model game, and settings.
-
-## Demo account
-
-- **Email:** `local@chessbook.local`
-- **Password:** `local-only`
-
-The demo starts with the captured state: 4 % white completion, 34 % mastery, 7 saved lines, 6 lines due, and a black repertoire ready to start.
-
-Or click **Try it for free** on the landing page for a guest account with the same starter repertoire, no signup needed.
+This deletes `server/data/chessbook.db*` and recreates the local profile, both 50-line repertoires, the opening DB, model game, and settings. The starter state is 4 % white completion, 34 % mastery, 7 saved lines, and 6 lines due.
 
 ## Routes
 
 | Route | Screen |
 | --- | --- |
-| `/` | Landing page when logged out; dashboard when logged in |
-| `/login`, `/register` | Account screens |
+| `/` | Landing page before entering; dashboard once you start |
 | `/repertoire/:id` | Repertoire overview (also accepts `white`/`black`) |
 | `/build/:id` | Builder tree (`?path=e4,c5`, `?line=…`, `?add=1`) |
 | `/gap/:id` | Biggest-gap candidate finder |

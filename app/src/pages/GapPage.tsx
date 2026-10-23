@@ -4,7 +4,7 @@ import { api } from "../api";
 import type { Line, Repertoire } from "../types";
 import { Board } from "../components/Board";
 import {
-  Breadcrumb,
+  BoardHeader,
   EmptyState,
   Row,
   Section,
@@ -144,20 +144,15 @@ export function GapPage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">GAP</span>
-          <Link to="/settings" className="cb-top-link">
-            Account
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader
+            items={[
+              { label: repertoire.name, to: `/repertoire/${key}` },
+              { label: "Build", to: `/build/${key}` },
+              { label: "Fill gap" },
+            ]}
+          />
           <Board
             fen={board.fen}
             orientation={repertoire.color}
@@ -191,17 +186,9 @@ export function GapPage() {
         </section>
 
         <Sidebar backTo={`/build/${key}`} backLabel="Back">
-          <Breadcrumb
-            items={[
-              { label: repertoire.name, to: `/repertoire/${key}` },
-              { label: "Build", to: `/build/${key}` },
-              { label: `${repertoire.completion}% complete` },
-            ]}
-          />
-
           {gap ? (
             <>
-              <div className="cb-page-head" style={{ paddingTop: 0 }}>
+              <div className="cb-page-head">
                 <h1 className="cb-page-title">
                   {lastRef ? `Choose a response to ${lastRef}` : "Choose your first move"}
                 </h1>

@@ -4,7 +4,7 @@ import { api } from "../api";
 import type { AttemptResult, Line, PracticeNext, Repertoire } from "../types";
 import { Board } from "../components/Board";
 import {
-  Breadcrumb,
+  BoardHeader,
   EmptyState,
   ProgressRing,
   Row,
@@ -253,20 +253,15 @@ export function PracticePage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">PRACTICE</span>
-          <Link to="/settings" className="cb-top-link">
-            Account
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader
+            items={[
+              { label: stats?.name ?? "Repertoire", to: `/repertoire/${key}` },
+              { label: "Learn", to: `/learn/${key}` },
+              { label: "Practice" },
+            ]}
+          />
           <Board
             fen={fen}
             orientation={color}
@@ -285,7 +280,7 @@ export function PracticePage() {
             }
             onMove={makeMove}
           />
-          <div className="cb-board-footer cb-board-footer-line">
+          <div className="cb-board-footer cb-board-footer-line visible">
             <span className="cb-board-opening">
               {current ? current.name : "Session complete"}
             </span>
@@ -318,17 +313,9 @@ export function PracticePage() {
         </section>
 
         <Sidebar backTo={`/learn/${key}`} backLabel="Exit practice">
-          <Breadcrumb
-            items={[
-              { label: stats?.name ?? "Repertoire", to: `/repertoire/${key}` },
-              { label: "Learn", to: `/learn/${key}` },
-              { label: "Practice" },
-            ]}
-          />
-
           {complete || !current ? (
             <>
-              <div className="cb-page-head" style={{ paddingTop: 0 }}>
+              <div className="cb-page-head">
                 <h1 className="cb-page-title">Session complete</h1>
                 <p className="cb-page-sub">
                   {sessionCorrect} correct · {sessionWrong} missed

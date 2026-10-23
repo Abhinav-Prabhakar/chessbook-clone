@@ -4,7 +4,7 @@ import { api } from "../api";
 import type { Line, Repertoire } from "../types";
 import { Board } from "../components/Board";
 import {
-  Breadcrumb,
+  BoardHeader,
   EmptyState,
   ProgressRing,
   Row,
@@ -92,26 +92,15 @@ export function RepertoirePage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">{repertoire.color === "white" ? "WHITE" : "BLACK"}</span>
-          <Link to="/settings" className="cb-top-link">
-            Account
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader items={[{ label: repertoire.name }]} />
           <Board
             fen={board?.fen ?? START_FEN}
             orientation={color}
             lastMove={board ? { from: board.from, to: board.to } : null}
           />
-          <div className="cb-board-footer">
+          <div className={`cb-board-footer ${selected ? "visible" : ""}`}>
             <span>{selected ? selected.name : "Start position"}</span>
             <a
               href={`https://lichess.org/analysis/standard/${encodeURIComponent(
@@ -126,18 +115,8 @@ export function RepertoirePage() {
         </section>
 
         <Sidebar backTo="/" backLabel="Back">
-          <Breadcrumb
-            items={[
-              { label: "Repertoires", to: "/" },
-              { label: repertoire.name },
-            ]}
-          />
-          <div className="cb-page-head" style={{ paddingTop: 0 }}>
+          <div className="cb-page-head">
             <h1 className="cb-page-title">{repertoire.name}</h1>
-            <p className="cb-page-sub">
-              {repertoire.completion}% complete · {repertoire.mastery}% mastered ·{" "}
-              {repertoire.lineCount} of {repertoire.totalLines} lines
-            </p>
           </div>
 
           <div className="cb-progress-line">
@@ -158,14 +137,13 @@ export function RepertoirePage() {
           </div>
 
           <Row
-            large
             title="Continue building"
             right={<span className="cb-row-meta strong">{repertoire.saved} Saved</span>}
             onClick={() => navigate(`/build/${key}`)}
             testId="continue-building"
           />
 
-          <div className="cb-progress-line" style={{ marginTop: 18 }}>
+          <div className="cb-progress-line" style={{ marginTop: 36 }}>
             <div className="cb-progress-copy">
               <strong>{repertoire.mastery}% mastered</strong>
             </div>
@@ -175,7 +153,6 @@ export function RepertoirePage() {
           </div>
 
           <Row
-            large
             title="Continue learning"
             right={
               <span className="cb-row-meta strong">
@@ -186,66 +163,54 @@ export function RepertoirePage() {
             testId="continue-learning"
           />
 
-          <Section
-            title={
-              <span className="cb-stats-title">
-                Stats <i className="fa fa-circle-info" aria-hidden />
-              </span>
-            }
-          >
-            <div className="cb-metrics">
-              <Metric label="Effectiveness" value={repertoire.learned} max={repertoire.totalLines} tone="green" />
-              <Metric label="Soundness" value={repertoire.mastery} max={100} tone="green" />
-              <Metric label="Learnability" value={Math.max(0, 100 - repertoire.mastery)} max={100} tone="orange" />
-              <div className="cb-metric total">
-                <span className="cb-metric-label">Total</span>
-                <strong>
-                  {repertoire.learned + repertoire.mastered + repertoire.saved}/
-                  {repertoire.totalLines * 3}
-                </strong>
-              </div>
-            </div>
-          </Section>
-
-          <Section title="Settings">
-            <Row ghost title="Training settings" to="/settings" />
-          </Section>
-
-          <Section title={`Lines (${lines.length})`}>
-            {lines.length === 0 ? (
-              <EmptyState
-                title="No lines yet"
-                action={
-                  <Link className="cb-btn primary" to={`/build/${key}?add=1`}>
-                    Add your first line
-                  </Link>
-                }
+          <div className="cb-stats-block">
+            <div className="cb-stats-head">
+              <span>Stats</span>
+              <a
+                href="https://wiki.chessbook.com/repertoire-statistics"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="About repertoire statistics"
               >
-                Add a line from the opening database or import a PGN to get started.
-              </EmptyState>
-            ) : (
-              lines.slice(0, 12).map((line) => (
-                <Row
-                  key={line.id}
-                  title={line.name}
-                  meta={line.moves.join(" ")}
-                  right={
-                    <span className="cb-row-right">
-                      <span className="cb-row-meta">{formatDue(line.dueAt)}</span>
-                      <ProgressRing value={line.mastered} size={12} />
-                    </span>
-                  }
-                  onClick={() => setSelectedId(line.id)}
-                  className={selected?.id === line.id ? "selected" : ""}
-                />
-              ))
-            )}
-          </Section>
+                <i className="fa fa-circle-question" aria-hidden />
+              </a>
+            </div>
+            <div className="cb-metrics">
+              <Metric
+                label="Effectiveness"
+                value={repertoire.learned}
+                max={Math.max(1, repertoire.totalLines * 3)}
+                tone="danger"
+              />
+              <span className="cb-metric-divider" aria-hidden />
+              <Metric
+                label="Soundness"
+                value={repertoire.mastery}
+                max={100}
+                tone="green"
+              />
+              <span className="cb-metric-divider" aria-hidden />
+              <Metric
+                label="Learnability"
+                value={Math.max(0, 100 - repertoire.mastery)}
+                max={100}
+                tone="orange"
+              />
+              <span className="cb-metric-divider" aria-hidden />
+              <Metric
+                label="Total"
+                value={repertoire.learned + repertoire.mastered + repertoire.saved}
+                max={repertoire.totalLines * 3}
+                total
+              />
+            </div>
+          </div>
 
-          <Section title="Manage">
-            <Row ghost title="Add lines from the opening database" to={`/build/${key}?add=1`} />
-            <Row ghost title="Repertoire settings" to="/settings" />
-          </Section>
+          <div className="cb-rep-settings-link">
+            <Link to="/settings">Settings</Link>
+          </div>
+
+
         </Sidebar>
       </main>
     </div>
@@ -256,20 +221,29 @@ function Metric({
   label,
   value,
   max,
-  tone,
+  tone = "green",
+  total = false,
 }: {
   label: string;
   value: number;
   max: number;
-  tone: "green" | "orange";
+  tone?: "green" | "orange" | "danger";
+  total?: boolean;
 }) {
-  const width = max ? Math.max(2, Math.min(100, (value / max) * 100)) : 0;
+  const width = max ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
   return (
     <div className="cb-metric">
       <span className="cb-metric-label">{label}</span>
-      <span className="cb-metric-value">{value}</span>
-      <span className={`cb-metric-bar ${tone}`}>
-        <span style={{ width: `${width}%` }} />
+      <span className="cb-metric-value">
+        {!total && (
+          <span className={`cb-segbar ${tone}`} aria-hidden>
+            <span style={{ width: `${width}%` }} />
+          </span>
+        )}
+        <span className="cb-metric-number">
+          {value}
+          {total && <span className="cb-metric-denom"> / {max}</span>}
+        </span>
       </span>
     </div>
   );

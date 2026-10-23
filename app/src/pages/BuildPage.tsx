@@ -4,7 +4,7 @@ import { api } from "../api";
 import type { Line, Opening, Repertoire } from "../types";
 import { Board } from "../components/Board";
 import {
-  Breadcrumb,
+  BoardHeader,
   EmptyState,
   Modal,
   ProgressRing,
@@ -193,6 +193,7 @@ export function BuildPage() {
   const side = path.length % 2 === 0 ? "white" : "black";
   const lineForBoard =
     candidates[0]?.lines[0] ?? lines.find((l) => l.moves.length >= path.length) ?? null;
+  const displayCandidates = path.length === 0 ? candidates.slice(0, 1) : candidates;
 
   const setPath = (next: string[], options?: { replace?: boolean }) => {
     setParams(
@@ -305,26 +306,20 @@ export function BuildPage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">BUILD</span>
-          <Link to="/settings" className="cb-top-link">
-            Account
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader
+            items={[
+              { label: repertoire.name, to: `/repertoire/${key}` },
+              { label: "Build" },
+            ]}
+          />
           <Board
             fen={board.fen}
             orientation={color}
             lastMove={lastPathMove ? { from: board.from, to: board.to } : null}
           />
-          <div className="cb-board-footer cb-board-footer-line">
+          <div className={`cb-board-footer cb-board-footer-line ${path.length ? "visible" : ""}`}>
             <span className="cb-board-opening" title={path.length ? lineForBoard?.name ?? repertoire.name : repertoire.name}>
               {path.length ? lineForBoard?.name ?? repertoire.name : repertoire.name}
             </span>
@@ -360,13 +355,7 @@ export function BuildPage() {
         </section>
 
         <Sidebar backTo={`/repertoire/${key}`} backLabel="Back">
-          <Breadcrumb
-            items={[
-              { label: repertoire.name, to: `/repertoire/${key}` },
-              { label: "Build" },
-            ]}
-          />
-          <div className="cb-page-head" style={{ paddingTop: 0 }}>
+          <div className="cb-page-head">
             <h1 className="cb-page-title">Continue building</h1>
           </div>
 
@@ -418,7 +407,7 @@ export function BuildPage() {
                   : "Add an opening from the database or import a PGN."}
               </EmptyState>
             ) : (
-              candidates.map((candidate) => (
+              displayCandidates.map((candidate) => (
                 <div className="cb-candidate" key={candidate.san}>
                   <button
                     type="button"
@@ -431,19 +420,7 @@ export function BuildPage() {
                     </span>
                     <span className="cb-candidate-copy">
                       <strong>{candidate.name}</strong>
-                      <span>{candidate.note}</span>
                       <span className="cb-candidate-actions">
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            disableBranch(candidate);
-                          }}
-                          onKeyDown={() => {}}
-                        >
-                          Disable
-                        </span>
                         <span
                           role="button"
                           tabIndex={0}
@@ -454,6 +431,17 @@ export function BuildPage() {
                           onKeyDown={() => {}}
                         >
                           Remove
+                        </span>
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            disableBranch(candidate);
+                          }}
+                          onKeyDown={() => {}}
+                        >
+                          Disable
                         </span>
                       </span>
                     </span>
@@ -471,26 +459,16 @@ export function BuildPage() {
                 </div>
               ))
             )}
-          </Section>
-
-          <Section title="">
             <Row
               title="Add an alternative move"
-              meta={path.length ? `Continue from ${path.length} plies` : "Choose a first move"}
               onClick={() => setShowAdd(true)}
+              className="cb-build-alt-row"
             />
             <Row
               title="Go to your biggest gap"
-              meta="Automatically pick the least-mastered line"
               onClick={() => navigate(`/gap/${key}`)}
+              className="cb-build-gap-row"
             />
-            {selected && (
-              <Row
-                title="Practice the selected line"
-                meta={selected.name}
-                onClick={() => navigate(`/practice/${key}?line=${selected.id}`)}
-              />
-            )}
           </Section>
 
           <Section title={`All lines (${lines.length})`}>

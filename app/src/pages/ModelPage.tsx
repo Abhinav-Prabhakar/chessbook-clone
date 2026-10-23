@@ -4,7 +4,7 @@ import { api } from "../api";
 import type { ModelGame } from "../types";
 import { Board } from "../components/Board";
 import {
-  Breadcrumb,
+  BoardHeader,
   EmptyState,
   ProgressRing,
   Row,
@@ -139,20 +139,9 @@ export function ModelPage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">MODEL</span>
-          <Link to="/settings" className="cb-top-link">
-            Account
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader items={[{ label: "Model games" }]} />
           <Board
             fen={fen}
             lastMove={move ? { from: move.from, to: move.to } : null}
@@ -172,8 +161,7 @@ export function ModelPage() {
         </section>
 
         <Sidebar backTo="/" backLabel="Back">
-          <Breadcrumb items={[{ label: "Daily tasks", to: "/" }, { label: "Model game" }]} />
-          <div className="cb-page-head" style={{ paddingTop: 0 }}>
+          <div className="cb-page-head">
             <h1 className="cb-page-title">
               {game.white} <span className="cb-vs">vs.</span> {game.black}
             </h1>

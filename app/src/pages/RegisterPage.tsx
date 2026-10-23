@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Board } from "../components/Board";
-import { Breadcrumb, Sidebar } from "../components/ui";
+import { BoardHeader, Sidebar } from "../components/ui";
 import { useAuth } from "../auth";
 import { START_FEN } from "../chess";
 
@@ -41,29 +41,14 @@ export function RegisterPage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <Link to="/login" className="cb-top-link">
-            Log in
-          </Link>
-          <span className="cb-top-sep">|</span>
-          <Link to="/register" className="cb-top-link">
-            Sign up
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader />
           <Board fen={START_FEN} />
         </section>
 
-        <Sidebar backTo="/" backLabel="Back">
-          <Breadcrumb items={[{ label: "Account", to: "/" }, { label: "Sign up" }]} />
-          <div className="cb-page-head" style={{ paddingTop: 0 }}>
+        <Sidebar auth backTo="/" backLabel="Back">
+          <div className="cb-page-head">
             <h1 className="cb-page-title">Sign up</h1>
             <p className="cb-page-sub">Start with a free repertoire. No credit card required.</p>
           </div>

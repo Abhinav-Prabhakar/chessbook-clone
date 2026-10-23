@@ -4,7 +4,7 @@ import { api } from "../api";
 import type { Settings } from "../types";
 import { Board } from "../components/Board";
 import {
-  Breadcrumb,
+  BoardHeader,
   Modal,
   Row,
   Section,
@@ -139,20 +139,9 @@ export function SettingsPage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">{user.plan.toUpperCase()}</span>
-          <Link to="/" className="cb-top-link">
-            Dashboard
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader />
           <Board
             fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
             theme={settings.boardTheme}
@@ -166,8 +155,7 @@ export function SettingsPage() {
         </section>
 
         <Sidebar backTo="/" backLabel="Back">
-          <Breadcrumb items={[{ label: "Account", to: "/" }, { label: "Settings" }]} />
-          <div className="cb-page-head" style={{ paddingTop: 0 }}>
+          <div className="cb-page-head">
             <h1 className="cb-page-title">Settings</h1>
             <p className="cb-page-sub">Tune your training, board, and connected accounts.</p>
           </div>

@@ -4,7 +4,7 @@ import { api } from "../api";
 import type { Line, Repertoire } from "../types";
 import { Board } from "../components/Board";
 import {
-  Breadcrumb,
+  BoardHeader,
   EmptyState,
   Modal,
   ProgressRing,
@@ -78,20 +78,14 @@ export function LearnPage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">LEARN</span>
-          <Link to="/settings" className="cb-top-link">
-            Account
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader
+            items={[
+              { label: repertoire.name, to: `/repertoire/${key}` },
+              { label: "Learn" },
+            ]}
+          />
           <Board
             fen={board?.fen ?? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"}
             orientation={repertoire.color}
@@ -112,13 +106,7 @@ export function LearnPage() {
         </section>
 
         <Sidebar backTo={`/repertoire/${key}`} backLabel="Back">
-          <Breadcrumb
-            items={[
-              { label: repertoire.name, to: `/repertoire/${key}` },
-              { label: "Learn" },
-            ]}
-          />
-          <div className="cb-page-head" style={{ paddingTop: 0 }}>
+          <div className="cb-page-head">
             <h1 className="cb-page-title">What do you want to practice?</h1>
           </div>
 

@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import type { Color, Repertoire } from "../types";
 import { Board } from "../components/Board";
-import { Breadcrumb, Row, Section, Sidebar, Splash } from "../components/ui";
+import { BoardHeader, Row, Section, Sidebar, Splash } from "../components/ui";
 import { START_FEN } from "../chess";
 import { useToast } from "../components/Toast";
 
@@ -46,20 +46,9 @@ export function AddPage() {
 
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">ADD</span>
-          <Link to="/" className="cb-top-link">
-            Dashboard
-          </Link>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader />
           <Board fen={START_FEN} orientation={color} />
           <div className="cb-board-footer">
             <span>New repertoire</span>
@@ -67,8 +56,7 @@ export function AddPage() {
         </section>
 
         <Sidebar backTo="/" backLabel="Back">
-          <Breadcrumb items={[{ label: "Repertoires", to: "/" }, { label: "Add new" }]} />
-          <div className="cb-page-head" style={{ paddingTop: 0 }}>
+          <div className="cb-page-head">
             <h1 className="cb-page-title">Add new repertoire</h1>
             <p className="cb-page-sub">
               A repertoire is a collection of openings for a particular color.

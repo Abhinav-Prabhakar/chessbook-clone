@@ -37,24 +37,40 @@ export function Splash({ label = "Loading your repertoire…" }: { label?: strin
 export function Sidebar({
   children,
   settings = true,
+  auth = false,
   backTo,
   backLabel = "Back",
   className = "",
 }: {
   children: ReactNode;
   settings?: boolean;
+  auth?: boolean;
   backTo?: string;
   backLabel?: string;
   className?: string;
 }) {
   return (
     <aside className={`cb-sidebar ${className}`}>
-      {settings && (
-        <div className="cb-sidebar-settings">
+      {auth ? (
+        <div className="cb-sidebar-settings cb-auth-top-links">
           <Link to="/settings" className="cb-settings-link">
             Settings <i className="fa fa-gear" aria-hidden />
           </Link>
+          <Link to="/login" className="cb-top-link">
+            Log in
+          </Link>
+          <Link to="/register" className="cb-top-link cb-top-link-signup">
+            Sign up
+          </Link>
         </div>
+      ) : (
+        settings && (
+          <div className="cb-sidebar-settings">
+            <Link to="/settings" className="cb-settings-link">
+              Settings <i className="fa fa-gear" aria-hidden />
+            </Link>
+          </div>
+        )
       )}
       {backTo && (
         <div className="cb-back-row">
@@ -65,6 +81,35 @@ export function Sidebar({
       )}
       {children}
     </aside>
+  );
+}
+
+export function BoardHeader({
+  items = [],
+}: {
+  items?: { label: string; to?: string }[];
+}) {
+  if (items.length === 0) {
+    return <div className="cb-board-header cb-board-header-empty" aria-hidden />;
+  }
+  return (
+    <nav className="cb-board-header" aria-label="Breadcrumb">
+      <Link to="/" className="cb-board-mark" aria-label="Chessbook home">
+        <img src="/chessbook-mark.svg" alt="" />
+      </Link>
+      {items.map((item, index) => (
+        <span className="cb-board-crumb" key={`${item.label}-${index}`}>
+          <i className="fa fa-angle-right cb-board-sep" aria-hidden />
+          {item.to ? (
+            <Link to={item.to} className="cb-board-crumb-link">
+              {item.label}
+            </Link>
+          ) : (
+            <span className="cb-board-crumb-current">{item.label}</span>
+          )}
+        </span>
+      ))}
+    </nav>
   );
 }
 

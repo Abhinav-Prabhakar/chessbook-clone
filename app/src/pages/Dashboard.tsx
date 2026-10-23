@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { api } from "../api";
 import type { DashboardData } from "../types";
 import { Board } from "../components/Board";
 import {
+  BoardHeader,
   RepertoireRow,
   Row,
   Section,
   Sidebar,
   Splash,
-  Stat,
 } from "../components/ui";
-import { useAuth } from "../auth";
 import { useToast } from "../components/Toast";
 
 export function Dashboard() {
-  const { logout } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState("");
 
@@ -45,30 +42,14 @@ export function Dashboard() {
 
   if (!data) return <Splash />;
 
-  const white = data.repertoires.find((r) => r.color === "white");
   const practiceTarget =
     data.repertoires.find((r) => r.due > 0) ?? data.repertoires[0] ?? null;
 
-  const logoutNow = async () => {
-    await logout();
-    toast("Signed out", "info");
-    navigate("/login");
-  };
-
   return (
     <div className="cb-app">
-      <header className="cb-topbar">
-        <Link to="/" className="cb-logo" aria-label="Chessbook home">
-          <img src="/homepage_imgs/chessbook.svg" alt="Chessbook" />
-        </Link>
-        <div className="cb-top-actions">
-          <span className="cb-plan-pill">{data.user.plan.toUpperCase()}</span>
-          <span className="cb-top-link">Hi, {data.user.name}</span>
-        </div>
-      </header>
-
       <main className="cb-main">
         <section className="cb-board-col">
+          <BoardHeader />
           <Board fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" />
           <div className="cb-board-footer">
             <span>Start position</span>
@@ -78,12 +59,12 @@ export function Dashboard() {
           </div>
         </section>
 
-        <Sidebar>
+        <Sidebar className="cb-sidebar-dashboard">
           <Section
             title="Repertoires"
             action={
               <Link to="/add" className="cb-link">
-                Add new
+                Add new <i className="fa fa-plus" aria-hidden />
               </Link>
             }
           >
@@ -131,28 +112,20 @@ export function Dashboard() {
             title="Review your online games"
             action={
               <Link to="/settings" className="cb-link">
-                Connect account
+                Connect account <i className="fa fa-link" aria-hidden />
               </Link>
             }
           >
             <Row
               title="Correct your opening mistakes"
-              meta="Not connected"
+              right={<span className="cb-row-meta">Not connected</span>}
               onClick={() => toast("Connect a Lichess or Chess.com account in Settings.", "info")}
             />
             <Row
               title="View performance by opening"
-              meta="Not connected"
+              right={<span className="cb-row-meta">Not connected</span>}
               onClick={() => toast("Connect a Lichess or Chess.com account in Settings.", "info")}
             />
-          </Section>
-
-          <Section title="Your progress">
-            <div className="cb-stat-grid" style={{ padding: 0 }}>
-              <Stat value={`${white?.completion ?? 0}%`} label="White" hint="Repertoire" />
-              <Stat value={`${data.tasks.mastered}`} label="Mastered" hint="Lines" />
-              <Stat value={`${data.tasks.saved}`} label="Saved" hint="Lines" />
-            </div>
           </Section>
 
           <Section title="Contact us">
@@ -178,11 +151,6 @@ export function Dashboard() {
             />
           </Section>
 
-          <div className="cb-actions" style={{ marginTop: 22 }}>
-            <button type="button" className="cb-btn ghost wide" onClick={logoutNow}>
-              <i className="fa fa-arrow-right-from-bracket" aria-hidden /> Sign out
-            </button>
-          </div>
         </Sidebar>
       </main>
     </div>
