@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#131516" />
+    <title>Offline · Chessbook</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; background: #131516; color: #f5f5f5; }
+      body {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+      }
+      main { width: min(430px, 100%); text-align: center; }
+      img { width: 48px; height: auto; margin-bottom: 26px; }
+      h1 { margin: 0 0 8px; font-family: Jost, Inter, sans-serif; font-size: 30px; font-weight: 500; }
+      p { margin: 0 0 24px; color: #8b9599; font-size: 14px; line-height: 1.6; }
+      button {
+        min-height: 40px;
+        padding: 10px 18px;
+        border: 0;
+        border-radius: 6px;
+        background: #80d877;
+        color: #0b1a10;
+        font: 600 13px Inter, system-ui, sans-serif;
+        cursor: pointer;
+      }
+      small { display: block; margin-top: 22px; color: #687377; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/chessbook-mark.svg" alt="" />
+      <h1>You are offline</h1>
+      <p>
+        Chessbook is installed and ready. Reconnect to load your local training data, or retry
+        once the connection is back.
+      </p>
+      <button type="button" onclick="location.reload()">Try again</button>
+      <small>Your progress is stored on this machine.</small>
+    </main>
+  </body>
+</html>

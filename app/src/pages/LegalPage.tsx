@@ -25,33 +25,31 @@ const content: Record<Kind, { title: string; updated: string; body: React.ReactN
         </p>
         <h2>Information we collect</h2>
         <ul>
-          <li>Account details: your name, email address, and password hash.</li>
+          <li>Local profile: the display name you choose in Settings.</li>
           <li>Training data: repertoires, lines, attempts, and mastery progress.</li>
-          <li>Usage data: pages visited, browser type, and aggregate performance information.</li>
           <li>Connected accounts: your public username on Lichess or Chess.com, if you connect one.</li>
         </ul>
         <h2>How we use your information</h2>
         <p>
-          We use your information to operate the service, save your repertoire and progress,
-          schedule practice, respond to support requests, and improve the product. We do not sell
-          your personal data.
+          Everything is used locally to save your repertoire and progress, schedule practice, and
+          restore your display preferences. There is no account sync and no personal data is sent
+          to a Chessbook server.
         </p>
-        <h2>Cookies and sessions</h2>
+        <h2>Local storage and cookies</h2>
         <p>
-          Chessbook uses a single HttpOnly session cookie to keep you signed in. Local preferences
-          such as board theme and connected usernames may be stored in your browser. You can clear
-          these at any time in your browser settings.
+          Your repertoire lives in a SQLite database on the machine running the app. Board theme,
+          sound, and similar preferences are also stored in your browser. You can clear them at any
+          time from Settings or your browser settings.
         </p>
         <h2>Security</h2>
         <p>
-          Passwords are hashed with bcrypt and sessions expire after 30 days. No method of
-          transmission over the internet is completely secure, but we work to protect your data
-          using industry-standard practices.
+          The app does not create passwords or sessions. Access to the local database is controlled
+          by your operating system account and file permissions.
         </p>
         <h2>Your rights</h2>
         <p>
-          You may request access to, correction of, or deletion of your personal data by contacting
-          us. You can also reset your training progress from Settings and sign out at any time.
+          You can edit your display name, reset training progress, or delete the local database at
+          any time. Uninstalling the app or removing its data folder deletes the stored profile.
         </p>
         <h2>Contact</h2>
         <p className="contact">
@@ -116,14 +114,13 @@ const content: Record<Kind, { title: string; updated: string; body: React.ReactN
     body: (
       <>
         <p>
-          These Terms govern your use of Chessbook. By creating an account or using the service, you
-          agree to these Terms.
+          These Terms govern your use of Chessbook. By using the local app, you agree to these
+          Terms.
         </p>
-        <h2>Your account</h2>
+        <h2>Your local profile</h2>
         <p>
-          You are responsible for keeping your login credentials secure and for all activity under
-          your account. You must provide accurate information and be old enough to enter into a
-          binding agreement in your jurisdiction.
+          The app stores a single local profile on your device. You are responsible for access to
+          that device and for keeping your own backups of the local database.
         </p>
         <h2>Acceptable use</h2>
         <ul>

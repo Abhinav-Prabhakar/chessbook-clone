@@ -37,13 +37,13 @@ export function LearnPage() {
       .get<Data>(`/repertoires/${key}/learn`)
       .then((d) => {
         setData(d);
-        setSelectedId(d.queue[0]?.id ?? null);
+        setSelectedId(null);
       })
       .catch((e) => setError(e.message));
   }, [key]);
 
   const selected = useMemo(
-    () => data?.queue.find((l) => l.id === selectedId) ?? data?.queue[0] ?? null,
+    () => data?.queue.find((l) => l.id === selectedId) ?? null,
     [data, selectedId]
   );
 
@@ -121,7 +121,6 @@ export function LearnPage() {
 
           <div className="cb-learn-options">
             <Row
-              large
               title="Everything that's due for review"
               right={
                 <span className="cb-row-meta strong">
@@ -132,7 +131,6 @@ export function LearnPage() {
               disabled={dueCount === 0}
             />
             <Row
-              large
               title="Just the moves I often get wrong"
               right={
                 <span className="cb-row-meta strong">
@@ -143,83 +141,17 @@ export function LearnPage() {
               disabled={weakCount === 0}
             />
             <Row
-              large
               title="All moves, even if they're not due"
               right={<span className="cb-row-meta">{repertoire.lineCount} moves</span>}
               onClick={() => start("all")}
               disabled={repertoire.lineCount === 0}
             />
             <Row
-              large
               title="A specific opening…"
-              meta="Pick a line from your repertoire"
               onClick={() => setShowSpecific(true)}
               disabled={repertoire.lineCount === 0}
             />
           </div>
-
-          <Section title="Up next">
-            <div className="cb-stat-grid" style={{ padding: 0 }}>
-              <Stat value={dueCount} label="Due" />
-              <Stat value={`${repertoire.mastery}%`} label="Mastered" />
-              <Stat value={queue.length} label="Queued" />
-            </div>
-          </Section>
-
-          <Section title="Lines in your queue">
-            {queue.length === 0 ? (
-              <EmptyState
-                icon="fa-circle-check"
-                title="All caught up"
-                action={
-                  <Link className="cb-btn" to={`/build/${key}`}>
-                    Add more lines
-                  </Link>
-                }
-              >
-                Nothing is due in this repertoire. Add lines or come back later.
-              </EmptyState>
-            ) : (
-              queue.slice(0, 12).map((line) => (
-                <Row
-                  key={line.id}
-                  title={line.name}
-                  meta={`${line.moves.join(" ")} · ${formatDue(line.dueAt)}`}
-                  className={selected?.id === line.id ? "selected" : ""}
-                  right={
-                    <span className="cb-row-right">
-                      <ProgressRing value={line.mastered} size={12} />
-                      <span className="cb-row-meta">{line.mastered}%</span>
-                    </span>
-                  }
-                  onClick={() => setSelectedId(line.id)}
-                />
-              ))
-            )}
-          </Section>
-
-          {selected && (
-            <Section title="Selected line">
-              <Row
-                title="Practice this line"
-                meta={selected.name}
-                onClick={() => navigate(`/practice/${key}?line=${selected.id}`)}
-              />
-              <Row
-                title="Open in build mode"
-                meta="Inspect and edit the line"
-                onClick={() => navigate(`/build/${key}?line=${selected.id}`)}
-              />
-            </Section>
-          )}
-
-          <Section title="Build">
-            <Row
-              title="Add more lines"
-              meta="Search 3,865 ECO openings or import a PGN"
-              onClick={() => navigate(`/build/${key}`)}
-            />
-          </Section>
         </Sidebar>
       </main>
 

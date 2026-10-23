@@ -1,11 +1,8 @@
 import { Router } from "express";
-import crypto from "node:crypto";
-import bcrypt from "bcryptjs";
 import { Chess } from "chess.js";
-import { db, createGuestUser, createRepertoire, createUser, searchOpenings } from "./db.js";
+import { db, getLocalUser, createRepertoire, searchOpenings } from "./db.js";
 
 export const api = Router();
-export const SESSION_COOKIE = "cb_session";
 
 const now = () => new Date().toISOString();
 const plusDays = (n) => new Date(Date.now() + n * 86400000).toISOString();
@@ -149,103 +146,25 @@ function practiceNext(userId, repertoire, mode = "due") {
   return { line: lineOut(line), stats: statsFor(repertoire), remaining, complete: false };
 }
 
-function setSession(res, userId) {
-  const token = crypto.randomBytes(32).toString("hex");
-  const expires = plusDays(30);
-  db.prepare("DELETE FROM sessions WHERE expires_at <= ?").run(now());
-  db.prepare("INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)").run(
-    token,
-    userId,
-    expires
-  );
-  res.cookie(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.COOKIE_SECURE === "1",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    path: "/",
-  });
-}
-
+/**
+ * There is no authentication in local-first mode. Every request is scoped to
+ * the one profile stored in this installation's SQLite database.
+ */
 export function requireAuth(req, res, next) {
-  const token = req.cookies?.[SESSION_COOKIE];
-  if (!token) return res.status(401).json({ error: "Not signed in" });
-  const session = db
-    .prepare(
-      `SELECT s.token, s.expires_at, u.id, u.email, u.name, u.plan
-       FROM sessions s JOIN users u ON u.id = s.user_id
-       WHERE s.token = ?`
-    )
-    .get(token);
-  if (!session || session.expires_at <= now()) {
-    if (session) db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
-    res.clearCookie(SESSION_COOKIE, { path: "/" });
-    return res.status(401).json({ error: "Session expired" });
+  const user = getLocalUser();
+  if (!user) {
+    return res.status(500).json({ error: "Local profile is missing. Run npm run db:reset." });
   }
-  req.user = userOut(session);
+  req.user = userOut(user);
   next();
 }
 
-/* ------------------------------------------------------------------ auth --- */
-api.post("/auth/login", (req, res) => {
-  const email = String(req.body?.email || "").trim().toLowerCase();
-  const password = String(req.body?.password || "");
-  if (!email || !password) return res.status(400).json({ error: "Email and password required" });
-  const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    return res.status(401).json({ error: "Incorrect email or password" });
+api.get("/me", (req, res) => {
+  const user = getLocalUser();
+  if (!user) {
+    return res.status(500).json({ error: "Local profile is missing. Run npm run db:reset." });
   }
-  setSession(res, user.id);
   res.json({ user: userOut(user) });
-});
-
-api.post("/auth/register", (req, res) => {
-  const email = String(req.body?.email || "").trim().toLowerCase();
-  const password = String(req.body?.password || "");
-  const name = String(req.body?.name || "").trim() || email.split("@")[0];
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({ error: "Enter a valid email address" });
-  }
-  if (password.length < 8) {
-    return res.status(400).json({ error: "Password must be at least 8 characters" });
-  }
-  if (db.prepare("SELECT id FROM users WHERE email = ?").get(email)) {
-    return res.status(409).json({ error: "An account with that email already exists" });
-  }
-  const user = createUser(email, password, name);
-  setSession(res, user.id);
-  res.status(201).json({ user: userOut(user) });
-});
-
-api.post("/auth/guest", (_req, res) => {
-  const user = createGuestUser();
-  setSession(res, user.id);
-  res.status(201).json({ user: userOut(user), guest: true });
-});
-
-api.post("/auth/logout", (req, res) => {
-  const token = req.cookies?.[SESSION_COOKIE];
-  if (token) db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
-  res.clearCookie(SESSION_COOKIE, { path: "/" });
-  res.json({ ok: true });
-});
-
-api.get("/auth/me", (req, res) => {
-  const token = req.cookies?.[SESSION_COOKIE];
-  if (!token) return res.json({ user: null });
-  const session = db
-    .prepare(
-      `SELECT s.token, s.expires_at, u.id, u.email, u.name, u.plan
-       FROM sessions s JOIN users u ON u.id = s.user_id
-       WHERE s.token = ?`
-    )
-    .get(token);
-  if (!session || session.expires_at <= now()) {
-    if (session) db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
-    res.clearCookie(SESSION_COOKIE, { path: "/" });
-    return res.json({ user: null });
-  }
-  res.json({ user: userOut(session) });
 });
 
 /* ------------------------------------------------------------- dashboard --- */

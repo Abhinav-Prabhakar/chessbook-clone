@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import type { Color } from "../types";
 import { getBoardTheme, getCoordinates, getLegalMoves } from "../prefs";
+import { playMoveSound } from "../sounds";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
@@ -11,6 +12,21 @@ const THEMES = {
   blue: ["#7aa7c7", "#4f7997"],
   brown: ["#b58863", "#8b5a3c"],
 } as const;
+
+function moveOffset(
+  from: string,
+  to: string,
+  orientation: Color
+): { x: number; y: number } {
+  const fromFile = FILES.indexOf(from[0]);
+  const toFile = FILES.indexOf(to[0]);
+  const fromRank = Number(from[1]);
+  const toRank = Number(to[1]);
+  if (orientation === "white") {
+    return { x: (fromFile - toFile) * 100, y: (toRank - fromRank) * 100 };
+  }
+  return { x: (toFile - fromFile) * 100, y: (fromRank - toRank) * 100 };
+}
 
 export interface BoardMove {
   from: string;
@@ -45,6 +61,22 @@ export function Board({
   className?: string;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [animateMove, setAnimateMove] = useState(false);
+  const previousMove = useRef<string | null>(null);
+  const animateTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    const signature = lastMove ? `${lastMove.from}-${lastMove.to}` : "";
+    if (signature && previousMove.current && signature !== previousMove.current) {
+      setAnimateMove(true);
+      if (animateTimer.current) window.clearTimeout(animateTimer.current);
+      animateTimer.current = window.setTimeout(() => setAnimateMove(false), 240);
+    }
+    previousMove.current = signature;
+    return () => {
+      if (animateTimer.current) window.clearTimeout(animateTimer.current);
+    };
+  }, [lastMove]);
 
   const chess = useMemo(() => {
     try {
@@ -85,6 +117,7 @@ export function Board({
         try {
           const move = chess.move({ from: selected as any, to: square as any, promotion: "q" });
           setSelected(null);
+          playMoveSound(Boolean(move.captured), chess.isCheck());
           onMove?.({ from: selected, to: square, san: move.san, promotion: move.promotion });
         } catch {
           setSelected(null);
@@ -127,6 +160,11 @@ export function Board({
         const isWrong = wrongMove && (wrongMove.from === square || wrongMove.to === square);
         const edgeRank = orientation === "white" ? rank === "1" : rank === "8";
         const edgeFile = orientation === "white" ? file === "h" : file === "a";
+        const isMovingPiece =
+          animateMove && lastMove != null && lastMove.to === square && Boolean(piece);
+        const offset = isMovingPiece
+          ? moveOffset(lastMove!.from, lastMove!.to, orientation)
+          : null;
         return (
           <button
             type="button"
@@ -148,9 +186,17 @@ export function Board({
           >
             {piece && (
               <span
-                className="cb-piece"
+                className={`cb-piece ${isMovingPiece ? "cb-piece-move" : ""}`}
                 id={`piece-${square}`}
                 data-testid={`piece-${square}`}
+                style={
+                  offset
+                    ? ({
+                        "--cb-from-x": `${offset.x}%`,
+                        "--cb-from-y": `${offset.y}%`,
+                      } as React.CSSProperties)
+                    : undefined
+                }
               >
                 <img
                   src={`/pieces/chessbook_monochrome/${piece.color}${piece.type.toUpperCase()}.svg`}

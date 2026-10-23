@@ -2,8 +2,6 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import bcrypt from "bcryptjs";
-import crypto from "node:crypto";
 import { Chess } from "chess.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -19,16 +17,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
     name TEXT NOT NULL,
     plan TEXT NOT NULL DEFAULT 'pro',
     created_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS sessions (
-    token TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at TEXT NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS repertoires (
@@ -289,13 +280,12 @@ export function seed() {
   const count = db.prepare("SELECT COUNT(*) AS n FROM users").get().n;
   if (count > 0) return;
 
-  const passwordHash = bcrypt.hashSync("local-only", 10);
   const userId = Number(
     db
       .prepare(
-        "INSERT INTO users (email, password_hash, name, plan, created_at) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO users (email, name, plan, created_at) VALUES (?, ?, ?, ?)"
       )
-      .run("local@chessbook.local", passwordHash, "Alex", "pro", iso()).lastInsertRowid
+      .run("local@chessbook.local", "Alex", "pro", iso()).lastInsertRowid
   );
 
   db.prepare(
@@ -357,42 +347,12 @@ export function createRepertoire(userId, color, name, description = "") {
   );
 }
 
-export function createUser(email, password, name) {
-  const passwordHash = bcrypt.hashSync(password, 10);
-  const userId = Number(
-    db
-      .prepare(
-        "INSERT INTO users (email, password_hash, name, plan, created_at) VALUES (?, ?, ?, ?, ?)"
-      )
-      .run(email, passwordHash, name, "pro", iso()).lastInsertRowid
-  );
-  db.prepare(
-    "INSERT INTO settings (user_id, board_theme, coordinates, legal_moves, sound, show_hints, daily_goal) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  ).run(userId, "green", 1, 1, 1, 1, 50);
-  createRepertoire(userId, "white", "White openings", "Build a confident 1.e4 and 1.d4 repertoire.");
-  createRepertoire(userId, "black", "Black openings", "Answer 1.e4 and 1.d4 with a plan.");
-  return db.prepare("SELECT id, email, name, plan FROM users WHERE id = ?").get(userId);
-}
-
-export function createGuestUser() {
-  // Housekeeping: guest accounts are disposable and expire after a week.
-  db.prepare(
-    "DELETE FROM users WHERE email LIKE 'guest-%@chessbook.local' AND created_at < ?"
-  ).run(new Date(Date.now() - 7 * 86400000).toISOString());
-
-  const suffix = crypto.randomBytes(8).toString("hex");
-  const user = createUser(
-    `guest-${suffix}@chessbook.local`,
-    crypto.randomBytes(18).toString("hex"),
-    "Guest"
-  );
-  const repertoires = db
-    .prepare("SELECT * FROM repertoires WHERE user_id = ? ORDER BY id")
-    .all(user.id);
-  for (const repertoire of repertoires) {
-    seedRepertoireLines(repertoire.id, repertoire.color);
-  }
-  return user;
+/**
+ * Local-first mode has exactly one profile. It is created by seed() on a fresh
+ * database and never leaves this machine.
+ */
+export function getLocalUser() {
+  return db.prepare("SELECT * FROM users ORDER BY id LIMIT 1").get() || null;
 }
 
 export function searchOpenings(q, limit = 20) {

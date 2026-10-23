@@ -471,30 +471,6 @@ export function BuildPage() {
             />
           </Section>
 
-          <Section title={`All lines (${lines.length})`}>
-            {lines.slice(0, 12).map((line) => (
-              <Row
-                key={line.id}
-                title={line.name}
-                meta={`${line.moves.join(" ")} · ${formatDue(line.dueAt)}`}
-                className={selected?.id === line.id ? "selected" : ""}
-                right={
-                  <span className="cb-row-right">
-                    <ProgressRing value={line.mastered} size={12} />
-                    <span className="cb-row-meta">{line.mastered}%</span>
-                  </span>
-                }
-                onClick={() =>
-                  setParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.set("line", String(line.id));
-                    next.delete("add");
-                    return next;
-                  })
-                }
-              />
-            ))}
-          </Section>
         </Sidebar>
       </main>
 

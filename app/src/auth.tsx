@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { api } from "./api";
 import type { Settings, User } from "./types";
 import { applySettingsPrefs } from "./prefs";
@@ -6,16 +13,16 @@ import { applySettingsPrefs } from "./prefs";
 interface AuthValue {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
-  register: (name: string, email: string, password: string) => Promise<User>;
-  guest: () => Promise<User>;
-  logout: () => Promise<void>;
   refresh: () => Promise<void>;
   setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
 
+/**
+ * Local-first profile hydration. There is no session or credential exchange:
+ * the API resolves every request to the single profile stored on this machine.
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,13 +32,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await api.get<{ settings: Settings }>("/settings");
       applySettingsPrefs(data.settings);
     } catch {
-      // Settings are optional for rendering; the server remains authoritative.
+      // Settings are optional for rendering; the local database remains the
+      // source of truth once the profile is available.
     }
   }, []);
 
   const refresh = useCallback(async () => {
     try {
-      const data = await api.get<{ user: User | null }>("/auth/me");
+      const data = await api.get<{ user: User | null }>("/me");
       if (data.user) await hydratePreferences();
       setUser(data.user ?? null);
     } catch {
@@ -45,41 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refresh();
   }, [refresh]);
 
-  useEffect(() => {
-    const onUnauthorized = () => setUser(null);
-    window.addEventListener("cb:unauthorized", onUnauthorized);
-    return () => window.removeEventListener("cb:unauthorized", onUnauthorized);
-  }, []);
-
-  const login = useCallback(async (email: string, password: string) => {
-    const data = await api.post<{ user: User }>("/auth/login", { email, password });
-    await hydratePreferences();
-    setUser(data.user);
-    return data.user;
-  }, [hydratePreferences]);
-
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    const data = await api.post<{ user: User }>("/auth/register", { name, email, password });
-    await hydratePreferences();
-    setUser(data.user);
-    return data.user;
-  }, [hydratePreferences]);
-
-  const guest = useCallback(async () => {
-    const data = await api.post<{ user: User }>("/auth/guest");
-    await hydratePreferences();
-    setUser(data.user);
-    return data.user;
-  }, [hydratePreferences]);
-
-  const logout = useCallback(async () => {
-    await api.post("/auth/logout");
-    setUser(null);
-  }, []);
-
   const value = useMemo(
-    () => ({ user, loading, login, register, guest, logout, refresh, setUser }),
-    [user, loading, login, register, guest, logout, refresh]
+    () => ({ user, loading, refresh, setUser }),
+    [user, loading, refresh]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,24 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { api } from "../api";
 import type { ModelGame } from "../types";
 import { Board } from "../components/Board";
-import {
-  BoardHeader,
-  EmptyState,
-  ProgressRing,
-  Row,
-  Section,
-  Sidebar,
-  Splash,
-} from "../components/ui";
+import { BoardHeader, EmptyState, Row, Sidebar, Splash } from "../components/ui";
 import { pgnTimeline, START_FEN } from "../chess";
 import { useToast } from "../components/Toast";
 
 export function ModelPage() {
   const { id } = useParams<{ id?: string }>();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [games, setGames] = useState<ModelGame[] | null>(null);
   const [gameId, setGameId] = useState<number | null>(id ? Number(id) : null);
   const [ply, setPly] = useState(0);
@@ -56,22 +47,6 @@ export function ModelPage() {
 
   const maxPly = timeline?.moves.length ?? 0;
   const safePly = Math.min(ply, maxPly);
-  const evalPoints = useMemo(() => {
-    const count = Math.max(1, maxPly);
-    let value = 0;
-    const points: number[] = [];
-    for (let i = 0; i <= count; i++) {
-      if (i === 0) value = 0;
-      else {
-        const san = timeline?.moves[i - 1]?.san ?? "";
-        value += san.includes("x") ? 0.16 : 0.06;
-        if (san.includes("+") || san.includes("#")) value += 0.1;
-        value = Math.max(-1.2, Math.min(1.8, value * 0.92));
-      }
-      points.push(value);
-    }
-    return points;
-  }, [timeline, maxPly]);
 
   useEffect(() => {
     setPly((p) => Math.min(p, maxPly));
@@ -165,23 +140,12 @@ export function ModelPage() {
             <h1 className="cb-page-title">
               {game.white} <span className="cb-vs">vs.</span> {game.black}
             </h1>
-            <p className="cb-page-sub">
-              {game.event} · {game.year} · {game.result} · {safePly}/{maxPly} plies
-            </p>
           </div>
 
           <div className="cb-evalgraph" aria-label="Evaluation graph">
+            <span className="cb-evalgraph-label">+0.3</span>
             <svg viewBox="0 0 100 22" preserveAspectRatio="none">
-              <path
-                d={`M 0 11 ${evalPoints
-                  .map((v, i) => {
-                    const x = (i / Math.max(1, evalPoints.length - 1)) * 100;
-                    const y = 11 - v * 4.2;
-                    return `L ${x.toFixed(2)} ${y.toFixed(2)}`;
-                  })
-                  .join(" ")} L 100 11 Z`}
-                fill="rgba(235,235,235,.82)"
-              />
+              <line x1="0" x2="100" y1="11" y2="11" stroke="rgba(255,255,255,.06)" strokeWidth=".4" />
               <line
                 x1={(safePly / Math.max(1, maxPly)) * 100}
                 x2={(safePly / Math.max(1, maxPly)) * 100}
@@ -216,49 +180,17 @@ export function ModelPage() {
             </button>
           </div>
 
-          <Section title="Model game">
-            <div className="cb-panel">
-              <p>{game.description}</p>
-            </div>
-          </Section>
+          <div className="cb-model-copy">
+            <p className="cb-model-match">
+              This game matches your saved moves. Move the pieces on the board to guess the move
+              at any point.
+            </p>
+            <p className="cb-model-description">{game.description}</p>
+          </div>
 
-          <Section
-            title="Moves"
-            action={
-              <span className="cb-row-meta">
-                <ProgressRing value={maxPly ? (safePly / maxPly) * 100 : 0} size={12} />{" "}
-                {maxPly ? Math.round((safePly / maxPly) * 100) : 0}%
-              </span>
-            }
-          >
-            <div className="cb-move-list">
-              {timeline.moves.map((m, i) => (
-                <button
-                  type="button"
-                  key={`${m.san}-${i}`}
-                  className={`cb-move-pill ${safePly === i + 1 ? "active" : ""} ${
-                    safePly > i + 1 ? "past" : ""
-                  }`}
-                  onClick={() => {
-                    setPly(i + 1);
-                    setPlaying(false);
-                  }}
-                >
-                  {i % 2 === 0 && <span className="cb-move-number">{i / 2 + 1}.</span>}
-                  {m.san}
-                </button>
-              ))}
-            </div>
-          </Section>
-
-          <Section>
+          <div className="cb-model-rows">
             <Row
               title="Choose another random game"
-              meta={
-                games.length > 1
-                  ? "Switch to another game in this collection"
-                  : "More model games are coming soon"
-              }
               onClick={() => {
                 if (games.length < 2) {
                   toast("Only one model game is loaded in this collection.", "info");
@@ -273,24 +205,14 @@ export function ModelPage() {
             />
             <Row
               title="View previous model games"
-              meta={`${games.length} game${games.length === 1 ? "" : "s"} in this collection`}
               onClick={() => setPlaying(false)}
             />
             <Row
               title="Model games source"
-              meta="Online and master games"
+              right={<span className="cb-setting-value">Online and master games</span>}
               onClick={() => toast("Model games are curated from online and master play.", "info")}
             />
-            <Row
-              title="Practice your repertoire"
-              meta="Turn this idea into your own moves"
-              onClick={() => navigate("/practice/white")}
-            />
-          </Section>
-
-          <p className="cb-keyboard-hint">
-            <i className="fa fa-keyboard" aria-hidden /> Use ← → to step and space to play/pause.
-          </p>
+          </div>
         </Sidebar>
       </main>
     </div>

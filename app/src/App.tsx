@@ -20,8 +20,6 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { AddPage } from "./pages/AddPage";
 import { ModelPage } from "./pages/ModelPage";
 import { LandingPage } from "./pages/LandingPage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
 import { LegalPage } from "./pages/LegalPage";
 import { Link } from "react-router-dom";
 
@@ -33,21 +31,32 @@ function ScrollToTop() {
   return null;
 }
 
-function RequireAuth() {
+function LocalProfile() {
   const { user, loading } = useAuth();
-  const location = useLocation();
   if (loading) return <Splash />;
   if (!user) {
-    const next = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/login?next=${next}`} replace />;
+    return (
+      <div className="cb-splash">
+        <p>Your local profile could not be opened.</p>
+        <button type="button" className="cb-btn" onClick={() => location.reload()}>
+          Try again
+        </button>
+      </div>
+    );
   }
   return <Outlet />;
 }
 
 function HomeRoute() {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
   if (loading) return <Splash />;
-  if (!user) return <LandingPage />;
+  let entered = false;
+  try {
+    entered = localStorage.getItem("cb_entered") === "1";
+  } catch {
+    // A blocked storage API still lets the trainer run for this visit.
+  }
+  if (!entered) return <LandingPage />;
   return <Dashboard />;
 }
 
@@ -74,12 +83,12 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomeRoute />} />
             <Route path="/welcome" element={<Navigate to="/" replace />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/register" element={<Navigate to="/" replace />} />
             <Route path="/legal/:kind" element={<LegalPage />} />
             <Route path="/legal" element={<Navigate to="/legal/privacy" replace />} />
 
-            <Route element={<RequireAuth />}>
+            <Route element={<LocalProfile />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/repertoire/:key" element={<RepertoirePage />} />
               <Route path="/build/:key" element={<BuildPage />} />

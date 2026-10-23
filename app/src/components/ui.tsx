@@ -37,40 +37,24 @@ export function Splash({ label = "Loading your repertoire…" }: { label?: strin
 export function Sidebar({
   children,
   settings = true,
-  auth = false,
   backTo,
   backLabel = "Back",
   className = "",
 }: {
   children: ReactNode;
   settings?: boolean;
-  auth?: boolean;
   backTo?: string;
   backLabel?: string;
   className?: string;
 }) {
   return (
     <aside className={`cb-sidebar ${className}`}>
-      {auth ? (
-        <div className="cb-sidebar-settings cb-auth-top-links">
+      {settings && (
+        <div className="cb-sidebar-settings">
           <Link to="/settings" className="cb-settings-link">
             Settings <i className="fa fa-gear" aria-hidden />
           </Link>
-          <Link to="/login" className="cb-top-link">
-            Log in
-          </Link>
-          <Link to="/register" className="cb-top-link cb-top-link-signup">
-            Sign up
-          </Link>
         </div>
-      ) : (
-        settings && (
-          <div className="cb-sidebar-settings">
-            <Link to="/settings" className="cb-settings-link">
-              Settings <i className="fa fa-gear" aria-hidden />
-            </Link>
-          </div>
-        )
       )}
       {backTo && (
         <div className="cb-back-row">

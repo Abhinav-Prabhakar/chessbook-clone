@@ -1,5 +1,4 @@
 import express from "express";
-import cookieParser from "cookie-parser";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,7 +17,6 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json({ limit: "512kb" }));
-app.use(cookieParser());
 
 app.use("/api", api);
 
@@ -34,24 +32,10 @@ function marketingHtml() {
 <script>
 (function () {
   const go = (path) => { window.location.href = path; };
-  let starting = false;
-  async function startGuest(event) {
-    if (starting) return;
-    starting = true;
+  function enterApp(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
-    try {
-      const res = await fetch("/api/auth/guest", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: "{}"
-      });
-      if (!res.ok) throw new Error("guest");
-      go("/");
-    } catch {
-      starting = false;
-      go("/register");
-    }
+    try { localStorage.setItem("cb_entered", "1"); } catch {}
+    go("/");
   }
   const topBar = document.querySelector(".fixed.top-0");
   const onScroll = () => {
@@ -72,11 +56,9 @@ function marketingHtml() {
     const el = e.target.closest("a,button,div.cursor-pointer");
     if (!el) return;
     const text = (el.innerText || "").trim();
-    if (text === "Log in") { e.preventDefault(); go("/login"); return; }
-    if (/^(Try it for free|Get started)/.test(text) && !el.closest("footer")) {
-      startGuest(e); return;
+    if (/^(Try it for free|Get started|Log in|Sign up)$/.test(text) && !el.closest("footer")) {
+      enterApp(e); return;
     }
-    if (text === "Sign up") { e.preventDefault(); go("/register"); return; }
     if (el.closest("footer") && /privacy/i.test(text)) { e.preventDefault(); go("/legal/privacy"); }
     if (el.closest("footer") && /fulfillment/i.test(text)) { e.preventDefault(); go("/legal/fulfillment"); }
     if (el.tagName === "A" && el.getAttribute("href") === "../") { e.preventDefault(); go("/"); }
@@ -99,6 +81,15 @@ app.use(
 );
 
 if (existsSync(dist)) {
+  app.get("/manifest.webmanifest", (_req, res) => {
+    res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+    res.sendFile(join(dist, "manifest.webmanifest"));
+  });
+  app.get("/sw.js", (_req, res) => {
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Service-Worker-Allowed", "/");
+    res.sendFile(join(dist, "sw.js"));
+  });
   app.use(express.static(dist, { index: false }));
   app.use((req, res, next) => {
     if (req.method !== "GET" || req.path.startsWith("/api/")) return next();

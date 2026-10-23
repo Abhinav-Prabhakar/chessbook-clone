@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth";
-import { useToast } from "../components/Toast";
+import { useNavigate } from "react-router-dom";
 import landingHtml from "./landing-body.html?raw";
 
+function enterLocalApp() {
+  try {
+    localStorage.setItem("cb_entered", "1");
+  } catch {
+    // The trainer still works for this visit when storage is unavailable.
+  }
+}
+
 export function LandingPage() {
-  const { user, guest } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement>(null);
   const [starting, setStarting] = useState(false);
@@ -30,12 +34,14 @@ export function LandingPage() {
         node.tagName === "BUTTON" ||
         node.tagName === "A" ||
         node.classList.contains("cursor-pointer");
-      if (clickable && (text === "Try it for free" || text === "Get started")) {
-        node.dataset.cbCta = "guest";
-      } else if (clickable && text === "Log in") {
-        node.dataset.cbCta = "login";
-      } else if (clickable && text === "Sign up") {
-        node.dataset.cbCta = "register";
+      if (
+        clickable &&
+        (text === "Try it for free" ||
+          text === "Get started" ||
+          text === "Log in" ||
+          text === "Sign up")
+      ) {
+        node.dataset.cbCta = "enter";
       }
       if (node.tagName === "A") {
         const href = node.getAttribute("href") || "";
@@ -46,7 +52,7 @@ export function LandingPage() {
 
     root.querySelectorAll("a,button,div").forEach(mark);
 
-    const onClick = async (event: MouseEvent) => {
+    const onClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
       const cta = target?.closest<HTMLElement>("[data-cb-cta]");
       if (!cta || starting) return;
@@ -54,25 +60,14 @@ export function LandingPage() {
       if (!action) return;
       event.preventDefault();
       event.stopPropagation();
-      if (action === "login") {
-        navigate("/login");
-      } else if (action === "register") {
-        navigate("/register");
-      } else if (action === "privacy") {
+      if (action === "privacy") {
         navigate("/legal/privacy");
       } else if (action === "fulfillment") {
         navigate("/legal/fulfillment");
-      } else if (action === "guest") {
+      } else if (action === "enter") {
         setStarting(true);
-        try {
-          await guest();
-          navigate("/", { replace: true });
-        } catch (err: any) {
-          toast(err.message || "Could not start a guest session", "bad");
-          navigate("/register");
-        } finally {
-          setStarting(false);
-        }
+        enterLocalApp();
+        window.location.assign("/");
       }
     };
 
@@ -92,9 +87,7 @@ export function LandingPage() {
       root.removeEventListener("click", onClick, true);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [guest, navigate, starting, toast]);
-
-  if (user) return <Navigate to="/" replace />;
+  }, [navigate, starting]);
 
   return (
     <>
@@ -108,8 +101,8 @@ export function LandingPage() {
         <div className="cb-landing-overlay" role="status" aria-live="polite">
           <div className="cb-spinner" />
           <div>
-            <strong>Setting up your guest repertoire</strong>
-            <span>No account needed. Start with a full white and black repertoire.</span>
+            <strong>Opening your local repertoire</strong>
+            <span>No account needed. Everything stays on this device.</span>
           </div>
         </div>
       )}

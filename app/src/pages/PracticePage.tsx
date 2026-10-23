@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api } from "../api";
 import type { AttemptResult, Line, PracticeNext, Repertoire } from "../types";
 import { Board } from "../components/Board";
+import { Confetti } from "../components/Confetti";
 import {
   BoardHeader,
   EmptyState,
@@ -15,29 +16,7 @@ import {
 } from "../components/ui";
 import { afterMove, afterMoves, START_FEN } from "../chess";
 import { useToast } from "../components/Toast";
-import { getSound } from "../prefs";
-
-function playTone(ok: boolean) {
-  try {
-    const Ctx =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = ok ? 660 : 190;
-    gain.gain.setValueAtTime(0.04, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.16);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.18);
-    window.setTimeout(() => ctx.close(), 300);
-  } catch {
-    // Audio is a nice-to-have; never block training on it.
-  }
-}
+import { playSound } from "../sounds";
 
 export function PracticePage() {
   const { key = "white" } = useParams<{ key: string }>();
@@ -157,7 +136,7 @@ export function PracticePage() {
         setShowAnswer(false);
         setNextLine(result.next.line);
         setNextComplete(result.next.complete);
-        if (getSound()) playTone(true);
+        playSound("correct");
         toast(`Correct — ${current.expectedSan}`, "ok");
       } else {
         setSessionWrong((n) => n + 1);
@@ -165,7 +144,7 @@ export function PracticePage() {
         setFen(played.fen);
         setWrongMove({ from: move.from, to: move.to });
         setFeedback("wrong");
-        if (getSound()) playTone(false);
+        playSound("wrong");
         toast("Not quite. Try that position again.", "bad");
         wrongTimer.current = window.setTimeout(() => {
           setFen(current.fen);
@@ -291,12 +270,10 @@ export function PracticePage() {
                     {i % 2 === 0 && <em>{i / 2 + 1}.</em>} {san}{" "}
                   </span>
                 ))}
-                {solved ? (
+                {solved && (
                   <span className="current">
                     {playedMoves.length % 2 === 0 && <em>{nextNumber}.</em>} {current.expectedSan}
                   </span>
-                ) : (
-                  <span className="cb-line-blank">__</span>
                 )}
               </span>
             )}
@@ -312,7 +289,7 @@ export function PracticePage() {
           </div>
         </section>
 
-        <Sidebar backTo={`/learn/${key}`} backLabel="Exit practice">
+        <Sidebar backTo={`/learn/${key}`} backLabel="Back">
           {complete || !current ? (
             <>
               <div className="cb-page-head">
@@ -372,16 +349,11 @@ export function PracticePage() {
                   {nextSuffix}
                 </span>
                 <strong>{solved ? current.expectedSan : "__"}</strong>
-                <span className="cb-row-meta">
-                  {color === "white" ? "White" : "Black"} to move
-                  {solved ? (showAnswer ? " · answer shown" : " · correct") : ""}
-                </span>
               </div>
 
               <div className="cb-learn-options cb-practice-options">
                 {!solved && (
                   <Row
-                    large
                     title="I don't know, show me the answer"
                     onClick={reveal}
                     disabled={busy}
@@ -389,7 +361,6 @@ export function PracticePage() {
                 )}
                 {solved && (
                   <Row
-                    large
                     title={nextLine ? "Next line" : "Finish session"}
                     right={<i className="fa fa-arrow-right" aria-hidden />}
                     onClick={advance}
@@ -397,12 +368,10 @@ export function PracticePage() {
                   />
                 )}
                 <Row
-                  large
                   title="View in build mode"
                   onClick={() => navigate(`/build/${key}?line=${current.id}`)}
                 />
                 <Row
-                  large
                   title="Exit practice"
                   onClick={() => navigate(`/learn/${key}`)}
                 />
@@ -420,6 +389,7 @@ export function PracticePage() {
           )}
         </Sidebar>
       </main>
+      <Confetti fire={Boolean(complete && sessionCorrect > 0)} />
     </div>
   );
 }

@@ -6,7 +6,7 @@ The original captured marketing page is preserved pixel-for-pixel and is still s
 
 ## What works
 
-- **Exact landing page** — the captured production landing page markup and CSS render at `/`, with working Log in, Sign up, and Try it for free actions.
+- **Exact landing page** — the captured production landing page markup and CSS render at `/`; every entry action opens the local trainer.
 - **Local-first** — “Try it for free” opens the trainer immediately. There is no signup, login, cookie session, or remote account; a single local profile lives in the SQLite database beside the app.
 - **Multiple repertoires** — white/black repertoires, create new ones, and switch between them by ID.
 - **Opening database** — 3,865 real ECO openings imported from the open-source [Lichess chess-openings](https://github.com/lichess-org/chess-openings) TSV set.
@@ -14,11 +14,12 @@ The original captured marketing page is preserved pixel-for-pixel and is still s
 - **Gap finder** — identifies the least-mastered line, shows candidate continuations from the position, and lets you add one directly.
 - **Learn** — practice everything due, just past mistakes, all moves, or a specific opening.
 - **Practice** — click-to-move board with legal move dots, API-validated answers, wrong-move feedback, show-answer, per-session accuracy, and spaced scheduling (3 days correct / 30 days mastered).
-- **Model games** — play through annotated master games with an evaluation graph, move list, keyboard controls, hints, and saved progress.
-- **Settings** — rating, coverage, connected accounts, daily goal, board theme, coordinates, legal-move dots, sound, haptics, and progress reset. Board preferences apply throughout the app.
+- **Model games** — play through annotated master games with an evaluation graph, keyboard controls, hints, and saved progress.
+- **Settings** — rating, coverage, practice mode, daily goal, board theme, piece animation, sound, haptics, and progress reset. Board preferences apply throughout the app.
 - **Legal pages** — privacy, fulfillment, and terms.
 - **Responsive layout** — desktop and mobile shells, including a mobile board/sidebar stack.
-- **SQLite persistence** — users, sessions, repertoires, lines, attempts, settings, openings, and model games.
+- **Installable PWA** — web manifest, maskable icons, offline shell, cached offline reads, iOS metadata, and a service worker. No custom install banner or install modal.
+- **SQLite persistence** — one local profile, repertoires, lines, attempts, settings, openings, and model games.
 
 ## Stack
 
@@ -81,15 +82,15 @@ app/
     pages/          React screens, including the exact landing body
     components/     Board, sidebar/rows, toasts
     styles/app.css  production shell + component styles
-    api.ts/auth.tsx/prefs.ts/chess.ts
-  public/           fonts, pieces, images, favicons
+    api.ts/auth.tsx/prefs.ts/chess.ts/sounds.ts
+  public/           manifest, service worker, offline page, fonts, pieces, icons
   dist/             production build (generated)
 server/
-  api.js            auth, repertoires, practice, settings, model games
+  api.js            local profile, repertoires, practice, settings, model games
   db.js             schema, opening import, seed data
-  index.js          Express app + marketing bridge + SPA serving
+  index.js          Express app + marketing bridge + SPA/PWA serving
   data/*.tsv        3,865 Lichess ECO openings
-  reset.js          demo database reset
+  reset.js          local database reset
 ```
 
 The old static clone pages are still in the repository root for reference and GitHub Pages, but the React app is the primary experience.
