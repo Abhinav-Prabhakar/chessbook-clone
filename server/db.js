@@ -431,6 +431,47 @@ export function searchOpenings(q, limit = 20) {
     .all(term, term, limit);
 }
 
+/**
+ * Seed the rating/coverage profile from the captured production account the
+ * first time the data becomes available. Only untouched defaults are replaced
+ * (D135): a user's later choice is never overwritten on boot.
+ */
+function syncProfileFromCapture(db) {
+  const synced = db
+    .prepare("SELECT value FROM capture_profile WHERE key = 'profile_synced'")
+    .get();
+  if (synced) return;
+  const profile = Object.fromEntries(
+    db.prepare("SELECT key, value FROM capture_profile").all().map((row) => [row.key, row.value])
+  );
+  if (!profile.ratingSystem && !profile.singleElo && !profile.eloRange) return;
+  db.prepare(
+    `UPDATE settings SET
+       rating_system = CASE WHEN single_elo = 1800 AND rating_system = 'Chess.com'
+         THEN COALESCE(?, rating_system) ELSE rating_system END,
+       single_elo = CASE WHEN single_elo = 1800
+         THEN COALESCE(?, single_elo) ELSE single_elo END,
+       elo_range = CASE WHEN elo_range = '1800-2000'
+         THEN COALESCE(?, elo_range) ELSE elo_range END
+     WHERE user_id = (SELECT id FROM users ORDER BY id LIMIT 1)`
+  ).run(
+    profile.ratingSystem ?? null,
+    profile.singleElo == null ? null : Number(profile.singleElo),
+    profile.eloRange ?? null
+  );
+  db.prepare(
+    `UPDATE users SET
+       rating_system = (SELECT rating_system FROM settings WHERE settings.user_id = users.id),
+       single_elo = (SELECT single_elo FROM settings WHERE settings.user_id = users.id),
+       elo_range = (SELECT elo_range FROM settings WHERE settings.user_id = users.id),
+       coverage_goal = (SELECT coverage_goal FROM settings WHERE settings.user_id = users.id)`
+  ).run();
+  db.prepare(
+    `INSERT OR REPLACE INTO capture_profile (key, value, source, imported_at)
+     VALUES ('profile_synced', ?, 'server/db.js#syncProfileFromCapture', ?)`
+  ).run(new Date().toISOString(), new Date().toISOString());
+}
+
 /** Update a repertoire's denominator after adding/removing lines. */
 export function syncRepertoireTotals(repertoireId) {
   db.prepare(
@@ -449,6 +490,7 @@ seed();
 
 try {
   importCapturedData(db);
+  syncProfileFromCapture(db);
 } catch (error) {
   // A broken capture file must not stop the local trainer from booting. The
   // API reports honest `available:false` values instead of fake numbers.

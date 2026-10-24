@@ -7,6 +7,7 @@
  */
 import { Chess } from "chess.js";
 import { epdOf, fenFromEpd, lineSans, sanKey } from "./positions.js";
+import { bandMatch, readSettings } from "./settings.js";
 
 const pct = (part, total) =>
   total > 0 && Number.isFinite(part) ? Math.round((part / total) * 1000) / 10 : null;
@@ -233,6 +234,7 @@ export function savedMovesAt(db, repertoireId, epd) {
         learned: Boolean(row.learned),
         dueAt: row.due_at,
         reps: row.reps,
+        disabled: Boolean(row.disabled),
       });
     }
   }
@@ -314,6 +316,11 @@ export function candidateList(
   const saved = repertoire ? savedMovesAt(db, repertoire.id, epd) : new Map();
   const excluded = repertoire ? exclusionsAt(db, repertoire.id, epd) : new Set();
   const band = ratingBandInfo(db);
+  const settings = repertoire?.user_id ? readSettings(db, repertoire.user_id) : null;
+  const profileBand = settings ? bandMatch(db, settings) : null;
+  const coverageGoal = settings?.coverageGoal ?? 50;
+  const minIncidence = 1 / Math.max(1, coverageGoal);
+  const bandMatches = profileBand ? profileBand.matches : true;
 
   const base = {
     epd,
@@ -348,11 +355,23 @@ export function candidateList(
     hasMore: false,
     nextOffset: null,
     annotation: null,
-    ratingBand: band,
+    ratingBand: {
+      ...band,
+      profile: profileBand,
+      matches: bandMatches,
+      note: profileBand
+        ? profileBand.matches
+          ? `Statistics captured for ${profileBand.userBand} ${profileBand.capturedSystem ?? ""}`.trim()
+          : `Captured statistics are for ${profileBand.capturedBands.join(", ")}; your profile is ${profileBand.userBand}. Band-specific incidence is hidden.`
+        : null,
+    },
+    coverageGoal,
+    minIncidence,
     incidenceByBand: band.available
       ? [{ band: band.band, probability: null, source: band.source, available: true }]
       : [],
-    bandsAvailable: band.available,
+    bandsAvailable: band.available && bandMatches,
+    profileBand,
   };
 
   if (!report) return base;
@@ -378,7 +397,8 @@ export function candidateList(
           : null;
       const playProbability =
         candidate.probability == null ? null : Number(candidate.probability);
-      const incidence = realIncidence ?? playProbability;
+      const capturedIncidence = realIncidence ?? playProbability;
+      const incidence = bandMatches ? capturedIncidence : null;
       const oneIn =
         incidence && incidence > 0 ? Math.max(1, Math.round(1 / incidence)) : null;
       return {
@@ -418,8 +438,11 @@ export function candidateList(
           candidate.stockfish_eval != null || candidate.stockfish_mate != null,
         probability: playProbability,
         incidence,
+        capturedIncidence,
         incidenceAvailable: incidence != null,
-        incidenceByBand: band.available
+        bandMismatch: !bandMatches && capturedIncidence != null,
+        meetsCoverage: incidence != null ? incidence >= minIncidence : null,
+        incidenceByBand: band.available && bandMatches
           ? [
               {
                 band: band.band,
@@ -438,8 +461,9 @@ export function candidateList(
         realIncidenceAvailable: realIncidence != null,
         needed: !savedMove,
         saved: Boolean(savedMove),
+        disabled: Boolean(savedMove?.disabled),
         excluded: isExcluded,
-        playable: !isExcluded,
+        playable: !isExcluded && !savedMove?.disabled,
         lineId: savedMove?.lineId ?? null,
         lineName: savedMove?.lineName ?? null,
         lineMoveId: savedMove?.lineMoveId ?? null,
@@ -499,15 +523,19 @@ export function candidateList(
       evalAvailable: false,
       probability: null,
       incidence: null,
+      capturedIncidence: null,
       incidenceAvailable: false,
+      bandMismatch: false,
+      meetsCoverage: null,
       incidenceByBand: [],
       oneIn: null,
       incidenceLabel: null,
       realIncidenceAvailable: false,
       needed: false,
       saved: true,
+      disabled: Boolean(savedMove.disabled),
       excluded: excluded.has(key),
-      playable: !excluded.has(key),
+      playable: !excluded.has(key) && !savedMove.disabled,
       lineId: savedMove.lineId,
       lineName: savedMove.lineName,
       lineMoveId: savedMove.lineMoveId,

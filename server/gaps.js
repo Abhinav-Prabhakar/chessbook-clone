@@ -24,18 +24,38 @@ function lastMoveProbability(db, epd, san, repertoireColor) {
   return candidate.probability != null ? Number(candidate.probability) : null;
 }
 
+function disabledMoveKeys(db, repertoireId) {
+  const set = new Set();
+  for (const row of db
+    .prepare("SELECT epd, san_key FROM line_moves WHERE repertoire_id = ? AND disabled = 1")
+    .all(repertoireId)) {
+    set.add(`${row.epd}|${row.san_key}`);
+  }
+  return set;
+}
+
 function positionsForRepertoire(db, repertoire, { lineId = null } = {}) {
   const lines = lineId
     ? db.prepare("SELECT * FROM lines WHERE repertoire_id = ? AND id = ?").all(repertoire.id, Number(lineId))
     : db.prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id").all(repertoire.id);
   const byEpd = new Map();
+  const disabled = disabledMoveKeys(db, repertoire.id);
 
   for (const line of lines) {
+    if (line.disabled) continue;
     const sans = lineSans(line);
     const chess = new Chess();
     for (let i = 0; i <= sans.length; i += 1) {
       const epd = epdOf(chess.fen());
       const side = chess.turn() === "w" ? "white" : "black";
+      const previousSan = i > 0 ? sans[i - 1] : null;
+      const previousEpd = i > 0 ? epdOf(replay(sans.slice(0, i - 1))) : null;
+      if (
+        previousSan &&
+        disabled.has(`${previousEpd}|${sanKey(previousSan)}`)
+      ) {
+        break;
+      }
       if (side === repertoire.color) {
         const existing = byEpd.get(epd);
         const path = sans.slice(0, i);
@@ -83,9 +103,14 @@ function replay(sans) {
  * Weight = (probability the opponent played the move that reached this
  * position) × (probability the best missing reply is played).
  */
-export function computeGaps(db, repertoire, { lineId = null, limit = 50 } = {}) {
+export function computeGaps(
+  db,
+  repertoire,
+  { lineId = null, limit = 50, coverageGoal = 50 } = {}
+) {
   const positions = positionsForRepertoire(db, repertoire, { lineId });
   const capturedMiss = readCapturedMiss(db, repertoire);
+  const minIncidence = 1 / Math.max(1, Number(coverageGoal) || 50);
   const gaps = [];
 
   for (const position of positions) {
@@ -96,10 +121,18 @@ export function computeGaps(db, repertoire, { lineId = null, limit = 50 } = {}) 
     });
     if (!detail.available || !detail.candidates.length) continue;
 
-    const missing = detail.candidates.filter((candidate) => !candidate.saved);
+    const missing = detail.candidates.filter(
+      (candidate) => !candidate.saved && candidate.playable
+    );
     if (!missing.length) continue;
 
-    const best = [...missing].sort(
+    // The coverage goal is the profile's "1 in N games" cutoff: a missing move
+    // rarer than that is not a gap worth preparing for (D135/D136).
+    const covered = missing.filter(
+      (candidate) => Number(candidate.probability ?? 0) >= minIncidence
+    );
+    if (coverageGoal && !covered.length) continue;
+    const best = [...(covered.length ? covered : missing)].sort(
       (a, b) => Number(b.probability ?? 0) - Number(a.probability ?? 0)
     )[0];
     const positionIncidence = Number(position.incidence ?? 0);
@@ -127,6 +160,8 @@ export function computeGaps(db, repertoire, { lineId = null, limit = 50 } = {}) 
       lineId: position.lineId,
       lineName: position.lineName,
       incidence: positionIncidence,
+      coverageGoal,
+      minIncidence,
       oneIn:
         positionIncidence > 0
           ? Math.max(1, Math.round(1 / positionIncidence))
@@ -191,7 +226,11 @@ export function readCapturedMiss(db, repertoire) {
  * real production answer); otherwise the weighted local ranking decides. The
  * legacy `line` view is returned separately by the API.
  */
-export function chooseGap(db, repertoire, { lineId = null, epd = null, afterEpd = null } = {}) {
+export function chooseGap(
+  db,
+  repertoire,
+  { lineId = null, epd = null, afterEpd = null, coverageGoal = 50 } = {}
+) {
   if (epd) {
     const path = pathForEpd(db, repertoire.id, epd);
     const detail = candidateList(db, {
@@ -248,7 +287,7 @@ export function chooseGap(db, repertoire, { lineId = null, epd = null, afterEpd 
     return { gap: position, position: detail, detail, gaps: [] };
   }
 
-  const gaps = computeGaps(db, repertoire, { lineId });
+  const gaps = computeGaps(db, repertoire, { lineId, coverageGoal });
   if (!gaps.length) {
     return { gap: null, position: null, detail: null, gaps: [] };
   }

@@ -1,17 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
-import type { Color } from "../types";
-import { getBoardTheme, getCoordinates, getLegalMoves } from "../prefs";
+import type { BoardTheme, Color } from "../types";
+import { getBoardTheme, getCoordinates, getLegalMoves, getPieceSet } from "../prefs";
 import { playMoveSound } from "../sounds";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-const THEMES = {
+const THEMES: Record<BoardTheme, readonly [string, string]> = {
   green: ["#639e61", "#3f835c"],
   blue: ["#7aa7c7", "#4f7997"],
   brown: ["#b58863", "#8b5a3c"],
-} as const;
+  "lichess-green": ["#779556", "#ebecd0"],
+  "chesscom-green": ["#769656", "#eeeed2"],
+};
+
+const BUNDLED_PIECE_SET = "chessbook_monochrome";
+const piecePath = (set: string, color: string, type: string) =>
+  `/pieces/${set === BUNDLED_PIECE_SET ? BUNDLED_PIECE_SET : BUNDLED_PIECE_SET}/${color}${type.toUpperCase()}.svg`;
 
 const PROMOTIONS = [
   { piece: "q", label: "Queen" },
@@ -133,6 +139,7 @@ export function Board({
   wrongMove = null,
   feedback = null,
   theme = getBoardTheme(),
+  pieceSet = getPieceSet(),
   lastMoveTint = null,
   arrows = [],
   highlights = [],
@@ -147,7 +154,9 @@ export function Board({
   lastMove?: { from: string; to: string } | null;
   wrongMove?: { from: string; to: string } | null;
   feedback?: "correct" | "wrong" | null;
-  theme?: "green" | "blue" | "brown";
+  theme?: BoardTheme;
+  /** Only `chessbook_monochrome` is bundled; unknown ids fall back to it. */
+  pieceSet?: string;
   /** Colour painted over both squares of the previous move (production blue). */
   lastMoveTint?: string | null;
   arrows?: BoardArrow[];
@@ -484,7 +493,7 @@ export function Board({
                 }}
               >
                 <img
-                  src={`/pieces/chessbook_monochrome/${piece.color}${piece.type.toUpperCase()}.svg`}
+                  src={piecePath(pieceSet, piece.color, piece.type)}
                   alt=""
                   draggable={false}
                 />
@@ -600,7 +609,7 @@ export function Board({
                 }}
               >
                 <img
-                  src={`/pieces/chessbook_monochrome/${pendingPromotion.color}${option.piece.toUpperCase()}.svg`}
+                  src={piecePath(pieceSet, pendingPromotion.color, option.piece)}
                   alt=""
                   style={{ width: "100%", height: "100%", pointerEvents: "none" }}
                 />

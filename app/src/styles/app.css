@@ -4305,3 +4305,172 @@ a {
     padding: 24px var(--cb-mobile-pad) 60px;
   }
 }
+
+/* ------------------------------------------------ D143/D178 board polish --- */
+/* Production pieces sit slightly inside the square with a soft shadow; the
+   SVG artwork itself is unchanged. */
+.cb-piece img {
+  transform: scale(0.965);
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.34));
+}
+
+.cb-theme-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cb-theme-preview.lichess-green span:nth-child(1),
+.cb-theme-preview.lichess-green span:nth-child(4) {
+  background: #ebecd0;
+}
+
+.cb-theme-preview.lichess-green span:nth-child(2),
+.cb-theme-preview.lichess-green span:nth-child(3) {
+  background: #779556;
+}
+
+.cb-theme-preview.chesscom-green span:nth-child(1),
+.cb-theme-preview.chesscom-green span:nth-child(4) {
+  background: #eeeed2;
+}
+
+.cb-theme-preview.chesscom-green span:nth-child(2),
+.cb-theme-preview.chesscom-green span:nth-child(3) {
+  background: #769656;
+}
+
+/* --------------------------------------------- D184 settings affordance --- */
+.cb-settings-row .cb-row-right {
+  gap: 8px;
+  min-width: 0;
+}
+
+.cb-setting-value {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: oklch(24% 0.006 243);
+  border: 1px solid var(--cb-border-soft);
+  line-height: 18px;
+}
+
+.cb-settings-row:hover .cb-setting-value {
+  border-color: var(--cb-border);
+  color: var(--cb-text-2);
+}
+
+.cb-settings-row .cb-row-chevron {
+  color: var(--cb-text-dim);
+  font-size: 11px;
+  transition: transform 120ms ease, color 120ms ease;
+}
+
+.cb-settings-row:hover .cb-row-chevron {
+  color: var(--cb-text-2);
+  transform: translateX(1px);
+}
+
+.cb-settings-row.selected {
+  background: oklch(73.5% 0.1736 141 / 0.06);
+}
+
+.cb-settings-row.selected .cb-row-right .fa-check {
+  color: var(--cb-green);
+}
+
+/* ------------------------------------------------------ D090 review card --- */
+.cb-review-card {
+  margin: 12px 18px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--cb-border-soft);
+  border-radius: 8px;
+  background: oklch(22% 0.0055 243);
+}
+
+.cb-review-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--cb-text-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cb-review-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
+}
+
+.cb-review-card-grid > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.cb-review-card-grid span {
+  color: var(--cb-text-3);
+}
+
+.cb-review-card-grid strong {
+  color: var(--cb-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------- D020 refutation --- */
+.cb-refutation {
+  margin: 12px 18px 0;
+  padding: 12px 14px;
+  border: 1px solid oklch(70% 0.1648 22 / 0.35);
+  border-left: 3px solid var(--cb-danger);
+  border-radius: 8px;
+  background: oklch(70% 0.1648 22 / 0.07);
+}
+
+.cb-refutation-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.cb-refutation-head strong {
+  color: var(--cb-text);
+}
+
+.cb-refutation p {
+  margin: 0;
+  color: var(--cb-text-2);
+  font-size: 12px;
+  line-height: 19px;
+}
+
+.cb-refutation-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(235, 85, 85, 0.92);
+  flex: 0 0 auto;
+}
+
+@media (max-width: 520px) {
+  .cb-setting-value {
+    max-width: 140px;
+  }
+
+  .cb-review-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

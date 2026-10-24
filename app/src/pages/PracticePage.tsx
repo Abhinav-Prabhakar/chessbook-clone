@@ -4,10 +4,12 @@ import { Chess } from "chess.js";
 import { api, ApiError } from "../api";
 import type {
   AttemptResponse,
+  CardState,
   DailySummary,
   PracticeMode,
   PracticeSession,
   PracticeTask,
+  Refutation,
   Repertoire,
   SessionPayload,
 } from "../types";
@@ -16,6 +18,7 @@ import { Confetti } from "../components/Confetti";
 import { BoardHeader, EmptyState, Row, Sidebar, Splash } from "../components/ui";
 import { afterMove, findMove, START_FEN } from "../chess";
 import { getPracticePreferences } from "../prefs";
+import { useProfile } from "../profile";
 import { playSound } from "../sounds";
 
 const MODE_LABELS: Record<string, string> = {
@@ -25,6 +28,18 @@ const MODE_LABELS: Record<string, string> = {
   early: "Early review",
   specific: "Specific opening",
   line: "Specific opening",
+  common: "Next common moves",
+};
+
+function pct(value: number | null | undefined) {
+  return value == null ? "—" : `${Math.round(value)}%`;
+}
+
+const GRADE_LABELS: Record<number, string> = {
+  1: "Again",
+  2: "Hard",
+  3: "Good",
+  4: "Easy",
 };
 
 function tzOffset() {
@@ -145,6 +160,14 @@ export function PracticePage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const search = params.toString();
+  const { settings } = useProfile();
+  const prefs = getPracticePreferences();
+  const reviewStyle = settings?.reviewStyle ?? prefs.reviewStyle;
+  const practiceMode = settings?.practiceMode ?? prefs.mode;
+  const pauseAfterMove = settings?.pauseAfterMove ?? prefs.pauseAfterMove;
+  const pauseOnFail = settings?.pauseOnFail ?? prefs.pause.onFail;
+  const pauseWhenNote = settings?.pauseWhenNote ?? prefs.pause.whenNote;
+  const pauseOnLowScore = settings?.pauseOnLowScore ?? prefs.pause.onLowScore;
 
   const [session, setSession] = useState<PracticeSession | null>(null);
   const [task, setTask] = useState<PracticeTask | null>(null);
@@ -163,6 +186,10 @@ export function PracticePage() {
     move: { from: string; to: string };
     san: string;
   } | null>(null);
+  const [refutation, setRefutation] = useState<Refutation | null>(null);
+  const [lastCard, setLastCard] = useState<CardState | null>(null);
+  const [held, setHeld] = useState(false);
+  const [advanceHold, setAdvanceHold] = useState(false);
   const [notice, setNotice] = useState<{
     kind: "info" | "wrong" | "ok";
     text: string;
@@ -203,6 +230,10 @@ export function PracticePage() {
       setEndFen(null);
       setEndLast(null);
       setFlash(null);
+      setRefutation(null);
+      setLastCard(null);
+      setHeld(false);
+      setAdvanceHold(false);
       setNotice(null);
       setHintText(null);
       setRevealed(null);
@@ -226,8 +257,7 @@ export function PracticePage() {
     const sessionParam = params.get("session");
     const modeParam = params.get("mode") as PracticeMode | null;
     const lineIds = requestedLineIds;
-    const prefs = getPracticePreferences();
-    const defaultMode: PracticeMode = prefs.mode === "whole-lines" ? "all" : "due";
+    const defaultMode: PracticeMode = "due";
     try {
       let payload: SessionPayload;
       let nextConfig: { mode: PracticeMode; lineIds: number[] } = {
@@ -268,6 +298,9 @@ export function PracticePage() {
           payload = await api.post<SessionPayload>("/practice/sessions", {
             repertoire: key,
             mode: defaultMode,
+            style: reviewStyle,
+            practiceMode,
+            coverageGoal: settings?.coverageGoal,
           });
           nextConfig = { mode: defaultMode, lineIds: [] };
         }
@@ -278,6 +311,9 @@ export function PracticePage() {
           lineIds,
           lineId: lineIds[0],
           resume: true,
+          style: reviewStyle,
+          practiceMode,
+          coverageGoal: settings?.coverageGoal,
         });
       }
 
@@ -289,7 +325,7 @@ export function PracticePage() {
     } finally {
       setLoading(false);
     }
-  }, [applyPayload, key, params, refreshDaily, requestedLineIds]);
+  }, [applyPayload, key, params, refreshDaily, requestedLineIds, reviewStyle, practiceMode, settings?.coverageGoal]);
 
   useEffect(() => {
     load();
@@ -321,12 +357,24 @@ export function PracticePage() {
   if (hintText && !revealed && position) {
     highlights.push({ square: position.from, kind: "hint" });
   }
+  if (flash && refutation?.available && refutation.to) {
+    highlights.push({ square: refutation.to, kind: "refutation" });
+  }
 
   const arrows: BoardArrow[] = [];
   if (flash) {
     arrows.push({ from: flash.move.from, to: flash.move.to, kind: "wrong" });
+    // While the wrong position is held on the board, draw the engine's reply
+    // on that same position so the arrow is always legal.
+    if (refutation?.available && refutation.from && refutation.to) {
+      arrows.push({ from: refutation.from, to: refutation.to, kind: "refutation" });
+    }
   } else if (revealed && position) {
     arrows.push({ from: position.from, to: position.to, kind: "hint" });
+  } else if (!hintText) {
+    for (const plan of task?.planArrows ?? []) {
+      arrows.push({ from: plan.from, to: plan.to, kind: "plan", color: undefined });
+    }
   }
 
   const promptSuffix = task?.side === "white" ? "." : "…";
@@ -362,34 +410,73 @@ export function PracticePage() {
         setAssisted(false);
         setRevealed(null);
         setHintText(null);
-        if (result.playedSan && result.playedSan !== task.expectedSan) {
-          setNotice({
-            kind: "ok",
-            text: `Accepted alternate ${result.playedSan}.`,
-          });
-        }
+        setRefutation(null);
+        setLastCard(result.card ?? null);
         const nextTask = result.next.task;
         const advance = () => {
+          setAdvanceHold(false);
           setTask(nextTask);
+          setLastCard(null);
+          const noteHold = Boolean(
+            pauseWhenNote &&
+              nextTask &&
+              (nextTask.noteText || nextTask.moveNote?.note)
+          );
+          const answeredNow = result.session.correct + result.session.wrong;
+          const accuracyNow = answeredNow
+            ? (result.session.correct / answeredNow) * 100
+            : 100;
+          const scoreHold = Boolean(
+            pauseOnLowScore && nextTask && answeredNow >= 4 && accuracyNow < 50
+          );
+          if (noteHold) {
+            setHeld(true);
+            setNotice({
+              kind: "info",
+              text: "This position has a saved note. Read it, then continue when ready.",
+            });
+          } else if (scoreHold) {
+            setHeld(true);
+            setNotice({
+              kind: "info",
+              text: `Accuracy is ${Math.round(accuracyNow)}%. Paused on low score — continue when ready.`,
+            });
+          }
           if (!nextTask) {
             setCompleted(true);
             setEndFen(fenAfter(task.fen, result.playedSan));
             setEndLast({ from: move.from, to: move.to });
           }
         };
-        const pauseSeconds = getPracticePreferences().pauseAfterMove;
-        if (pauseSeconds > 0 && nextTask) {
+        const feedback: string[] = [];
+        if (result.playedSan && result.playedSan !== task.expectedSan) {
+          feedback.push(`Accepted alternate ${result.playedSan}.`);
+        }
+        if ((session.style ?? reviewStyle) === "cards" && result.card?.grade != null) {
+          const interval = result.scheduled?.intervalDays;
+          feedback.push(
+            `Rated ${GRADE_LABELS[result.card.grade] ?? result.card.grade}` +
+              (interval != null ? ` · next in ${interval} day${interval === 1 ? "" : "s"}.` : ".")
+          );
+        }
+        if (feedback.length) {
+          setNotice({ kind: "ok", text: feedback.join(" ") });
+        }
+        if (pauseAfterMove > 0 && nextTask) {
           setNotice({
             kind: "info",
-            text: `Correct. Paused for ${pauseSeconds}s — play when ready.`,
+            text: `Correct. Paused for ${pauseAfterMove}s — play when ready.`,
           });
+          setAdvanceHold(true);
           if (pauseTimer.current) window.clearTimeout(pauseTimer.current);
-          pauseTimer.current = window.setTimeout(advance, pauseSeconds * 1000);
+          pauseTimer.current = window.setTimeout(advance, pauseAfterMove * 1000);
         } else {
           advance();
         }
         playSound("correct");
       } else {
+        setLastCard(result.card ?? null);
+        setRefutation(result.refutation ?? null);
         const after = fenAfter(task.fen, result.playedSan);
         if (after) {
           setFlash({
@@ -398,13 +485,24 @@ export function PracticePage() {
             san: result.playedSan,
           });
           if (flashTimer.current) window.clearTimeout(flashTimer.current);
-          flashTimer.current = window.setTimeout(() => setFlash(null), 950);
+          if (!pauseOnFail) {
+            flashTimer.current = window.setTimeout(() => setFlash(null), 1200);
+          }
         }
+        if (pauseOnFail) setHeld(true);
+        const explanation = result.refutation?.explanation
+          ? ` ${result.refutation.explanation}`
+          : "";
         setNotice({
           kind: "wrong",
-          text: result.playedSan
-            ? `Not quite — ${result.playedSan} is not one of your saved moves here. The position is unchanged, try again.`
-            : "Not quite. The position is unchanged, try again.",
+          text:
+            (result.playedSan
+              ? `Not quite — ${result.playedSan} is not one of your saved moves here.`
+              : "Not quite.") +
+            explanation +
+            (result.replay?.replays
+              ? " This line will be replayed once more this session."
+              : " The position is unchanged, try again."),
         });
         playSound("wrong");
       }
@@ -444,6 +542,14 @@ export function PracticePage() {
       kind: "info",
       text: `The saved move is ${task.expectedSan}. Play it on the board.`,
     });
+  };
+
+  const continueFromHold = () => {
+    setHeld(false);
+    setFlash(null);
+    setRefutation(null);
+    setNotice({ kind: "info", text: "Continue when you are ready." });
+    if (pauseTimer.current) window.clearTimeout(pauseTimer.current);
   };
 
   const runAction = async (action: "skip" | "keep" | "reset") => {
@@ -499,6 +605,9 @@ export function PracticePage() {
         lineIds,
         lineId: lineIds[0],
         resume: false,
+        style: reviewStyle,
+        practiceMode,
+        coverageGoal: settings?.coverageGoal,
       });
       applyPayload(payload, { created: true });
       setConfig({ mode: effectiveMode, lineIds });
@@ -557,7 +666,7 @@ export function PracticePage() {
           <Board
             fen={boardFen}
             orientation={color}
-            interactive={Boolean(task) && !completed && !busy}
+            interactive={Boolean(task) && !completed && !busy && !held && !advanceHold}
             lastMove={lastMove}
             lastMoveTint="oklch(0.75 0.1417 230 / 0.42)"
             arrows={arrows}
@@ -754,6 +863,95 @@ export function PracticePage() {
                       )}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {task && (session?.style ?? reviewStyle) === "cards" && (
+                <div className="cb-review-card" data-testid="review-card">
+                  <div className="cb-review-card-head">
+                    <span>Review card</span>
+                    <span className="cb-row-meta">
+                      {(lastCard ?? task.card)?.reviewed ? "Review" : "New"}
+                    </span>
+                  </div>
+                  <div className="cb-review-card-grid">
+                    <div>
+                      <span>Difficulty</span>
+                      <strong>{(lastCard ?? task.card)?.difficulty ?? "—"}/10</strong>
+                    </div>
+                    <div>
+                      <span>Expected wrong</span>
+                      <strong>{pct((lastCard ?? task.card)?.expectedWrongPercent)}</strong>
+                    </div>
+                    <div>
+                      <span>Seen</span>
+                      <strong>{(lastCard ?? task.card)?.reps ?? 0}×</strong>
+                    </div>
+                    <div>
+                      <span>Last grade</span>
+                      <strong>
+                        {(() => {
+                          const grade = (lastCard ?? task.card)?.grade;
+                          return grade == null ? "—" : GRADE_LABELS[grade] ?? grade;
+                        })()}
+                      </strong>
+                    </div>
+                  </div>
+                  {(lastCard ?? task.card)?.dueAt && (
+                    <p className="cb-row-meta" style={{ margin: "8px 0 0" }}>
+                      Next due{" "}
+                      {new Date((lastCard ?? task.card)!.dueAt!).toLocaleDateString()}
+                      {(lastCard ?? task.card)?.intervalDays != null
+                        ? ` · ${(lastCard ?? task.card)!.intervalDays} day interval`
+                        : ""}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {session?.mode === "common" && (
+                <div className="cb-inline-note" role="status" style={{ margin: "12px 18px 0" }}>
+                  <i className="fa fa-shuffle" aria-hidden />
+                  <span>
+                    Next common moves · drawn from captured opponent-move incidence at your
+                    profile band.
+                    {task?.common
+                      ? ` Opponents played ${task.common.via.san} here in 1 in ${task.common.via.oneIn} games.`
+                      : ""}
+                  </span>
+                </div>
+              )}
+
+              {held && (
+                <div className="cb-inline-note" role="status" style={{ margin: "12px 18px 0" }}>
+                  <i className="fa fa-pause" aria-hidden />
+                  <span>
+                    {refutation?.available
+                      ? "The position is held so you can study the refutation."
+                      : "Paused. Continue when you are ready."}
+                  </span>
+                  <button type="button" className="cb-btn" onClick={continueFromHold}>
+                    Continue
+                  </button>
+                </div>
+              )}
+
+              {refutation?.available && (
+                <div className="cb-refutation" data-testid="refutation">
+                  <div className="cb-refutation-head">
+                    <span className="cb-refutation-swatch" aria-hidden />
+                    <strong>Refutation: {refutation.san}</strong>
+                    <span className="cb-row-meta">
+                      {refutation.engine}
+                      {refutation.depth ? ` · depth ${refutation.depth}` : ""}
+                    </span>
+                  </div>
+                  <p>{refutation.explanation}</p>
+                  {refutation.line && refutation.line.length > 0 && (
+                    <p className="cb-row-meta">
+                      Line: {refutation.line.join(" ")}
+                    </p>
+                  )}
                 </div>
               )}
 

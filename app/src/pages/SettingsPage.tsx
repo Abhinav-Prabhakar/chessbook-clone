@@ -8,8 +8,10 @@ import { useToast } from "../components/Toast";
 import { useProfile } from "../profile";
 import {
   ANIMATION_OPTIONS,
+  BOARD_THEMES,
   COVERAGE_OPTIONS,
   DAILY_GOAL_OPTIONS,
+  DEFAULT_CLIENT_PREFS,
   PAUSE_OPTIONS,
   PLATFORMS,
   RECOMMENDED_SIZE_OPTIONS,
@@ -17,12 +19,14 @@ import {
   TIME_CONTROLS,
   getClientPrefs,
   haptic,
+  migrateLocalPrefs,
   notificationsSupported,
   previewSound,
   requestNotificationPermission,
   resetClientPrefs,
   saveClientPrefs,
   type AnimationSpeed,
+  type ClientPrefs,
   type Platform,
   type PracticeMode,
   type RecommendedMovesSize,
@@ -61,7 +65,12 @@ const PRACTICE_OPTIONS: { value: PracticeMode; label: string; detail: string }[]
 ];
 
 const REVIEW_OPTIONS: { value: ReviewStyle; label: string; detail: string }[] = [
-  { value: "cards", label: "Cards", detail: "One position at a time, scheduled by review state." },
+  {
+    value: "cards",
+    label: "Cards",
+    detail:
+      "One position at a time, with its FSRS difficulty, expected-wrong chance and last grade.",
+  },
   {
     value: "complete-once",
     label: "Complete lines (once per session)",
@@ -109,15 +118,45 @@ export function SettingsPage() {
 
   useEffect(() => {
     setPrefs(getClientPrefs());
+    // One-time migration of the old localStorage preferences into SQLite.
+    void migrateLocalPrefs(api).then((next) => {
+      if (next) {
+        setPrefs(getClientPrefs());
+        setRating(getClientPrefs().rating);
+      }
+    });
     api
       .get<{ repertoires: Repertoire[] }>("/repertoires")
       .then((r) => setRepertoires(r.repertoires))
       .catch(() => setRepertoires([]));
   }, []);
 
-  const updatePrefs = useCallback((patch: Parameters<typeof saveClientPrefs>[0]) => {
-    setPrefs(saveClientPrefs(patch));
-  }, []);
+  const save = useCallback(
+    async (patch: Partial<ServerSettings>) => {
+      try {
+        return await saveSettings(patch);
+      } catch (e: any) {
+        toast(e.message, "bad");
+        return null;
+      }
+    },
+    [saveSettings, toast]
+  );
+
+  /**
+   * Server-backed preference update (D197). The synchronous mirror is updated
+   * optimistically so the switch/sheet responds immediately; the SQLite PATCH
+   * is the write that survives a reload.
+   */
+  const updatePrefs = useCallback(
+    (patch: Partial<ClientPrefs>) => {
+      setPrefs(saveClientPrefs(patch));
+      void save(patch as Partial<ServerSettings>).then((next) => {
+        if (next) setPrefs(getClientPrefs());
+      });
+    },
+    [save]
+  );
 
   if (!settings) {
     if (loading) return <Splash label="Loading settings…" />;
@@ -131,15 +170,6 @@ export function SettingsPage() {
     );
   }
 
-  const save = async (patch: Partial<ServerSettings>) => {
-    try {
-      return await saveSettings(patch);
-    } catch (e: any) {
-      toast(e.message, "bad");
-      return null;
-    }
-  };
-
   const toggle = async (key: keyof ServerSettings, value: boolean) => {
     haptic();
     await save({ [key]: value } as Partial<ServerSettings>);
@@ -151,15 +181,18 @@ export function SettingsPage() {
   };
 
   const commitRating = () => {
-    updatePrefs({
-      rating: {
-        ...rating,
-        value: Math.max(400, Math.min(3000, Math.round(Number(rating.value) || 1800))),
-      },
-    });
+    const value = Math.max(400, Math.min(3000, Math.round(Number(rating.value) || 1800)));
+    setRating({ ...rating, value });
     haptic(20);
-    setSheet(null);
-    toast("Rating saved for this profile", "ok");
+    void save({ ratingSystem: rating.system, timeControl: rating.timeControl, singleElo: value }).then(
+      (next) => {
+        if (next) {
+          setPrefs(getClientPrefs());
+          setSheet(null);
+          toast("Rating saved to this profile", "ok");
+        }
+      }
+    );
   };
 
   const enableNotifications = async () => {
@@ -194,9 +227,31 @@ export function SettingsPage() {
     if (!window.confirm("Reset rating, coverage, review, board, sound and notification preferences?"))
       return;
     resetClientPrefs();
-    setPrefs(getClientPrefs());
-    setRating(getClientPrefs().rating);
-    toast("Preferences reset", "ok");
+    const defaults = DEFAULT_CLIENT_PREFS;
+    void save({
+      ratingSystem: defaults.rating.system,
+      timeControl: defaults.rating.timeControl,
+      singleElo: defaults.rating.value,
+      coverageGoal: defaults.coverageGoal,
+      practiceMode: defaults.practiceMode,
+      reviewStyle: defaults.reviewStyle,
+      pauseAfterMove: defaults.pauseAfterMove,
+      pauseOnFail: defaults.pauseOnFail,
+      pauseOnLowScore: defaults.pauseOnLowScore,
+      pauseWhenNote: defaults.pauseWhenNote,
+      animation: defaults.animation,
+      haptics: defaults.haptics,
+      soundVolume: defaults.soundVolume,
+      soundEffects: defaults.soundEffects as Record<string, boolean>,
+      recommendedMovesSize: defaults.recommendedMovesSize,
+      notifications: defaults.notifications as unknown as Record<string, boolean>,
+    }).then((next) => {
+      if (next) {
+        setPrefs(getClientPrefs());
+        setRating(getClientPrefs().rating);
+        toast("Preferences reset", "ok");
+      }
+    });
   };
 
   const animationLabel =
@@ -217,11 +272,9 @@ export function SettingsPage() {
   const notificationsOn = Object.values(prefs.notifications).filter(Boolean).length;
   const soundLabel = settings.sound ? `On · ${prefs.soundVolume}%` : "Off";
   const themeLabel =
-    settings.boardTheme === "green"
-      ? "Chessbook"
-      : settings.boardTheme === "blue"
-        ? "Chessbook blue"
-        : "Lichess brown";
+    BOARD_THEMES.find((theme) => theme.value === settings.boardTheme)?.label ?? "Chessbook";
+  const pieceSetLabel =
+    settings.pieceSet === "chessbook_monochrome" ? "Chessbook Monochrome" : settings.pieceSet;
 
   return (
     <div className="cb-app">
@@ -563,13 +616,7 @@ export function SettingsPage() {
       {sheet === "appearance" && (
         <Sheet title="Board appearance" onClose={() => setSheet(null)}>
           <div className="cb-theme-grid">
-            {(
-              [
-                { value: "green", label: "Chessbook" },
-                { value: "blue", label: "Chessbook blue" },
-                { value: "brown", label: "Lichess brown" },
-              ] as const
-            ).map((theme) => (
+            {BOARD_THEMES.map((theme) => (
               <button
                 type="button"
                 key={theme.value}
@@ -579,7 +626,11 @@ export function SettingsPage() {
                   void save({ boardTheme: theme.value });
                 }}
               >
-                <span className={`cb-theme-preview ${theme.value === "green" ? "" : theme.value}`}>
+                <span
+                  className={`cb-theme-preview ${
+                    theme.value === "green" ? "" : theme.value
+                  }`}
+                >
                   <span />
                   <span />
                   <span />
@@ -591,8 +642,8 @@ export function SettingsPage() {
           </div>
           <div className="cb-settings-list" style={{ marginTop: 14 }}>
             <ChoiceRow
-              label="Piece set: Chessbook Monochrome"
-              detail="The only piece set bundled with this local build"
+              label={`Piece set: ${pieceSetLabel}`}
+              detail="The only piece set bundled with this local build — no alternative assets were captured."
               active
               onClick={() =>
                 toast("Additional piece sets are not bundled in this build", "info")
@@ -732,6 +783,7 @@ function SettingRow({
       right={value ? <span className="cb-setting-value">{value}</span> : undefined}
       onClick={onClick}
       className="cb-settings-row"
+      chevron
     />
   );
 }

@@ -81,77 +81,77 @@ Report: `audit/progress/02-practice-ui.md`
 - [ ] D001/D002 practice UI walks line and shows opponent replies
 - [ ] D007/D008 wrong-answer UI never advances/decrements
 - [ ] D011/D012 whole-line vs individual-move modes
-- [ ] D013 review modes in Learn
-- [ ] D014 resume session
-- [ ] D015 early review
-- [ ] D016 next common moves
-- [ ] D018 per-move notes display
-- [ ] D019 hint wording/behaviour
-- [ ] D020 refutation display
-- [ ] D023 view-in-build keeps position
-- [ ] D024 skip/keep/start-over actions
-- [ ] D025 alternate response flow
-- [ ] D027 daily goal progress
-- [ ] D030 remove clone toast
-- [ ] D031 remove extra practice footer
-- [ ] D032 drag-and-drop + promotion
-- [ ] D033 arrows/highlights
-- [ ] D034 play training game from here
+- [x] D013 review modes in Learn
+- [x] D014 resume session
+- [x] D015 early review
+- [~] D016 next common moves
+- [x] D018 per-move notes display
+- [x] D019 hint wording/behaviour
+- [~] D020 refutation display
+- [x] D023 view-in-build keeps position
+- [x] D024 skip/keep/start-over actions
+- [x] D025 alternate response flow
+- [x] D027 daily goal progress
+- [x] D030 remove clone toast
+- [x] D031 remove extra practice footer
+- [x] D032 drag-and-drop + promotion
+- [~] D033 arrows/highlights
+- [x] D034 play training game from here
 - [ ] D083/D084 Learn counts
 - [ ] D085–D091 Learn modes and cards
-- [ ] D092 mastery formatting
-- [ ] D093 empty-due state
-- [ ] D145 piece animation setting
+- [x] D092 mastery formatting
+- [x] D093 empty-due state
+- [x] D145 piece animation setting
 - [ ] D172–D179 practice visual fidelity
 - [ ] D194/D195 board accessibility/drag cursors
 
 ### `builder-gap` — BuildPage, GapPage
 Report: `audit/progress/02-builder-gap.md`
 
-- [ ] D040 candidate annotations
+- [x] D040 candidate annotations
 - [ ] D041/D042/D043 inline ranked candidate list
 - [ ] D045/D046/D047 style autofill + autofill this gap
 - [x] D048 exclude moves flow
 - [x] D049 next gap in line
-- [ ] D050 plans button
-- [ ] D051 notes editor
+- [x] D050 plans button
+- [x] D051 notes editor
 - [ ] D052/D053 disable/remove branch UX
-- [ ] D060 `?line=` opens position
-- [ ] D067 move navigation
+- [x] D060 `?line=` opens position
+- [x] D067 move navigation
 - [ ] D068/D182 breadcrumbs
-- [ ] D069 build/practice from here
-- [ ] D070 add-note prompt
+- [x] D069 build/practice from here
+- [x] D070 add-note prompt
 - [ ] D073–D078 gap rows/actions
 - [ ] D080/D081 notes + coverage context
-- [ ] D082 remove extra sections
+- [x] D082 remove extra sections
 - [ ] D180/D181 candidate columns + add modal
-- [ ] D183 gap sidebar noise
+- [x] D183 gap sidebar noise
 
 ### `dashboard-settings` — Dashboard, Settings, Repertoire, Add
 Report: `audit/progress/02-dashboard-settings.md`
 
 - [x] D059 real characteristics display
-- [ ] D061 repertoire list/rename/delete/clone UI
+- [x] D061 repertoire list/rename/delete/clone UI
 - [x] D062 chapters/sections
 - [ ] D063/D064 import/export UI
 - [x] D066 trim tools
-- [ ] D107 document `/` entry behaviour
-- [ ] D108 daily reviews list
+- [x] D107 document `/` entry behaviour
+- [x] D108 daily reviews list
 - [ ] D109/D110/D111 openings report / connect-account cleanup
 - [ ] D112/D113 home tasks
-- [ ] D114 feedback/share parity
-- [ ] D115 model-game row
-- [ ] D117 streak panel
+- [x] D114 feedback/share parity
+- [x] D115 model-game row
+- [x] D117 streak panel
 - [ ] D118/D119 repertoire list + back affordance
-- [ ] D134 rating sheet
-- [ ] D136 coverage goal effect
-- [ ] D137 external accounts cleanup
+- [x] D134 rating sheet
+- [x] D136 coverage goal effect
+- [x] D137 external accounts cleanup
 - [ ] D138–D142 settings no-ops
 - [ ] D143/D144 board appearance + piece sets
 - [ ] D148 sound options
-- [ ] D149 haptics
-- [ ] D150 recommended moves size
-- [ ] D151 remove subscription row
+- [x] D149 haptics
+- [x] D150 recommended moves size
+- [x] D151 remove subscription row
 - [ ] D154/D155 settings row set + sheets
 - [ ] D156/D157 review style + notifications
 
@@ -160,9 +160,9 @@ Report: `audit/progress/02-visual-fidelity.md`
 
 - [ ] D171/D186/D187 mobile clipped board + sheet
 - [ ] D188–D190 mobile stats/top bar/coords
-- [ ] D191 board arrows styling
-- [ ] D192 loading skeletons
-- [ ] D193 landing nav parity
+- [~] D191 board arrows styling
+- [x] D192 loading skeletons
+- [x] D193 landing nav parity
 - [ ] D180–D185 visual alignment shared CSS
 
 ## Batch 3 — model games
@@ -194,7 +194,7 @@ Report: `audit/progress/03-model-games.md`
 - [ ] D200/D202/D203 supporting APIs/engine
 
 ### `content-surfaces` — openings guides, coaches, blog, repertoires
-- [ ] D061 `/repertoires` list
+- [x] D061 `/repertoires` list
 - [ ] D120–D133 opening data/guides/reports
 - [x] D163 opening guide routes
 - [x] D164 coaches routes

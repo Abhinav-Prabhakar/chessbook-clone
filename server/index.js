@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { api } from "./api.js";
+import { playApi } from "./play.js";
 import { databasePath } from "./db.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,7 @@ export function createApp() {
   );
 
   app.use("/api", api);
+  app.use("/api/play", playApi);
 
   app.use("/_build", express.static(join(root, "_build")));
   app.use("/homepage_imgs", express.static(join(root, "homepage_imgs")));

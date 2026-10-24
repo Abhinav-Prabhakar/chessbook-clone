@@ -510,6 +510,80 @@ const MIGRATIONS = [
       db.exec("CREATE INDEX IF NOT EXISTS idx_lines_epd ON lines(repertoire_id, epd);");
     },
   },
+  {
+    version: 3,
+    name: "profile rating, review preferences and reversible branch state",
+    up(db) {
+      // --- D135/D196/D197: the profile fields the trainer and the candidate
+      //     filters need. `settings` is canonical; `users` mirrors the rating
+      //     fields for `/me` clients that only read the profile row.
+      addColumn(db, "users", "rating_system", "TEXT NOT NULL DEFAULT 'Chess.com'");
+      addColumn(db, "users", "single_elo", "INTEGER NOT NULL DEFAULT 1800");
+      addColumn(db, "users", "elo_range", "TEXT NOT NULL DEFAULT '1800-2000'");
+      addColumn(db, "users", "coverage_goal", "INTEGER NOT NULL DEFAULT 50");
+
+      addColumn(db, "settings", "rating_system", "TEXT NOT NULL DEFAULT 'Chess.com'");
+      addColumn(db, "settings", "time_control", "TEXT NOT NULL DEFAULT 'Blitz'");
+      addColumn(db, "settings", "single_elo", "INTEGER NOT NULL DEFAULT 1800");
+      addColumn(db, "settings", "elo_range", "TEXT NOT NULL DEFAULT '1800-2000'");
+      addColumn(db, "settings", "coverage_goal", "INTEGER NOT NULL DEFAULT 50");
+      addColumn(db, "settings", "practice_mode", "TEXT NOT NULL DEFAULT 'individual'");
+      addColumn(db, "settings", "review_style", "TEXT NOT NULL DEFAULT 'cards'");
+      addColumn(db, "settings", "pause_after_move", "INTEGER NOT NULL DEFAULT 0");
+      addColumn(db, "settings", "pause_on_fail", "INTEGER NOT NULL DEFAULT 1");
+      addColumn(db, "settings", "pause_on_low_score", "INTEGER NOT NULL DEFAULT 0");
+      addColumn(db, "settings", "pause_when_note", "INTEGER NOT NULL DEFAULT 0");
+      addColumn(db, "settings", "animation", "TEXT NOT NULL DEFAULT 'normal'");
+      addColumn(db, "settings", "haptics", "INTEGER NOT NULL DEFAULT 1");
+      addColumn(db, "settings", "piece_set", "TEXT NOT NULL DEFAULT 'chessbook_monochrome'");
+      addColumn(db, "settings", "sound_volume", "INTEGER NOT NULL DEFAULT 70");
+      addColumn(db, "settings", "sound_effects", "TEXT NOT NULL DEFAULT '{}'");
+      addColumn(db, "settings", "recommended_moves_size", "TEXT NOT NULL DEFAULT 'comfortable'");
+      addColumn(db, "settings", "notifications", "TEXT NOT NULL DEFAULT '{}'");
+
+      // Seed the new columns from the values the capture recorded for this
+      // profile where they are still at the generic default (1800).
+      db.prepare(
+        `UPDATE settings SET
+           rating_system = COALESCE((SELECT value FROM capture_profile WHERE key = 'ratingSystem'), rating_system),
+           single_elo = COALESCE((SELECT CAST(value AS INTEGER) FROM capture_profile WHERE key = 'singleElo'), single_elo),
+           elo_range = COALESCE((SELECT value FROM capture_profile WHERE key = 'eloRange'), elo_range)
+         WHERE user_id = (SELECT id FROM users ORDER BY id LIMIT 1)`
+      ).run();
+      db.prepare(
+        `UPDATE users SET
+           rating_system = (SELECT rating_system FROM settings WHERE settings.user_id = users.id),
+           single_elo = (SELECT single_elo FROM settings WHERE settings.user_id = users.id),
+           elo_range = (SELECT elo_range FROM settings WHERE settings.user_id = users.id),
+           coverage_goal = (SELECT coverage_goal FROM settings WHERE settings.user_id = users.id)`
+      ).run();
+
+      // --- session review style (D012/D090/D156) ---
+      addColumn(db, "practice_sessions", "style", "TEXT NOT NULL DEFAULT 'cards'");
+      addColumn(db, "practice_sessions", "practice_mode", "TEXT NOT NULL DEFAULT 'individual'");
+      addColumn(db, "practice_sessions", "replays", "INTEGER NOT NULL DEFAULT 0");
+
+      // --- reversible branch disable (D052) ---
+      addColumn(db, "lines", "disabled", "INTEGER NOT NULL DEFAULT 0");
+      addColumn(db, "line_moves", "disabled", "INTEGER NOT NULL DEFAULT 0");
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS branch_states (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          repertoire_id INTEGER NOT NULL REFERENCES repertoires(id) ON DELETE CASCADE,
+          epd TEXT NOT NULL,
+          san TEXT NOT NULL,
+          san_key TEXT NOT NULL,
+          disabled INTEGER NOT NULL DEFAULT 1,
+          snapshot TEXT NOT NULL DEFAULT '{}',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          UNIQUE (repertoire_id, epd, san_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_branch_states_rep
+          ON branch_states(repertoire_id, disabled);
+      `);
+    },
+  },
 ];
 
 function hasColumn(db, table, column) {

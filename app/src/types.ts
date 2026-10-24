@@ -1,10 +1,25 @@
 export type Color = "white" | "black";
 
+export interface UserProfile {
+  ratingSystem: string;
+  timeControl: string;
+  singleElo: number;
+  eloRange: string;
+  coverageGoal: number;
+  pieceSet?: string;
+}
+
 export interface User {
   id: number;
   email: string;
   name: string;
   plan: string;
+  ratingSystem?: string;
+  singleElo?: number;
+  eloRange?: string;
+  coverageGoal?: number;
+  profile?: UserProfile;
+  preferences?: Settings;
 }
 
 export interface Repertoire {
@@ -88,13 +103,44 @@ export interface DashboardData {
   connected: boolean;
 }
 
+export type BoardTheme =
+  | "green"
+  | "blue"
+  | "brown"
+  | "lichess-green"
+  | "chesscom-green";
+export type ReviewStyle = "cards" | "complete-once" | "complete-every" | "entire-line";
+export type PracticeModePreference = "individual" | "whole-lines";
+export type AnimationSpeed = "off" | "fast" | "normal";
+export type RecommendedMovesSize = "compact" | "comfortable" | "large";
+
 export interface Settings {
-  boardTheme: "green" | "blue" | "brown";
+  boardTheme: BoardTheme;
   coordinates: boolean;
   legalMoves: boolean;
   sound: boolean;
   showHints: boolean;
   dailyGoal: number;
+  modelSource?: "historical" | "masters" | "online";
+  /* D135/D197: rating, coverage and review preferences live on the server. */
+  ratingSystem?: string;
+  timeControl?: string;
+  singleElo?: number;
+  eloRange?: string;
+  coverageGoal?: number;
+  practiceMode?: PracticeModePreference;
+  reviewStyle?: ReviewStyle;
+  pauseAfterMove?: 0 | 1 | 2;
+  pauseOnFail?: boolean;
+  pauseOnLowScore?: boolean;
+  pauseWhenNote?: boolean;
+  animation?: AnimationSpeed;
+  haptics?: boolean;
+  pieceSet?: string;
+  soundVolume?: number;
+  soundEffects?: Record<string, boolean>;
+  recommendedMovesSize?: RecommendedMovesSize;
+  notifications?: Record<string, boolean>;
 }
 
 export interface Opening {
@@ -181,6 +227,58 @@ export interface TaskAlternative {
   note?: Note | null;
 }
 
+export interface CardState {
+  difficulty: number;
+  expectedWrong: number;
+  expectedWrongPercent: number;
+  recall: number | null;
+  grade: number | null;
+  lastCorrect: boolean | null;
+  lastReview: string | null;
+  dueAt: string | null;
+  intervalDays: number | null;
+  reps: number;
+  lapses: number;
+  wrongCount: number;
+  state: string;
+  reviewed: boolean;
+  mastered: boolean;
+}
+
+export interface CommonMoveInfo {
+  epd: string;
+  via: {
+    epd: string;
+    san: string;
+    incidence: number;
+    oneIn: number;
+    source: string | null;
+  };
+}
+
+export interface Refutation {
+  available: boolean;
+  playedSan?: string;
+  san?: string;
+  uci?: string;
+  from?: string;
+  to?: string;
+  fen?: string;
+  epd?: string;
+  line?: string[];
+  evalPawns?: number | null;
+  mate?: boolean;
+  depth?: number;
+  engine?: string;
+  source?: string;
+  explanation?: string;
+  check?: boolean;
+  mateAvailable?: boolean;
+  damagePawns?: number | null;
+  expectedEvalPawns?: number | null;
+  reason?: string;
+}
+
 export interface PracticeTask {
   epd: string;
   fen: string;
@@ -196,6 +294,10 @@ export interface PracticeTask {
   fullMoves: string[];
   prefix: TaskMove[];
   autoReply: TaskMove | null;
+  card?: CardState;
+  common?: CommonMoveInfo | null;
+  plans?: { from?: string; to?: string; text?: string; san?: string }[];
+  planArrows?: { from: string; to: string; label?: string | null }[];
   note: Note | null;
   noteText: string | null;
   moveNote: Note | null;
@@ -213,7 +315,14 @@ export interface PracticeTask {
   };
 }
 
-export type PracticeMode = "due" | "all" | "weak" | "early" | "specific" | "line";
+export type PracticeMode =
+  | "due"
+  | "all"
+  | "weak"
+  | "early"
+  | "specific"
+  | "line"
+  | "common";
 
 export interface PracticeSession {
   id: string;
@@ -228,6 +337,9 @@ export interface PracticeSession {
   skipped: number;
   cursor: number;
   complete: boolean;
+  style?: ReviewStyle;
+  practiceMode?: PracticeModePreference;
+  replays?: number;
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
@@ -260,6 +372,8 @@ export interface SessionPayload {
   skipped?: string | false;
   kept?: string | null;
   keptSan?: string;
+  commonMoves?: CommonMoveInfo[];
+  commonSource?: string;
 }
 
 export interface AttemptResponse {
@@ -299,6 +413,9 @@ export interface AttemptResponse {
   autoReply: TaskMove | null;
   remaining: number;
   complete: boolean;
+  refutation?: Refutation | null;
+  card?: CardState | null;
+  replay?: { replays: number } | null;
   next: {
     task: PracticeTask | null;
     autoReply: TaskMove | null;

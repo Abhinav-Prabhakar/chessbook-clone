@@ -22,6 +22,13 @@ import type { Settings } from "./types";
  */
 
 export type BoardTheme = Settings["boardTheme"];
+export const BOARD_THEMES: { value: BoardTheme; label: string }[] = [
+  { value: "green", label: "Chessbook" },
+  { value: "blue", label: "Chessbook blue" },
+  { value: "brown", label: "Lichess brown" },
+  { value: "lichess-green", label: "Lichess green" },
+  { value: "chesscom-green", label: "Chess.com green" },
+];
 export type Platform = "Chess.com" | "Lichess" | "FIDE" | "USCF";
 export type TimeControl = "Bullet" | "Blitz" | "Rapid" | "Classical";
 export type PracticeMode = "individual" | "whole-lines";
@@ -30,7 +37,38 @@ export type AnimationSpeed = "off" | "fast" | "normal";
 export type RecommendedMovesSize = "compact" | "comfortable" | "large";
 export type SoundName = "move" | "capture" | "check" | "correct" | "wrong" | "notify";
 
-export type ServerSettings = Settings & { modelSource?: "historical" | "masters" | "online" };
+export type ServerSettings = Settings &
+  Required<
+    Pick<
+      Settings,
+      | "boardTheme"
+      | "coordinates"
+      | "legalMoves"
+      | "sound"
+      | "showHints"
+      | "dailyGoal"
+      | "ratingSystem"
+      | "timeControl"
+      | "singleElo"
+      | "eloRange"
+      | "coverageGoal"
+      | "practiceMode"
+      | "reviewStyle"
+      | "pauseAfterMove"
+      | "pauseOnFail"
+      | "pauseOnLowScore"
+      | "pauseWhenNote"
+      | "animation"
+      | "haptics"
+      | "pieceSet"
+      | "soundVolume"
+      | "recommendedMovesSize"
+    >
+  > & {
+    modelSource?: "historical" | "masters" | "online";
+    soundEffects?: Record<string, boolean>;
+    notifications?: Record<string, boolean>;
+  };
 
 export interface RatingPref {
   system: Platform;
@@ -95,6 +133,7 @@ export const SOUND_LABELS: { name: SoundName; label: string }[] = [
 ];
 
 const PREFS_KEY = "cb_prefs_v1";
+const MIGRATED_KEY = "cb_prefs_migrated_v3";
 const STYLE_ID = "cb-client-prefs";
 
 export const DEFAULT_CLIENT_PREFS: ClientPrefs = {
@@ -281,7 +320,9 @@ export function applyClientPrefs(prefs: ClientPrefs = getClientPrefs()) {
 
 export function getBoardTheme(): BoardTheme {
   const value = read("cb_board_theme", "green");
-  return value === "blue" || value === "brown" ? value : "green";
+  return BOARD_THEMES.some((theme) => theme.value === value)
+    ? (value as BoardTheme)
+    : "green";
 }
 
 export function getCoordinates() {
@@ -300,11 +341,21 @@ export function getShowHints() {
   return bool("cb_show_hints");
 }
 
+/** The only bundled set is explicit; unknown values fall back to it (D144). */
+export function getPieceSet(): string {
+  const value = read("cb_piece_set", "chessbook_monochrome");
+  return value === "chessbook_monochrome" ? value : "chessbook_monochrome";
+}
+
 export function getDailyGoal() {
   return Number(read("cb_daily_goal", "10")) || 10;
 }
 
-/** Mirrors the server settings into the synchronous keys the board/sounds read. */
+/**
+ * Mirrors the server settings into the synchronous keys the board/sounds read
+ * and rebuilds the in-memory preference object. `settings` is the source of
+ * truth (D197); localStorage is only a cache for synchronous reads.
+ */
 export function applySettingsPrefs(settings: ServerSettings) {
   write("cb_board_theme", settings.boardTheme);
   write("cb_coordinates", settings.coordinates ? "1" : "0");
@@ -312,7 +363,123 @@ export function applySettingsPrefs(settings: ServerSettings) {
   write("cb_sound", settings.sound ? "1" : "0");
   write("cb_show_hints", settings.showHints ? "1" : "0");
   write("cb_daily_goal", String(settings.dailyGoal));
-  applyClientPrefs();
+  write("cb_piece_set", settings.pieceSet ?? "chessbook_monochrome");
+
+  const previous = cache ?? getClientPrefs();
+  cache = normalise({
+    ...previous,
+    rating: {
+      system: (settings.ratingSystem as Platform) ?? previous.rating.system,
+      timeControl: (settings.timeControl as TimeControl) ?? previous.rating.timeControl,
+      value: Number(settings.singleElo ?? previous.rating.value),
+    },
+    coverageGoal: settings.coverageGoal ?? previous.coverageGoal,
+    practiceMode: settings.practiceMode ?? previous.practiceMode,
+    reviewStyle: settings.reviewStyle ?? previous.reviewStyle,
+    pauseAfterMove: (settings.pauseAfterMove as 0 | 1 | 2) ?? previous.pauseAfterMove,
+    pauseOnFail: settings.pauseOnFail ?? previous.pauseOnFail,
+    pauseOnLowScore: settings.pauseOnLowScore ?? previous.pauseOnLowScore,
+    pauseWhenNote: settings.pauseWhenNote ?? previous.pauseWhenNote,
+    animation: (settings.animation as AnimationSpeed) ?? previous.animation,
+    haptics: settings.haptics ?? previous.haptics,
+    pieceSet: "chessbook_monochrome",
+    soundVolume: settings.soundVolume ?? previous.soundVolume,
+    soundEffects:
+      settings.soundEffects && typeof settings.soundEffects === "object"
+        ? (settings.soundEffects as ClientPrefs["soundEffects"])
+        : previous.soundEffects,
+    recommendedMovesSize:
+      (settings.recommendedMovesSize as RecommendedMovesSize) ??
+      previous.recommendedMovesSize,
+    notifications:
+      settings.notifications && typeof settings.notifications === "object"
+        ? (settings.notifications as unknown as ClientPrefs["notifications"])
+        : previous.notifications,
+  });
+  write(PREFS_KEY, JSON.stringify(cache));
+  applyClientPrefs(cache);
+  listeners.forEach((listener) => listener(cache!));
+}
+
+/**
+ * One-time migration of the old localStorage preferences into SQLite
+ * (D197). It only writes values whose server field is still at its default,
+ * so a later server-side choice is never overwritten by a stale browser.
+ */
+export async function migrateLocalPrefs(
+  api: { get: <T>(path: string) => Promise<T>; patch: <T>(path: string, body: unknown) => Promise<T> }
+): Promise<ServerSettings | null> {
+  try {
+    if (localStorage.getItem(MIGRATED_KEY) === "1") return null;
+  } catch {
+    return null;
+  }
+  let raw: Partial<ClientPrefs> = {};
+  try {
+    raw = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}") ?? {};
+  } catch {
+    raw = {};
+  }
+  const local = normalise({ ...migrateLegacy(), ...raw });
+  const defaults = DEFAULT_CLIENT_PREFS;
+  let server: ServerSettings | null = null;
+  try {
+    const response = await api.get<{ settings: ServerSettings }>("/settings");
+    server = response.settings;
+  } catch {
+    return null;
+  }
+  const patch: Record<string, unknown> = {};
+  if (server.singleElo === 1800 && local.rating.value !== 1800) {
+    patch.singleElo = local.rating.value;
+    patch.ratingSystem = local.rating.system;
+    patch.timeControl = local.rating.timeControl;
+  }
+  if (server.coverageGoal === 50 && local.coverageGoal !== 50) {
+    patch.coverageGoal = local.coverageGoal;
+  }
+  if (server.practiceMode === "individual" && local.practiceMode !== defaults.practiceMode) {
+    patch.practiceMode = local.practiceMode;
+  }
+  if (server.reviewStyle === "cards" && local.reviewStyle !== defaults.reviewStyle) {
+    patch.reviewStyle = local.reviewStyle;
+  }
+  if (server.pauseAfterMove === 0 && local.pauseAfterMove !== 0) {
+    patch.pauseAfterMove = local.pauseAfterMove;
+  }
+  if (server.pauseOnFail === true && local.pauseOnFail !== true) {
+    patch.pauseOnFail = local.pauseOnFail;
+  }
+  if (server.pauseOnLowScore === false && local.pauseOnLowScore !== false) {
+    patch.pauseOnLowScore = local.pauseOnLowScore;
+  }
+  if (server.pauseWhenNote === false && local.pauseWhenNote !== false) {
+    patch.pauseWhenNote = local.pauseWhenNote;
+  }
+  if (server.animation === "normal" && local.animation !== "normal") {
+    patch.animation = local.animation;
+  }
+  if (server.haptics === true && local.haptics !== true) {
+    patch.haptics = local.haptics;
+  }
+  if (server.recommendedMovesSize === "comfortable" && local.recommendedMovesSize !== "comfortable") {
+    patch.recommendedMovesSize = local.recommendedMovesSize;
+  }
+  if (server.soundVolume === 70 && local.soundVolume !== 70) {
+    patch.soundVolume = local.soundVolume;
+  }
+  try {
+    let next = server;
+    if (Object.keys(patch).length) {
+      const response = await api.patch<{ settings: ServerSettings }>("/settings", patch);
+      next = response.settings;
+    }
+    localStorage.setItem(MIGRATED_KEY, "1");
+    if (next) applySettingsPrefs(next);
+    return next;
+  } catch {
+    return null;
+  }
 }
 
 /* ------------------------------------------------------------------ getters --- */

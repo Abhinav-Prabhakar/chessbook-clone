@@ -21,6 +21,22 @@ import { AddPage } from "./pages/AddPage";
 import { ModelPage } from "./pages/ModelPage";
 import { LandingPage } from "./pages/LandingPage";
 import { LegalPage } from "./pages/LegalPage";
+import { TrainingGamesPage } from "./pages/TrainingGamesPage";
+import { BlunderPuzzlesPage } from "./pages/BlunderPuzzlesPage";
+import { IntuitionBuilderPage } from "./pages/IntuitionBuilderPage";
+import { VisualizationPage } from "./pages/VisualizationPage";
+import { VisionPage } from "./pages/VisionPage";
+import { OpeningsPage } from "./pages/OpeningsPage";
+import { OpeningGuidePage } from "./pages/OpeningGuidePage";
+import { CoachesPage } from "./pages/CoachesPage";
+import { CoachPage } from "./pages/CoachPage";
+import { CoachApplyPage } from "./pages/CoachApplyPage";
+import { CoachReviewPage } from "./pages/CoachReviewPage";
+import { BlogPage } from "./pages/BlogPage";
+import { BlogPostPage } from "./pages/BlogPostPage";
+import { RepertoiresPage } from "./pages/RepertoiresPage";
+import { WelcomePage } from "./pages/WelcomePage";
+import { HelpPage } from "./pages/HelpPage";
 import { Link } from "react-router-dom";
 
 function ScrollToTop() {
@@ -96,7 +112,29 @@ export default function App() {
               <Route path="/add" element={<AddPage />} />
               <Route path="/model" element={<ModelPage />} />
               <Route path="/model/:id" element={<ModelPage />} />
-              <Route path="/openings" element={<Navigate to="/add" replace />} />
+
+              <Route path="/training-games" element={<TrainingGamesPage />} />
+              <Route path="/blunder-puzzles" element={<BlunderPuzzlesPage />} />
+              <Route path="/intuition-builder" element={<IntuitionBuilderPage />} />
+              <Route path="/visualization" element={<VisualizationPage />} />
+              <Route path="/vision" element={<VisionPage />} />
+
+              <Route path="/openings" element={<OpeningsPage />} />
+              <Route path="/openings/:slug" element={<OpeningGuidePage />} />
+              <Route path="/coaches" element={<CoachesPage />} />
+              <Route path="/coaches/apply" element={<CoachApplyPage />} />
+              <Route path="/coaches/review" element={<CoachReviewPage />} />
+              <Route path="/coaches/:slug" element={<CoachPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:slug" element={<BlogPostPage />} />
+              <Route path="/repertoires" element={<RepertoiresPage />} />
+              {/* One dynamic pattern serves both production slugs (/repertoires/white-openings)
+                  and local keys (/repertoires/1, /repertoires/black); RepertoiresPage resolves
+                  either shape and redirects to /repertoire/:id. Registering a second
+                  /repertoires/:key route would make the matched param ambiguous. */}
+              <Route path="/repertoires/:slug" element={<RepertoiresPage />} />
+              <Route path="/welcome" element={<WelcomePage />} />
+              <Route path="/help" element={<HelpPage />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

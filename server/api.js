@@ -32,11 +32,14 @@ import {
 } from "./dates.js";
 import { lapse, schedule, updateTrainingRating } from "./srs.js";
 import {
+  REVIEW_STYLES,
   buildQueue,
   buildTask,
+  cardForMove,
   dailySummary,
   lineAggregate,
   lineOut,
+  lineQueue,
   modeOf,
   notesForPosition,
   persistStreak,
@@ -46,6 +49,11 @@ import {
   streakFor,
   taskLineView,
   weakEpdQuery,
+  disableBranch,
+  enableBranch,
+  linesThroughBranch,
+  recomputeDisabled,
+  removeBranches,
 } from "./repertoire.js";
 import { checkDatabase } from "./integrity.js";
 import {
@@ -73,6 +81,15 @@ import {
   randomGame,
 } from "./model-games.js";
 import { addBranchAt, addLineFromSans, lineEpds } from "./branches.js";
+import { commonMoveQueue } from "./common.js";
+import { refuteMove } from "./refutation.js";
+import {
+  COVERAGE_OPTIONS,
+  bandMatch,
+  readSettings,
+  settingsMeta,
+  updateSettings,
+} from "./settings.js";
 import { exportJson, exportPgn, parsePgnGames } from "./pgn.js";
 import { importCapturedData } from "./seed-data.js";
 
@@ -94,6 +111,12 @@ const userOut = (u) => ({
   currentStreak: Number(u.current_streak ?? 0),
   highestStreak: Number(u.highest_streak ?? 0),
   lastStreakDate: u.last_streak_date ?? null,
+  // Rating/coverage profile (D135/D196). `settings` is canonical; these are
+  // the mirrored columns the profile row carries.
+  ratingSystem: u.rating_system ?? "Chess.com",
+  singleElo: Number(u.single_elo ?? 1800),
+  eloRange: u.elo_range ?? "1800-2000",
+  coverageGoal: Number(u.coverage_goal ?? 50),
 });
 
 function getRepertoire(userId, key) {
@@ -165,9 +188,20 @@ api.get("/me", (req, res) => {
       .status(500)
       .json({ error: "Local profile is missing. Run npm run db:reset." });
   }
+  const settings = readSettings(db, user.id);
   res.json({
     user: {
       ...userOut(user),
+      profile: {
+        ratingSystem: settings.ratingSystem,
+        timeControl: settings.timeControl,
+        singleElo: settings.singleElo,
+        eloRange: settings.eloRange,
+        coverageGoal: settings.coverageGoal,
+        pieceSet: settings.pieceSet,
+      },
+      preferences: settings,
+      ratingBand: bandMatch(db, settings),
       streak: streakFor(db, user.id, req.query.tzOffset),
       daily: dailySummary(db, user.id, req.query.tzOffset),
     },
@@ -175,10 +209,34 @@ api.get("/me", (req, res) => {
 });
 
 api.patch("/user", requireAuth, (req, res) => {
-  const name = String(req.body?.name || "").trim();
-  if (!name) return res.status(400).json({ error: "Name is required" });
-  db.prepare("UPDATE users SET name = ? WHERE id = ?").run(name, req.user.id);
-  res.json({ user: { ...userOut(db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id)), name } });
+  const body = req.body || {};
+  const name = String(body.name || "").trim();
+  const hasProfilePatch = ["ratingSystem", "singleElo", "eloRange", "coverageGoal", "timeControl"].some(
+    (key) => body[key] != null
+  );
+  if (!name && !hasProfilePatch) {
+    return res.status(400).json({ error: "Provide a name or profile field" });
+  }
+  if (name) {
+    db.prepare("UPDATE users SET name = ? WHERE id = ?").run(name, req.user.id);
+  }
+  // Rating/coverage are canonical in `settings`; PATCH /user writes through
+  // the same normaliser so both endpoints cannot diverge (D197).
+  const settings = updateSettings(db, req.user.id, body);
+  const fresh = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
+  res.json({
+    user: {
+      ...userOut(fresh),
+      profile: {
+        ratingSystem: settings.ratingSystem,
+        timeControl: settings.timeControl,
+        singleElo: settings.singleElo,
+        eloRange: settings.eloRange,
+        coverageGoal: settings.coverageGoal,
+        pieceSet: settings.pieceSet,
+      },
+    },
+  });
 });
 
 /* ---------------------------------------------------------------- dashboard --- */
@@ -526,7 +584,11 @@ api.post("/repertoires/:key/trim", requireAuth, (req, res) => {
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
   const mode = String(req.body?.mode || "autofilled");
   const dryRun = Boolean(req.body?.dryRun);
-  const threshold = Math.max(0, Number(req.body?.threshold ?? 0.01));
+  const profile = readSettings(db, req.user.id);
+  const threshold =
+    req.body?.threshold != null
+      ? Math.max(0, Number(req.body.threshold))
+      : 1 / Math.max(1, profile.coverageGoal);
   const lines = db
     .prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id")
     .all(repertoire.id);
@@ -558,7 +620,11 @@ api.post("/repertoires/:key/trim", requireAuth, (req, res) => {
       }
     }
   } else if (mode === "pastGoal") {
-    const goal = Math.max(0.01, Math.min(1, Number(req.body?.coverageGoal ?? 0.9)));
+    const fallbackGoal = 1 - 1 / Math.max(1, profile.coverageGoal);
+    const goal = Math.max(
+      0.01,
+      Math.min(1, Number(req.body?.coverageGoal ?? fallbackGoal))
+    );
     // Remove the least-likely branches while coverage stays above the goal.
     const coverageRows = [];
     for (const line of lines) {
@@ -1513,6 +1579,8 @@ function gapResponse(repertoire, detail, gap, gaps = [], req) {
     nextOffset: shown?.nextOffset ?? null,
     gaps,
     stats: repStats(repertoire),
+    coverageGoal: readSettings(db, repertoire.user_id).coverageGoal,
+    ratingBand: bandMatch(db, readSettings(db, repertoire.user_id)),
   };
 }
 
@@ -1521,10 +1589,12 @@ api.get("/repertoires/:key/gap", requireAuth, (req, res) => {
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
   const requested = requestPosition(req, repertoire);
   const lineId = requested?.lineId ?? (req.query.lineId ? Number(req.query.lineId) : null);
+  const coverageGoal = readSettings(db, req.user.id).coverageGoal;
   const selection = chooseGap(db, repertoire, {
     lineId: lineId && !requested?.epd ? lineId : null,
     epd: requested?.epd ?? null,
     afterEpd: cleanEpd(req.query.after),
+    coverageGoal,
   });
   const detail = selection.detail ?? selection.position;
   res.json(
@@ -1537,7 +1607,8 @@ api.get("/repertoires/:key/gaps", requireAuth, (req, res) => {
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
   const lineId = req.query.lineId ? Number(req.query.lineId) : null;
   const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
-  const gaps = computeGaps(db, repertoire, { lineId, limit });
+  const coverageGoal = readSettings(db, req.user.id).coverageGoal;
+  const gaps = computeGaps(db, repertoire, { lineId, limit, coverageGoal });
   res.json({
     repertoire: repStats(repertoire),
     gaps,
@@ -1551,7 +1622,8 @@ api.get("/repertoires/:key/gap/next", requireAuth, (req, res) => {
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
   const afterEpd = cleanEpd(req.query.after, req.query.epd);
   const lineId = req.query.lineId ? Number(req.query.lineId) : null;
-  const selection = chooseGap(db, repertoire, { lineId, afterEpd });
+  const coverageGoal = readSettings(db, req.user.id).coverageGoal;
+  const selection = chooseGap(db, repertoire, { lineId, afterEpd, coverageGoal });
   const detail = selection.detail ?? selection.position;
   res.json(gapResponse(repertoire, detail, selection.gap, selection.gaps, req));
 });
@@ -1850,6 +1922,138 @@ api.delete("/repertoires/:key/exclusions", requireAuth, (req, res) => {
   res.json({ ok: true, deleted: Number(result.changes || 0) });
 });
 
+/* ------------------------------------------------------- branch operations --- */
+
+/**
+ * Reversible branch disable (D052).
+ *
+ * POST /repertoires/:key/branches/disable { epd, san }
+ *   → { ok, disabled:{epd,san,lineIds,lineCount}, snapshot, state }
+ * POST /repertoires/:key/branches/enable  { epd, san }
+ *   → { ok, enabled, state }
+ * GET  /repertoires/:key/branches
+ *   → { disabled:[…], lines:[…], state }
+ *
+ * A disabled branch removes the move and every later move of the affected
+ * lines from practice/stats. Review history is preserved; enabling restores
+ * exactly the previous queue. `state` reports the resulting counts.
+ */
+api.get("/repertoires/:key/branches", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const disabled = db
+    .prepare("SELECT * FROM branch_states WHERE repertoire_id = ? AND disabled = 1 ORDER BY id")
+    .all(repertoire.id)
+    .map((row) => ({
+      epd: row.epd,
+      san: row.san,
+      snapshot: safeJson(row.snapshot, {}),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+  const lines = db
+    .prepare("SELECT id, name, moves, disabled FROM lines WHERE repertoire_id = ? AND disabled = 1 ORDER BY id")
+    .all(repertoire.id)
+    .map((row) => ({ id: row.id, name: row.name, disabled: Boolean(row.disabled) }));
+  const state = {
+    lines: lines.length,
+    moves: db
+      .prepare("SELECT COUNT(*) AS n FROM line_moves WHERE repertoire_id = ? AND disabled = 1")
+      .get(repertoire.id).n,
+  };
+  res.json({ disabled, lines, state, repertoire: repStats(repertoire) });
+});
+
+api.post("/repertoires/:key/branches/disable", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const epd = cleanEpd(req.body?.epd, req.body?.fen);
+  if (!epd || !req.body?.san) {
+    return res.status(400).json({ error: "epd and san are required" });
+  }
+  const result = disableBranch(db, repertoire, { epd, san: req.body.san });
+  if (result.error) return res.status(result.status || 400).json(result);
+  res.json({ ...result, repertoire: repStats(repertoire) });
+});
+
+api.post("/repertoires/:key/branches/enable", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const epd = cleanEpd(req.body?.epd, req.body?.fen);
+  if (!epd || !req.body?.san) {
+    return res.status(400).json({ error: "epd and san are required" });
+  }
+  const result = enableBranch(db, repertoire, { epd, san: req.body.san });
+  res.json({ ...result, repertoire: repStats(repertoire) });
+});
+
+/**
+ * Batch remove (D053).
+ *
+ * DELETE /repertoires/:key/branches
+ *   { lineIds?: number[], branches?: [{epd,san}], dryRun?: boolean }
+ *   → { ok, dryRun, removed:[{id,name,moves,openingId}], removedCount,
+ *       snapshot:{lines:[…]}, repertoire }
+ *
+ * Everything is resolved to line ids first, deleted in one transaction and the
+ * graph/totals are rebuilt once. The snapshot is accepted by
+ * POST /repertoires/:key/branches/restore for an undo.
+ */
+api.delete("/repertoires/:key/branches", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const body = req.body || {};
+  const { lines, wanted } = removeBranches(db, repertoire, {
+    lineIds: body.lineIds ?? (body.lineId != null ? [body.lineId] : []),
+    branches: body.branches ?? (body.epd && body.san ? [{ epd: body.epd, san: body.san }] : []),
+  });
+  if (!lines.length) {
+    return res.status(404).json({ error: "No matching branch or line", removed: [], removedCount: 0 });
+  }
+  const dryRun = Boolean(body.dryRun);
+  if (!dryRun) {
+    const removeLine = db.prepare("DELETE FROM lines WHERE id = ? AND repertoire_id = ?");
+    for (const line of lines) removeLine.run(line.id, repertoire.id);
+    rebuildRepertoireMoves(db, repertoire.id);
+    syncRepertoireTotals(repertoire.id);
+  }
+  const fresh = db.prepare("SELECT * FROM repertoires WHERE id = ?").get(repertoire.id);
+  res.json({
+    ok: true,
+    dryRun,
+    removed: lines,
+    removedLineIds: wanted,
+    removedCount: lines.length,
+    snapshot: { lines },
+    repertoire: repStats(fresh),
+  });
+});
+
+api.post("/repertoires/:key/branches/restore", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const entries = Array.isArray(req.body?.lines) ? req.body.lines : [];
+  const restored = [];
+  const skipped = [];
+  for (const entry of entries) {
+    const moves = Array.isArray(entry?.moves) ? entry.moves : String(entry?.moves || "").split(/\s+/).filter(Boolean);
+    const result = addLineFromSans(db, repertoire, {
+      sans: moves,
+      name: entry?.name ?? null,
+      origin: "restore",
+      openingId: entry?.openingId ?? null,
+    });
+    if (result.error) skipped.push({ moves, error: result.error });
+    else restored.push({ id: result.line.id, moves: result.line.moves, created: result.created });
+  }
+  res.json({
+    ok: restored.length > 0,
+    restored,
+    skipped,
+    repertoire: repStats(db.prepare("SELECT * FROM repertoires WHERE id = ?").get(repertoire.id)),
+  });
+});
+
 /**
  * Coverage model from captured position reports.
  *
@@ -1972,9 +2176,14 @@ api.get("/repertoires/:key/learn", requireAuth, (req, res) => {
   const repertoire = getRepertoire(req.user.id, req.params.key);
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
 
+  const profile = readSettings(db, req.user.id);
   const due = buildQueue(db, repertoire, "due");
   const weak = buildQueue(db, repertoire, "weak");
   const all = buildQueue(db, repertoire, "all");
+  const common = commonMoveQueue(db, repertoire, {
+    coverageGoal: profile.coverageGoal,
+    limit: 40,
+  });
   const ordered = [...new Set([...due, ...weak, ...all])].slice(0, 100);
 
   const queue = ordered
@@ -1995,7 +2204,20 @@ api.get("/repertoires/:key/learn", requireAuth, (req, res) => {
     })
     .filter(Boolean);
 
-  res.json({ repertoire: repStats(repertoire), queue, due: due.length, weak: weak.length, all: all.length });
+  res.json({
+    repertoire: repStats(repertoire),
+    queue,
+    due: due.length,
+    weak: weak.length,
+    all: all.length,
+    common: common.length,
+    commonMoves: common,
+    commonSource: "captured-position-incidence",
+    reviewStyle: profile.reviewStyle,
+    practiceMode: profile.practiceMode,
+    coverageGoal: profile.coverageGoal,
+    ratingBand: bandMatch(db, profile),
+  });
 });
 
 /** Outstanding mistakes: a real wrong review that has not since been solved. */
@@ -2459,6 +2681,9 @@ function sessionOut(row) {
     skipped: Number(row.skipped || 0),
     cursor: Number(row.cursor || 0),
     complete,
+    style: row.style || "cards",
+    practiceMode: row.practice_mode || "individual",
+    replays: Number(row.replays || 0),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     completedAt: row.completed_at,
@@ -2524,6 +2749,41 @@ function advanceSession(row, epd, { skipped = false } = {}) {
   return loadSession(row.user_id, row.id);
 }
 
+/**
+ * "Complete lines (every time)" replay (D012): after a wrong answer, put the
+ * rest of that line back at the end of the queue so the whole line is walked
+ * again. Bounded to three replays and 3× the original size so a user who keeps
+ * missing cannot create an endless session.
+ */
+function replayLine(session, repertoire, lineId) {
+  if (session.style !== "complete-every") return { added: 0, replays: Number(session.replays || 0) };
+  const replays = Number(session.replays || 0);
+  if (replays >= 3) return { added: 0, replays };
+  const epds = lineQueue(db, repertoire, lineId);
+  if (!epds.length) return { added: 0, replays };
+  const queue = sessionQueue(session);
+  const seen = new Set(parseArray(session.seen));
+  const limit = Math.max(queue.length * 3, 60);
+  const additions = epds.filter((epd) => !queue.includes(epd));
+  if (queue.length + additions.length > limit) return { added: 0, replays };
+  const nextQueue = [...queue, ...additions];
+  // Existing line positions were answered earlier in this session; clearing
+  // them from `seen` is what makes this a *replay* rather than a no-op.
+  for (const epd of epds) seen.delete(epd);
+  db.prepare(
+    `UPDATE practice_sessions SET queue = ?, seen = ?, total = ?, replays = ?,
+       status = 'active', completed_at = NULL, updated_at = ? WHERE id = ?`
+  ).run(
+    JSON.stringify(nextQueue),
+    JSON.stringify([...seen]),
+    nextQueue.length,
+    replays + 1,
+    now(),
+    session.id
+  );
+  return { added: additions.length, replays: replays + 1 };
+}
+
 function newSession(userId, repertoire, mode, options = {}) {
   const queue = [...new Set(buildQueue(db, repertoire, mode, options))];
   const stamp = now();
@@ -2531,14 +2791,16 @@ function newSession(userId, repertoire, mode, options = {}) {
   const complete = queue.length === 0;
   db.prepare(
     `INSERT INTO practice_sessions
-       (id, user_id, repertoire_id, mode, status, queue, seen, cursor, total,
-        correct, wrong, skipped, created_at, updated_at, completed_at)
-     VALUES (?, ?, ?, ?, ?, ?, '[]', 0, ?, 0, 0, 0, ?, ?, ?)`
+       (id, user_id, repertoire_id, mode, style, practice_mode, status, queue, seen,
+        cursor, total, correct, wrong, skipped, created_at, updated_at, completed_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, '[]', 0, ?, 0, 0, 0, ?, ?, ?)`
   ).run(
     id,
     userId,
     repertoire.id,
     mode,
+    options.style || "cards",
+    options.practiceMode || "individual",
     complete ? "complete" : "active",
     JSON.stringify(queue),
     queue.length,
@@ -2610,12 +2872,37 @@ api.post("/practice/sessions", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Choose at least one line for this mode" });
   }
 
-  const row = newSession(req.user.id, repertoire, mode, { lineIds });
-  res.status(201).json({
+  const profile = readSettings(db, req.user.id);
+  const requestedStyle = req.body?.style ?? req.body?.reviewStyle;
+  const style = REVIEW_STYLES.includes(String(requestedStyle))
+    ? String(requestedStyle)
+    : profile.reviewStyle;
+  const practiceMode = ["individual", "whole-lines"].includes(String(req.body?.practiceMode))
+    ? String(req.body.practiceMode)
+    : profile.practiceMode;
+  const coverageGoal = COVERAGE_OPTIONS.includes(Number(req.body?.coverageGoal))
+    ? Number(req.body.coverageGoal)
+    : profile.coverageGoal;
+
+  const row = newSession(req.user.id, repertoire, mode, {
+    lineIds,
+    style,
+    practiceMode,
+    coverageGoal,
+  });
+  const payload = {
     ...sessionWithTask(row, repertoire),
     resumed: false,
     repertoire: repStats(repertoire),
-  });
+  };
+  if (mode === "common") {
+    payload.commonMoves = commonMoveQueue(db, repertoire, {
+      coverageGoal,
+      lineIds: lineIds.length ? lineIds : null,
+    });
+    payload.commonSource = "captured-position-incidence";
+  }
+  res.status(201).json(payload);
 });
 
 api.get("/practice/sessions", requireAuth, (req, res) => {
@@ -3072,8 +3359,12 @@ api.post("/practice/sessions/:id/attempt", requireAuth, (req, res) => {
     san: expectedSan,
   });
 
-  if (correct) advanceSession(session, task.epd);
-  else db.prepare("UPDATE practice_sessions SET wrong = wrong + 1, updated_at = ? WHERE id = ?").run(stamp, session.id);
+  if (correct) {
+    advanceSession(session, task.epd);
+  } else {
+    db.prepare("UPDATE practice_sessions SET wrong = wrong + 1, updated_at = ? WHERE id = ?").run(stamp, session.id);
+    if (task.lineId) replayLine(loadSession(req.user.id, session.id), repertoire, task.lineId);
+  }
 
   const freshSession = loadSession(req.user.id, session.id);
   const nextState = sessionWithTask(freshSession, repertoire);
@@ -3101,10 +3392,28 @@ api.post("/practice/sessions/:id/attempt", requireAuth, (req, res) => {
 
   persistStreak(db, req.user.id, req.body?.tzOffset);
 
+  // D020: compute a real refutation for a wrong move. The engine is a local
+  // material/mate search; captured annotations enrich the explanation when the
+  // position has one. The expected move is used for the damage comparison.
+  const refutation = correct
+    ? null
+    : refuteMove(db, task.fen, played.san, { expectedSan: task.expectedSan });
+  const refreshedTarget = moveById(target.id) || target;
+  const refreshedLast = db
+    .prepare(
+      `SELECT grade, correct, created_at FROM reviews
+       WHERE line_move_id = ? ORDER BY created_at DESC, id DESC LIMIT 1`
+    )
+    .get(target.id);
+  const card = cardForMove(refreshedTarget, refreshedLast);
+
   const payload = attemptPayload(req, repertoire, task, played.san, correct, grade, scheduled, {
     expectedSan,
     retry: !correct,
     lapse: penalty,
+    refutation,
+    card,
+    replay: freshSession.replays ? { replays: Number(freshSession.replays || 0) } : null,
     autoReply,
     remaining: nextState.session.remaining,
     complete: nextState.session.complete,
@@ -3685,63 +3994,20 @@ api.post("/model-games/:id/review", requireAuth, (req, res) => {
 /* ---------------------------------------------------------------- settings --- */
 
 api.get("/settings", requireAuth, (req, res) => {
-  const s = db.prepare("SELECT * FROM settings WHERE user_id = ?").get(req.user.id);
+  const settings = readSettings(db, req.user.id);
   res.json({
-    settings: {
-      boardTheme: s.board_theme,
-      coordinates: Boolean(s.coordinates),
-      legalMoves: Boolean(s.legal_moves),
-      sound: Boolean(s.sound),
-      showHints: Boolean(s.show_hints),
-      dailyGoal: s.daily_goal,
-      modelSource: s.model_source || "historical",
-    },
+    settings,
+    ...settingsMeta(),
+    ratingBand: bandMatch(db, settings),
   });
 });
 
 api.patch("/settings", requireAuth, (req, res) => {
-  const s = db.prepare("SELECT * FROM settings WHERE user_id = ?").get(req.user.id);
-  const body = req.body || {};
-  const boardTheme = ["green", "blue", "brown"].includes(body.boardTheme)
-    ? body.boardTheme
-    : s.board_theme;
-  const coordinates =
-    body.coordinates != null ? Number(Boolean(body.coordinates)) : s.coordinates;
-  const legalMoves =
-    body.legalMoves != null ? Number(Boolean(body.legalMoves)) : s.legal_moves;
-  const sound = body.sound != null ? Number(Boolean(body.sound)) : s.sound;
-  const showHints =
-    body.showHints != null ? Number(Boolean(body.show_hints)) : s.show_hints;
-  const dailyGoal =
-    body.dailyGoal != null
-      ? Math.max(1, Math.min(500, Number(body.dailyGoal)))
-      : s.daily_goal;
-  const modelSource = ["historical", "online", "masters"].includes(body.modelSource)
-    ? body.modelSource
-    : s.model_source || "historical";
-  db.prepare(
-    `UPDATE settings SET board_theme = ?, coordinates = ?, legal_moves = ?,
-       sound = ?, show_hints = ?, daily_goal = ?, model_source = ? WHERE user_id = ?`
-  ).run(
-    boardTheme,
-    coordinates,
-    legalMoves,
-    sound,
-    showHints,
-    dailyGoal,
-    modelSource,
-    req.user.id
-  );
+  const settings = updateSettings(db, req.user.id, req.body || {});
   res.json({
-    settings: {
-      boardTheme,
-      coordinates: Boolean(coordinates),
-      legalMoves: Boolean(legalMoves),
-      sound: Boolean(sound),
-      showHints: Boolean(showHints),
-      dailyGoal,
-      modelSource,
-    },
+    settings,
+    ...settingsMeta(),
+    ratingBand: bandMatch(db, settings),
   });
 });
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import type {
@@ -26,6 +26,15 @@ interface Data {
   due: number;
   weak: number;
   all: number;
+  common?: number;
+  commonMoves?: {
+    epd: string;
+    fen: string;
+    via: { san: string; incidence: number; oneIn: number; source: string | null };
+  }[];
+  commonSource?: string;
+  reviewStyle?: string;
+  practiceMode?: string;
 }
 
 interface LinesResponse {
@@ -40,16 +49,8 @@ const MODE_LABELS: Record<string, string> = {
   early: "Early review",
   specific: "Specific opening",
   line: "Specific opening",
+  common: "Next common moves",
 };
-
-function practiceStyle(): "whole" | "individual" {
-  try {
-    const value = localStorage.getItem("cb_practice_mode") ?? "";
-    return /whole/i.test(value) ? "whole" : "individual";
-  } catch {
-    return "individual";
-  }
-}
 
 function tzOffset() {
   return new Date().getTimezoneOffset();
@@ -64,7 +65,6 @@ export function LearnPage() {
   const [daily, setDaily] = useState<DailySummary | null>(null);
   const [error, setError] = useState("");
   const [showSpecific, setShowSpecific] = useState(false);
-  const style = useMemo(() => practiceStyle(), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -125,21 +125,16 @@ export function LearnPage() {
   const worked = queue[0] ?? null;
   const mastery = Number(repertoire.mastery ?? 0);
 
-  const lineIdsFor = (source: Line[]) => [...new Set(source.map((line) => line.id))];
-
+  /**
+   * "Practice: Whole lines" is applied by the server when the session is
+   * created (`practiceMode` in the settings row), so the Learn row always
+   * asks for the real mode and the server expands it to complete lines
+   * (D140). No client-side line guessing.
+   */
   const start = (mode: PracticeMode) => {
     if (mode === "specific" || mode === "line") {
       setShowSpecific(true);
       return;
-    }
-    if (style === "whole" && (mode === "due" || mode === "weak")) {
-      const source =
-        mode === "due" ? queue.filter((item) => item.due) : queue.filter((item) => (item.wrong ?? 0) > 0);
-      const ids = lineIdsFor(source);
-      if (ids.length) {
-        navigate(`/practice/${key}?mode=specific&lines=${ids.join(",")}`);
-        return;
-      }
     }
     navigate(`/practice/${key}?mode=${mode}`);
   };
@@ -274,6 +269,18 @@ export function LearnPage() {
               disabled={dueCount === 0}
             />
             <Row
+              title="Next common moves"
+              right={
+                <span className="cb-row-meta">
+                  {data.common ?? 0} positions{" "}
+                  <i className="fa fa-shuffle" aria-hidden />
+                </span>
+              }
+              meta="Likely opponent moves from captured incidence at your rating band"
+              onClick={() => start("common")}
+              disabled={(data.common ?? 0) === 0}
+            />
+            <Row
               title="Just the moves I often get wrong"
               right={
                 <span className="cb-row-meta strong">
@@ -323,7 +330,18 @@ export function LearnPage() {
               fontSize: 11,
             }}
           >
-            Practice style: {style === "whole" ? "Whole lines" : "Individual moves"} ·{" "}
+            Practice style:{" "}
+            {(data.practiceMode ?? "individual") === "whole-lines"
+              ? "Whole lines"
+              : "Individual moves"}
+            {" · Review style: "}
+            {{
+              cards: "Cards",
+              "complete-once": "Complete lines (once)",
+              "complete-every": "Complete lines (every time)",
+              "entire-line": "Entire line",
+            }[data.reviewStyle ?? "cards"] ?? "Cards"}{" "}
+            ·{" "}
             <Link to="/settings" style={{ color: "inherit" }}>
               change in Settings
             </Link>
