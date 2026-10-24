@@ -114,7 +114,7 @@ export function PracticePage() {
       return () => window.clearTimeout(t);
     }
     const mineToMove = item.line.plies[pi].side === color;
-    const delay = mineToMove ? 260 : settings.autoplayDelay;
+    const delay = mineToMove ? 260 : Math.max(180, settings.autoplayDelay);
     const t = window.setTimeout(() => {
       setPi((p) => p + 1);
       if (!mineToMove) setFeedback(null);
@@ -318,14 +318,14 @@ export function PracticePage() {
         title={MODE_TITLES[mode] || "Practicing moves"}
         right={
           <span className="counters">
-            <span className="counter due">
-              {remaining} <Icon name="clock" />
+            <span className="counter">
+              {remaining} Due <span className="badge orange"><Icon name="clock" /></span>
             </span>
-            <span className="counter good">
-              {stats.correct} <Icon name="check" />
+            <span className="counter">
+              {stats.correct} <span className="badge green"><Icon name="check" /></span>
             </span>
-            <span className="counter bad">
-              {stats.wrong} <Icon name="x" />
+            <span className="counter">
+              {stats.wrong} <span className="badge red"><Icon name="x" /></span>
             </span>
           </span>
         }

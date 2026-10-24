@@ -8,7 +8,7 @@ import { ToastProvider } from "./ui";
 import { Dashboard } from "./pages/Dashboard";
 import { RepertoirePage } from "./pages/RepertoirePage";
 import { BuildPage } from "./pages/BuildPage";
-import { LearnPage } from "./pages/LearnPage";
+import { LearnPage, SpecificOpeningPage } from "./pages/LearnPage";
 import { PracticePage } from "./pages/PracticePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { NewRepertoirePage } from "./pages/NewRepertoirePage";
@@ -88,8 +88,11 @@ export default function App() {
                 <Route path="repertoires/:id" element={g(<RepertoirePage />)} />
                 <Route path="repertoires/:id/build" element={g(<BuildPage />)} />
                 <Route path="repertoires/:id/learn" element={g(<LearnPage />)} />
+                <Route path="repertoires/:id/learn/specific" element={g(<SpecificOpeningPage />)} />
                 <Route path="repertoires/:id/practice" element={g(<PracticePage />)} />
                 <Route path="settings" element={g(<SettingsPage />)} />
+                <Route path="settings/:section" element={g(<SettingsPage />)} />
+                <Route path="settings/:section/:sub" element={g(<SettingsPage />)} />
                 <Route path="model-games" element={g(<ModelGamesPage />)} />
                 <Route path="model-games/:gameId" element={g(<ModelGamePage />)} />
                 <Route path="puzzles" element={g(<PuzzlesPage />)} />

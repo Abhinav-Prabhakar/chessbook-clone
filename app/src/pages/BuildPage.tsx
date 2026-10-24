@@ -223,27 +223,27 @@ export function BuildPage() {
             />
           )}
 
-          <div className="rows actions">
-            {nextGap.data?.gaps[0] && nextGap.data.gaps[0].path.join(",") !== pathKey && (
-              <Row
-                title={path.length ? "Go to the next gap in this line" : "Go to your biggest gap"}
-                meta={`${nextGap.data.gaps[0].lastMove ? `After ${nextGap.data.gaps[0].label}` : "Your first move"} · 1 in ${nextGap.data.gaps[0].expectedIn} games`}
-                to={buildPath(id, nextGap.data.gaps[0].path)}
-                chevron
-              />
-            )}
+          {nextGap.data?.gaps[0] && nextGap.data.gaps[0].path.join(",") !== pathKey && (
+            <Row
+              variant="accent"
+              className="block-row gap-row"
+              title={path.length ? "Go to the next gap in this line" : "Go to your biggest gap"}
+              right={<span className="setting-value">1 in {nextGap.data.gaps[0].expectedIn} games</span>}
+              to={buildPath(id, nextGap.data.gaps[0].path)}
+            />
+          )}
+          <div className="rows list spaced">
             {nextGap.data?.gaps[0] && path.length > 0 && (
               <AutofillRow id={id} from={path} onDone={refreshAll} />
             )}
             {current.onRepertoire && path.length > 0 && (
-              <Row title="Practice from here" to={practicePath(id, "line", path)} chevron />
+              <Row title="Practice from here" to={practicePath(id, "line", path)} />
             )}
-            <Row title="Play a training game from here" to={`/training-games?path=${pathQuery(path)}&color=${color}&repertoire=${id}`} chevron />
+            <Row title="Play a training game from here" to={`/training-games?path=${pathQuery(path)}&color=${color}&repertoire=${id}`} />
             <Row
               title={current.positionNote ? "Edit position note" : "Add a note for this position"}
               meta={current.positionNote || undefined}
               onClick={() => setNoteFor({ text: current.positionNote || "" })}
-              chevron
             />
           </div>
         </div>
@@ -350,70 +350,51 @@ function MyMove({
   const visible = showAll ? list : list.slice(0, 6);
   const evalFor = (san: string) => engine?.moves.find((m) => m.san === san);
 
+  const row = (c: Candidate, compactRow: boolean) => (
+    <CandidateRow
+      key={c.san}
+      c={c}
+      ply={view.ply}
+      ev={evalFor(c.san)}
+      engineReady={Boolean(engine)}
+      onHover={onHover}
+      onClick={() => onPick(c)}
+      hideNote={compactRow}
+      actions={
+        c.saved ? (
+          <>
+            <button type="button" className="mini-action" onClick={(e) => (e.stopPropagation(), onRemove(c.san))}>
+              Remove <Icon name="trash" />
+            </button>
+            <button type="button" className="mini-action" onClick={(e) => (e.stopPropagation(), onNote(c.san, c.ownNote ? c.note : null))}>
+              {c.ownNote ? "Edit note" : "Add a note"} <Icon name="note" />
+            </button>
+          </>
+        ) : undefined
+      }
+    />
+  );
+
+  const title = hasSaved ? (view.ply === 0 ? "Your first move" : "Your move") : view.ply === 0 ? "Choose your first move" : "Potential moves";
   return (
-    <>
-      {hasSaved && (
-        <Section title={view.ply === 0 ? "Your first move" : "Your move"} right={<CandidateHeader />}>
-          <div className="cand-list">
-            {saved.map((c) => (
-              <CandidateRow
-                key={c.san}
-                c={c}
-                ply={view.ply}
-                ev={evalFor(c.san)}
-                engineReady={Boolean(engine)}
-                onHover={onHover}
-                onClick={() => onPick(c)}
-                actions={
-                  <>
-                    <button type="button" className="mini-action" onClick={(e) => (e.stopPropagation(), onNote(c.san, c.ownNote ? c.note : null))}>
-                      {c.ownNote ? "Edit note" : "Add a note"} <Icon name="note" />
-                    </button>
-                    <button type="button" className="mini-action" onClick={(e) => (e.stopPropagation(), onRemove(c.san))}>
-                      Remove <Icon name="trash" />
-                    </button>
-                  </>
-                }
-              />
-            ))}
-          </div>
-          {saved.length > 1 && (
-            <p className="hint-text">You have {saved.length} moves here. In practice, either one counts as correct.</p>
-          )}
-          {!addingAlt && others.length > 0 && (
-            <button type="button" className="text-action" onClick={onAddAlt}>
-              Add an alternative move
-            </button>
-          )}
-        </Section>
+    <Section title={title} right={<CandidateHeader />}>
+      <div className="cand-list">
+        {saved.map((c) => row(c, true))}
+        {visible.map((c) => row(c, hasSaved))}
+      </div>
+      {list.length > visible.length && (
+        <button type="button" className="text-action" onClick={onShowAll}>
+          Show more
+        </button>
       )}
-      {list.length > 0 && (
-        <Section title={hasSaved ? "Alternatives" : view.ply === 0 ? "Choose your first move" : "Potential moves"} right={<CandidateHeader />}>
-          <div className="cand-list">
-            {visible.map((c) => (
-              <CandidateRow
-                key={c.san}
-                c={c}
-                ply={view.ply}
-                ev={evalFor(c.san)}
-                engineReady={Boolean(engine)}
-                onHover={onHover}
-                onClick={() => onPick(c)}
-              />
-            ))}
-          </div>
-          {list.length > visible.length && (
-            <button type="button" className="text-action" onClick={onShowAll}>
-              Show {list.length - visible.length} more
-            </button>
-          )}
-          <p className="hint-text">Pick a move above or play any move on the board to add it.</p>
-        </Section>
+      {hasSaved && !addingAlt && others.length > 0 && (
+        <button type="button" className="text-action" onClick={onAddAlt}>
+          Add an alternative move
+        </button>
       )}
-      {!hasSaved && list.length === 0 && (
-        <p className="hint-text">No statistics for this position. Play your move on the board to add it.</p>
-      )}
-    </>
+      {saved.length > 1 && <p className="hint-text">You have {saved.length} moves here. In practice, either one counts as correct.</p>}
+      {!hasSaved && list.length === 0 && <p className="hint-text">No statistics for this position. Play your move on the board to add it.</p>}
+    </Section>
   );
 }
 
@@ -422,7 +403,7 @@ function CandidateHeader() {
     <span className="cand-head">
       <span>Masters</span>
       <span>Eval</span>
-      <span className="cand-head-peers">Your level</span>
+      <span className="cand-head-peers">Peer results</span>
     </span>
   );
 }
@@ -435,6 +416,7 @@ function CandidateRow({
   onHover,
   onClick,
   actions,
+  hideNote = false,
 }: {
   c: Candidate;
   ply: number;
@@ -443,6 +425,7 @@ function CandidateRow({
   onHover: (san: string | null) => void;
   onClick: () => void;
   actions?: React.ReactNode;
+  hideNote?: boolean;
 }) {
   return (
     <div
@@ -459,7 +442,7 @@ function CandidateRow({
           <span className="cand-move">{moveLabel(ply, c.san)}</span>
           {c.name && <span className="cand-name">{c.name}</span>}
         </div>
-        {c.note && <p className="cand-note">{c.note}</p>}
+        {c.note && !hideNote && <p className="cand-note">{c.note}</p>}
         {actions && <div className="cand-actions">{actions}</div>}
       </div>
       <div className="cand-stats">

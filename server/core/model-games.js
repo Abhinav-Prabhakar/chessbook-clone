@@ -10,6 +10,7 @@ import { openingForPath } from "./explorer.js";
 import { replay, epdOf, START_EPD } from "./chess.js";
 import { todayLocal } from "./dates.js";
 import { masterGamesReady } from "./data-import.js";
+import { analyse } from "../engine.js";
 
 function repertoirePositions(repertoire) {
   const graph = graphOf(repertoire.id);
@@ -204,7 +205,7 @@ export function saveProgress(gameId, { ply, correct, wrong, completed }) {
 export function history(limit = 60) {
   return db
     .prepare(
-      `SELECT p.*, g.white, g.black, g.white_elo, g.black_elo, g.event, g.year, g.result, g.plies
+      `SELECT p.*, g.white, g.black, g.white_elo, g.black_elo, g.event, g.year, g.result, g.plies, g.sans
        FROM model_progress p JOIN master_games g ON g.id = p.game_id
        ORDER BY p.updated_at DESC LIMIT ?`
     )
@@ -226,7 +227,18 @@ export function history(limit = 60) {
       completed: Boolean(r.completed_at),
       daily: r.daily_day,
       updatedAt: r.updated_at,
+      opening: openingFamily(r.sans),
     }));
+}
+
+function openingFamily(sansText) {
+  try {
+    const { steps } = replay(String(sansText).split(" ").slice(0, 24));
+    const hit = openingForPath([START_EPD, ...steps.map((s) => s.epdAfter)]);
+    return hit ? hit.name.split(":")[0] : null;
+  } catch {
+    return null;
+  }
 }
 
 export function modelGameCount() {
@@ -234,3 +246,45 @@ export function modelGameCount() {
 }
 
 export { epdOf };
+
+/* ---------------------------------------------------------------- evals --- */
+
+const EVAL_DEPTH = 10;
+const evalJobs = new Map();
+
+/**
+ * Engine evaluation after every move (White's point of view, in pawns,
+ * mates as ±10). Computed once in the background and cached.
+ */
+export function gameEvals(gameId) {
+  const id = Number(gameId);
+  const row = db.prepare("SELECT json FROM model_game_evals WHERE game_id = ?").get(id);
+  if (row) return { status: "ready", evals: JSON.parse(row.json) };
+  const game = db.prepare("SELECT sans FROM master_games WHERE id = ?").get(id);
+  if (!game) throw httpError(404, "Model game not found");
+  let job = evalJobs.get(id);
+  if (!job) {
+    const { steps } = replay(game.sans.split(" "));
+    job = { done: 0, total: steps.length + 1, evals: [] };
+    evalJobs.set(id, job);
+    (async () => {
+      const fens = [steps.length ? steps[0].fenBefore : null, ...steps.map((s) => s.fenAfter)].filter(Boolean);
+      for (const fen of fens) {
+        const result = await analyse(fen, { depth: EVAL_DEPTH, multipv: 1 });
+        let value = null;
+        if (result.available) {
+          value = result.mate != null ? (result.mate > 0 ? 10 : -10) : Math.max(-10, Math.min(10, (result.evalCp ?? 0) / 100));
+        }
+        job.evals.push(value);
+        job.done += 1;
+      }
+      db.prepare("INSERT OR REPLACE INTO model_game_evals (game_id, depth, json) VALUES (?, ?, ?)").run(
+        id,
+        EVAL_DEPTH,
+        JSON.stringify(job.evals)
+      );
+      evalJobs.delete(id);
+    })().catch(() => evalJobs.delete(id));
+  }
+  return { status: "pending", done: job.done, total: job.total, evals: job.evals };
+}

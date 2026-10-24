@@ -202,20 +202,25 @@ button:disabled {
   color: var(--text);
 }
 
-/* Page transition: only the sidebar content moves; the board stays put. */
-.page {
-  animation: page-in 260ms var(--ease) both;
+/* Sidebar views (see SidebarViews in AppShell): the outgoing view is a
+   snapshot laid over the new one while both animate. */
+.views {
+  position: relative;
 }
 
-@keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateX(14px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+.view {
+  will-change: transform, opacity;
+}
+
+.view-exit {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.view-exit > * {
+  will-change: transform, opacity;
 }
 
 /* ------------------------------------------------------------ crumbs etc --- */
@@ -230,7 +235,6 @@ button:disabled {
   font-size: 14px;
   font-weight: 600;
   mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
-  animation: fade-in 220ms ease both;
 }
 
 .crumb-home img {
@@ -242,6 +246,18 @@ button:disabled {
 .crumb {
   display: inline-flex;
   align-items: center;
+  animation: crumb-in 160ms ease-out 160ms both;
+}
+
+@keyframes crumb-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+.crumb-ring {
+  margin-right: 7px;
 }
 
 .crumb-sep {
@@ -624,7 +640,7 @@ button:disabled {
 
 .page-sub {
   margin: 6px 0 0;
-  color: var(--text-3);
+  color: var(--text-2);
   font-size: 14px;
   line-height: 20px;
 }
@@ -755,9 +771,32 @@ button:disabled {
   font-weight: 600;
 }
 
-.row-plain {
+.row-plain,
+.row-list {
   background: transparent;
   border-bottom: 1px solid var(--line-soft);
+}
+
+.rows.list {
+  gap: 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.rows.list .row {
+  background: transparent;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.rows.list .row:hover:not(:disabled) {
+  background: oklch(30% 0.0085 243);
+}
+
+.rows.list .row-accent {
+  background: var(--row-accent);
+}
+
+.rows.list .row-accent:hover:not(:disabled) {
+  background: var(--row-hover);
 }
 
 .rows.actions .row {
@@ -793,7 +832,7 @@ button:disabled {
 .row-title {
   overflow: hidden;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   text-overflow: ellipsis;
 }
 
@@ -1005,13 +1044,7 @@ button:disabled {
   background: oklch(30% 0.0085 243);
 }
 
-.cand.saved {
-  background: oklch(29% 0.02 141 / 0.6);
-}
 
-.cand.saved:hover {
-  background: oklch(32% 0.03 141 / 0.7);
-}
 
 .cand-main {
   min-width: 0;
@@ -1746,7 +1779,7 @@ button:disabled {
   }
 }
 
-.page .skeleton:not(:first-child) {
+.view .skeleton:not(:first-child) {
   padding-top: 24px;
 }
 
@@ -2061,4 +2094,300 @@ button:disabled {
 
 .prompt-move.dim {
   color: var(--text-3);
+}
+
+/* -------------------------------------------------------------- settings --- */
+
+.settings-group {
+  margin-top: 36px;
+}
+
+.settings-list .row,
+.choice-list .row {
+  min-height: 45px;
+}
+
+.setting-value {
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.choice-list .row .icon {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.choice-list .row.unselected .row-title {
+  color: var(--text-3);
+}
+
+.choice-list .row.unselected:hover .row-title {
+  color: var(--text);
+}
+
+.choice-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rating-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 30px 18px 32px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.rating-value {
+  min-width: 106px;
+  padding: 7px 16px;
+  border-radius: 4px;
+  background: #f0f2f3;
+  color: #121416;
+  font-family: var(--font);
+  font-size: 26px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.rating-slider {
+  position: relative;
+  width: 100%;
+  height: 20px;
+}
+
+.rating-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--row);
+}
+
+.rating-tick {
+  position: absolute;
+  top: 1px;
+  width: 2px;
+  height: 4px;
+  background: var(--text-dim);
+}
+
+.rating-thumb {
+  position: absolute;
+  top: -7px;
+  width: 2px;
+  height: 20px;
+  margin-left: -1px;
+  background: var(--blue);
+  transition: left 120ms ease-out;
+}
+
+.rating-slider input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+.rating-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--row);
+}
+
+.rating-stepper button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: var(--row-hover);
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.rating-stepper button:hover {
+  color: var(--text);
+}
+
+.rating-grip {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.block-row {
+  margin-top: 22px;
+}
+
+.stat-block + .block-row,
+.block-row + .stat-block {
+  margin-top: 22px;
+}
+
+.rows.list.spaced {
+  margin-top: 28px;
+}
+
+.rows.list.spaced-sm {
+  margin-top: 10px;
+}
+
+.badge {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: #15181a;
+  font-size: 10px;
+}
+
+.badge .icon {
+  stroke-width: 3.2;
+}
+
+.badge.orange {
+  background: var(--orange);
+}
+
+.badge.green {
+  background: var(--green);
+}
+
+.badge.red {
+  background: var(--red);
+}
+
+.counters .counter {
+  gap: 7px;
+  font-size: 16px;
+}
+
+/* ----------------------------------------------------------- model games --- */
+
+.block-row.flush {
+  margin-top: 0;
+}
+
+.rep-title.compact {
+  gap: 10px;
+}
+
+.rep-title.compact .color-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.eval-wrap {
+  padding: 4px 18px 0;
+}
+
+.eval-graph {
+  display: block;
+  width: 100%;
+  height: 100px;
+  cursor: pointer;
+}
+
+.eval-mid {
+  stroke: var(--text-dim);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.eval-area {
+  fill: #c9ced2;
+  stroke: #e8eaec;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.eval-cursor {
+  stroke: var(--text-3);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.button-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  padding: 24px 18px 0;
+}
+
+.button-pair .btn {
+  min-height: 42px;
+  border-radius: 2px;
+  background: var(--row-accent);
+}
+
+.button-pair .btn:hover:not(:disabled) {
+  background: var(--row-hover);
+}
+
+.game-text {
+  padding: 28px 18px 24px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.game-text p {
+  margin: 0 0 10px;
+}
+
+.game-text .lead {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.game-text.tight {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.field-label {
+  padding: 18px 18px 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field-label.spaced {
+  padding-top: 32px;
+}
+
+.input.light {
+  border-color: transparent;
+  background: #eef0f2;
+  color: #15181a;
+}
+
+.input.light::placeholder {
+  color: #8a9196;
+}
+
+/* "6 due" pills use a filled orange clock, as in production. */
+.pill.due .icon {
+  box-sizing: content-box;
+  width: 10px;
+  height: 10px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #15181a;
+  stroke-width: 3;
 }

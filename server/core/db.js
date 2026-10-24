@@ -199,6 +199,12 @@ db.exec(`
     daily_day TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS model_game_evals (
+    game_id INTEGER PRIMARY KEY,
+    depth INTEGER NOT NULL,
+    json TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS puzzles (
     id TEXT PRIMARY KEY,
     fen TEXT NOT NULL,

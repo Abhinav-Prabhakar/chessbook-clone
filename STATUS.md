@@ -57,10 +57,29 @@ The core was rebuilt rather than patched. Old code is in git history.
 - Phone layout: board on top (two-rank peek on pages that don't use it), sheet below.
 - All developer-facing copy removed.
 
+## 2b. UI parity pass (compared against the production captures in `recon/`)
+
+- **Page transitions** now work like production's sidebar stack: the old view fades out while sliding 20 px (160 ms), then the new one fades in from 20 px on the other side (160 ms). Going deeper enters from the right, going back from the left; each builder move counts as a step. Breadcrumbs persist and only new crumbs slide in. Implemented in `SidebarViews` (`app/src/shell/AppShell.tsx`) by snapshotting the outgoing view, so pages don't have to stay mounted.
+- **Settings** is a flat list (label left, value right) with "Review settings" and "Board settings" groups. Every row opens its own page in the sidebar instead of a modal. "Your rating" has the big number, a slider with ticks, ‹ › steppers, and Platform / Time control rows (time control now feeds the rating conversion).
+- **Repertoire page** in production order: % complete → Continue building → % mastered (orange) → Continue learning.
+- **Learn page**: production wording, orange mastery bar, one filled row and a list, and a working "A specific opening…" page.
+- **Builder**: compact saved-move rows, "Peer results" column, alternatives expand inline, "Show more", filled "Go to your biggest gap" row.
+- **Practice**: "N Due" counter with filled orange clock, green check and red x badges.
+- **Model games**: eval graph (Stockfish, computed in the background and cached), "Play next move" / "Give me a hint" buttons, production-style description; history page grouped by week with the opening of each game.
+- **Add new repertoire**: checkmark color list, light name field, full-width "Create repertoire" row.
+- List rows everywhere use production's style: transparent with dividers; only the main action on a page is a filled row.
+
+Known differences that remain:
+- Builder has no "Disable" action (only Remove).
+- No "Stats" block (Effectiveness / Soundness / Learnability) on the repertoire page; the app doesn't compute those metrics.
+- No swipe-back gesture on touch screens, and going back re-renders the previous page instead of restoring a cached copy.
+- A wrong move is marked by a red square instead of production's small badge on the square.
+- Account-related rows and sections (connected accounts, subscription, log out, online-game review, early access, haptics) are intentionally absent.
+
 ## 3. How it was verified
 
 - `npm test` — 15 API tests on a throwaway database: starter repertoire is coherent (≤1 White move per position), builder statistics, reply ordering, gap ordering for Black (1.e4 then 1.d4), completion goes up/down with saves/removals, autofill, practice line walking (the open Sicilian asks e4, Nf3, d4, Nxd4), learning vs recall scheduling, idempotent submissions, opponent moves not reviewable, PGN variations, settings validation, puzzles, a bot game. All pass.
-- `npm run build && npm run test:e2e` — real Chrome on a throwaway database: learns 10 new moves with arrows and auto-replies, makes a deliberate mistake during recall (shown, taken back, counters unchanged), completes the session, checks the dashboard, saves a move by playing it in the builder, checks the phone layout, no console errors. 13/13 checks pass. Screenshots in `tests/e2e/output/`.
+- `npm run build && npm run test:e2e` — real Chrome on a throwaway database: learns 10 new moves with arrows and auto-replies, makes a deliberate mistake during recall (shown, taken back, counters unchanged), completes the session, checks the dashboard, saves a move by playing it in the builder, checks the phone layout, no console errors. It also checks the forward and back transitions. 15/15 checks pass. Screenshots in `tests/e2e/output/`.
 - Manual run in the browser of every screen at 1440×900 and 375×812.
 
 ## 4. Known limits and what's not done

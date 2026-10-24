@@ -163,6 +163,32 @@ try {
   check("a move played in the builder is saved", afterSave.stats.saved === before + 2, `${before} → ${afterSave.stats.saved}`);
   check("completion rises after answering 1.e4", afterSave.completion > repBefore.completion, `${repBefore.completion}% → ${afterSave.completion}%`);
 
+  /* ------------------------------------------------------- transitions --- */
+  await page.goto(base);
+  await page.waitForSelector(".row-large");
+  await page.waitForTimeout(400);
+  const sampleTransition = (selector) =>
+    page.evaluate(async (selector) => {
+      const exit = document.querySelector(".view-exit");
+      const view = document.querySelector(".view");
+      document.querySelector(selector).click();
+      const at = (ms) => new Promise((r) => setTimeout(r, ms));
+      await at(60);
+      const early = { snapshot: exit.children.length, opacity: +getComputedStyle(view).opacity, x: new DOMMatrix(getComputedStyle(view).transform).m41 };
+      await at(500);
+      const done = { snapshot: exit.children.length, opacity: +getComputedStyle(view).opacity };
+      return { early, done };
+    }, selector);
+  const forward = await sampleTransition(".row-large");
+  check(
+    "going deeper: old view leaves, new view enters from the right",
+    forward.early.snapshot === 1 && forward.early.opacity < 0.5 && forward.early.x > 0 && forward.done.snapshot === 0 && forward.done.opacity === 1,
+    JSON.stringify(forward)
+  );
+  await page.waitForTimeout(300);
+  const back = await sampleTransition(".back");
+  check("going back: new view enters from the left", back.early.snapshot === 1 && back.early.x < 0 && back.done.opacity === 1, JSON.stringify(back));
+
   /* ---------------------------------------------------------- mobile ----- */
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(base);

@@ -7,6 +7,7 @@ import { setSoundEnabled } from "./sounds";
 export const DEFAULT_SETTINGS: Settings = {
   rating: 1500,
   ratingSystem: "chesscom",
+  timeControl: "blitz",
   coverageGoal: 100,
   boardTheme: "green",
   pieceSet: "chessbook_monochrome",
@@ -17,7 +18,7 @@ export const DEFAULT_SETTINGS: Settings = {
   dailyGoal: 20,
   newPerSession: 10,
   wholeLines: false,
-  autoplayDelay: 450,
+  autoplayDelay: 500,
   onboarded: false,
   modelSide: "repertoire",
 };

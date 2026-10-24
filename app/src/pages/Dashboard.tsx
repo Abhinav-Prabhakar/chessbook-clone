@@ -160,18 +160,18 @@ export function Dashboard() {
       </Section>
 
       <Section title="Train">
-        <div className="rows">
-          <Row title="Training games" meta="Play your openings against a bot that plays like people at your level" to="/training-games" chevron />
-          <Row title="Opening puzzles" meta="Punish the mistakes that happen in your openings" to="/puzzles" chevron />
-          <Row title="Model games" meta="Master games that follow your repertoire" to="/model-games" chevron />
-          <Row title="Opening guides" meta="Explore openings and start a ready-made repertoire" to="/openings" chevron />
+        <div className="rows list">
+          <Row title="Play a training game" to="/training-games" />
+          <Row title="Solve opening puzzles" to="/puzzles" />
+          <Row title="Practice visualization" to="/visualization" />
+          <Row title="Browse opening guides" to="/openings" />
         </div>
       </Section>
 
       <Section title="More">
-        <div className="rows plain">
-          <Row variant="plain" title="Review history" to="/history" chevron />
-          <Row variant="plain" title="How Chessbook works" to="/about" chevron />
+        <div className="rows list">
+          <Row title="Review history" to="/history" />
+          <Row title="How Chessbook works" to="/about" />
         </div>
       </Section>
     </div>

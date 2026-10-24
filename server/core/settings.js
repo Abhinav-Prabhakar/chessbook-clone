@@ -5,10 +5,13 @@ export const PIECE_SETS = ["chessbook_monochrome", "cburnett", "merida", "chessn
 export const RATING_SYSTEMS = ["lichess", "chesscom", "fide"];
 export const COVERAGE_GOALS = [20, 50, 100, 200, 500];
 export const ANIMATIONS = ["off", "fast", "normal", "slow"];
+export const TIME_CONTROLS = ["bullet", "blitz", "rapid", "classical"];
+export const PAUSES = [0, 500, 1000, 2000];
 
 export const DEFAULTS = {
   rating: 1500,
   ratingSystem: "chesscom",
+  timeControl: "blitz",
   coverageGoal: 100,
   boardTheme: "green",
   pieceSet: "chessbook_monochrome",
@@ -19,7 +22,7 @@ export const DEFAULTS = {
   dailyGoal: 20,
   newPerSession: 10,
   wholeLines: false,
-  autoplayDelay: 450,
+  autoplayDelay: 500,
   onboarded: false,
   modelSide: "repertoire",
 };
@@ -27,6 +30,7 @@ export const DEFAULTS = {
 const VALIDATORS = {
   rating: (v) => Number.isFinite(Number(v)) && Number(v) >= 400 && Number(v) <= 3200,
   ratingSystem: (v) => RATING_SYSTEMS.includes(v),
+  timeControl: (v) => TIME_CONTROLS.includes(v),
   coverageGoal: (v) => COVERAGE_GOALS.includes(Number(v)),
   boardTheme: (v) => BOARD_THEMES.includes(v),
   pieceSet: (v) => PIECE_SETS.includes(v),
@@ -37,7 +41,7 @@ const VALIDATORS = {
   dailyGoal: (v) => [10, 20, 30, 50, 100].includes(Number(v)),
   newPerSession: (v) => [5, 10, 20, 50].includes(Number(v)),
   wholeLines: (v) => typeof v === "boolean",
-  autoplayDelay: (v) => [0, 250, 450, 800].includes(Number(v)),
+  autoplayDelay: (v) => PAUSES.includes(Number(v)),
   onboarded: (v) => typeof v === "boolean",
   modelSide: (v) => ["repertoire", "white", "black"].includes(v),
 };
@@ -54,6 +58,7 @@ export function readSettings() {
       // keep default
     }
   }
+  if (!PAUSES.includes(Number(out.autoplayDelay))) out.autoplayDelay = DEFAULTS.autoplayDelay;
   return out;
 }
 
@@ -78,11 +83,17 @@ export function writeSettings(patch = {}) {
 }
 
 /** Convert the user's rating to an approximate Lichess blitz/rapid rating. */
-export function lichessEquivalent({ rating, ratingSystem } = readSettings()) {
+export function lichessEquivalent({ rating, ratingSystem, timeControl } = readSettings()) {
   const r = Number(rating) || 1500;
-  if (ratingSystem === "chesscom") return Math.round(r * 0.75 + 520);
-  if (ratingSystem === "fide") return Math.round(r * 0.8 + 450);
-  return r;
+  let value = r;
+  if (ratingSystem === "chesscom") {
+    // Chess.com ratings sit below Lichess, most of all at lower levels and in
+    // rapid; the gap is smaller in bullet and blitz.
+    value = timeControl === "rapid" || timeControl === "classical" ? r * 0.72 + 620 : r * 0.75 + 520;
+  } else if (ratingSystem === "fide") {
+    value = r * 0.8 + 450;
+  }
+  return Math.round(value);
 }
 
 export const BANDS = ["<1200", "1200-1599", "1600-1799", "1800-1999", "2000-2399", "2400+"];

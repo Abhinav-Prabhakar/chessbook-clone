@@ -3,6 +3,7 @@ export type Color = "white" | "black";
 export interface Settings {
   rating: number;
   ratingSystem: "lichess" | "chesscom" | "fide";
+  timeControl: "bullet" | "blitz" | "rapid" | "classical";
   coverageGoal: number;
   boardTheme: "green" | "blue" | "brown" | "gray" | "purple";
   pieceSet: string;

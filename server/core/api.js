@@ -496,6 +496,7 @@ api.get("/model-games/daily", wrap((req) => ({ game: models.dailyGame(req.query.
 api.post("/model-games/random", wrap(() => ({ game: models.randomGame() })));
 api.get("/model-games/history", wrap(() => ({ games: models.history(), total: models.modelGameCount() })));
 api.get("/model-games/:id", wrap((req) => ({ game: models.gameView(req.params.id) })));
+api.get("/model-games/:id/evals", wrap((req) => models.gameEvals(req.params.id)));
 api.post(
   "/model-games/:id/progress",
   wrap((req) => ({ game: models.saveProgress(req.params.id, req.body || {}) }))

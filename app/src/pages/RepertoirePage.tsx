@@ -60,65 +60,60 @@ export function RepertoirePage() {
         </div>
         <Progress value={rep.completion} />
       </div>
+      <Row
+        variant="accent"
+        className="block-row"
+        title={rep.started ? "Continue building" : "Start building"}
+        right={<span className="pill">{rep.stats.saved} Saved</span>}
+        to={buildPath(rep.id)}
+      />
+
       <div className="stat-block">
         <div className="stat-line">
           <strong>{rep.stats.masteredPercent.toFixed(1)}% mastered</strong>
-          <span className="muted">
-            {rep.stats.mine} of your moves · {rep.stats.learned} learned
-          </span>
         </div>
-        <Progress value={rep.stats.masteredPercent} tone="blue" />
+        <Progress value={rep.stats.masteredPercent} tone="orange" />
       </div>
+      <Row
+        variant="accent"
+        className="block-row"
+        title="Continue learning"
+        meta={rep.due === 0 && rep.fresh === 0 && rep.nextDue ? `Next review ${relativeDue(rep.nextDue)}` : undefined}
+        right={
+          rep.due > 0 ? (
+            <span className="pill due">
+              {rep.due} due <Icon name="clock" />
+            </span>
+          ) : rep.fresh > 0 ? (
+            <span className="pill">{rep.fresh} new</span>
+          ) : (
+            <span className="pill done">
+              Up to date <Icon name="check" />
+            </span>
+          )
+        }
+        to={learnPath(rep.id)}
+        disabled={rep.stats.mine === 0}
+      />
 
-      <div className="rows focus-rows">
-        <Row
-          variant="accent"
-          title={rep.started ? "Continue building" : "Start building"}
-          right={<span className="pill">{rep.stats.saved} saved</span>}
-          to={buildPath(rep.id)}
-        />
-        {gap && (
+      {gap && (
+        <div className="rows list spaced">
           <Row
-            variant="accent"
             title="Go to your biggest gap"
             meta={gapText(gap)}
-            right={<span className="pill">1 in {gap.expectedIn} games</span>}
+            right={<span className="setting-value">1 in {gap.expectedIn} games</span>}
             to={buildPath(rep.id, gap.path)}
           />
-        )}
-        <Row
-          variant="accent"
-          title="Practice"
-          meta={
-            rep.due === 0 && rep.fresh === 0 && rep.nextDue
-              ? `Next review ${relativeDue(rep.nextDue)}`
-              : undefined
-          }
-          right={
-            rep.due > 0 ? (
-              <span className="pill due">
-                {rep.due} due <Icon name="clock" />
-              </span>
-            ) : rep.fresh > 0 ? (
-              <span className="pill">{rep.fresh} new</span>
-            ) : (
-              <span className="pill done">
-                Up to date <Icon name="check" />
-              </span>
-            )
-          }
-          to={learnPath(rep.id)}
-          disabled={rep.stats.mine === 0}
-        />
-      </div>
+        </div>
+      )}
 
       {gaps.data && gaps.data.gaps.length > 1 && (
         <Section
-          title="Biggest gaps"
+          title="Other gaps"
           right={<span className="muted">Lines seen in at least 1 in {gaps.data.coverageGoal} games</span>}
         >
-          <div className="rows plain">
-            {gaps.data.gaps.slice(0, 6).map((g) => (
+          <div className="rows list">
+            {gaps.data.gaps.slice(1, 6).map((g) => (
               <Row
                 key={g.path.join(" ")}
                 variant="plain"
@@ -133,8 +128,8 @@ export function RepertoirePage() {
         </Section>
       )}
 
-      <Section title="Manage">
-        <div className="rows plain">
+      <Section title="Settings">
+        <div className="rows list">
           <Row variant="plain" title="Import moves from PGN" meta="Paste a game, a study or a file with variations" onClick={() => setModal("import")} chevron />
           <Row
             variant="plain"
