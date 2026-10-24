@@ -179,6 +179,10 @@ export function lineOut(line, aggregate = null) {
     moveCount: aggregate ? aggregate.total : moves.filter(Boolean).length,
     movesLearned: aggregate ? aggregate.learned : 0,
     movesDue: aggregate ? aggregate.due : 0,
+    epdAfter: line.epd ?? null,
+    origin: line.origin ?? null,
+    autofillStyle: line.autofill_style ?? null,
+    chapterId: line.chapter_id ?? null,
   };
 }
 
@@ -239,11 +243,34 @@ export function statsFor(db, repertoire) {
   const positionsLearned = Number(positions.learned || 0);
   const positionsMastered = Number(positions.mastered || 0);
 
+  const captured = db
+    .prepare("SELECT * FROM repertoire_characteristics WHERE repertoire_id = ?")
+    .get(repertoire.id);
+  let characteristicsRaw = null;
+  if (captured) {
+    try {
+      characteristicsRaw = JSON.parse(captured.characteristics || "{}");
+    } catch {
+      characteristicsRaw = null;
+    }
+  }
+  const characteristic = (key) =>
+    characteristicsRaw && characteristicsRaw[key] != null
+      ? Number(characteristicsRaw[key])
+      : null;
+  const characteristicsAvailable = Boolean(
+    characteristicsRaw &&
+      ["effectiveness", "soundness", "learnability", "avgCpLoss", "expectedResults", "sharpness"]
+        .some((key) => characteristicsRaw[key] != null)
+  );
+
   return {
     id: repertoire.id,
     color: repertoire.color,
     name: repertoire.name,
     description: repertoire.description,
+    slug: repertoire.slug ?? null,
+    captureReferenceId: repertoire.capture_reference_id ?? null,
     totalLines: Number(lineRow.n || 0),
     createdAt: repertoire.created_at,
     lineCount: Number(lineRow.n || 0),
@@ -267,18 +294,35 @@ export function statsFor(db, repertoire) {
       : 0,
     moveCompletion: total ? Math.round((learned / total) * 100) : 0,
     moveMastery: total ? Math.round((mastered / total) * 100) : 0,
-    // These require external data (engine/peer/incidence DBs) that this
-    // local-first install does not have. Never fabricate them.
+    // Real captured `characteristics` for the reference repertoire. They are
+    // explicitly unavailable for a repertoire with no capture; they are never
+    // derived from learned/mastered.
     characteristics: {
-      available: false,
-      effectiveness: null,
-      soundness: null,
-      learnability: null,
-      avgCpLoss: null,
-      expectedResults: null,
-      sharpness: null,
+      available: characteristicsAvailable,
+      effectiveness: characteristic("effectiveness"),
+      soundness: characteristic("soundness"),
+      learnability: characteristic("learnability"),
+      avgCpLoss: characteristic("avgCpLoss"),
+      expectedResults: characteristic("expectedResults"),
+      sharpness: characteristic("sharpness"),
+      eval: characteristic("eval"),
+      pathConcessionCp: characteristic("pathConcessionCp"),
+      source: characteristicsAvailable ? captured.source : null,
+      referenceRepertoireId: characteristicsAvailable
+        ? captured.reference_repertoire_id
+        : null,
     },
-    coverage: null,
+    coverage: captured?.coverage == null ? null : Number(captured.coverage),
+    coveragePercent:
+      captured?.coverage == null
+        ? null
+        : Math.round(Number(captured.coverage) * 1000) / 10,
+    coverageSource: captured?.coverage == null ? null : captured.source,
+    chapterCount: Number(
+      db
+        .prepare("SELECT COUNT(*) AS n FROM repertoire_chapters WHERE repertoire_id = ?")
+        .get(repertoire.id)?.n || 0
+    ),
   };
 }
 

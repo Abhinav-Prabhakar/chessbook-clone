@@ -1,0 +1,1645 @@
+{
+ "generatedAt": "2026-10-24T05:04:50.377Z",
+ "_provenance": "recon/live6/02-openings.json",
+ "guides": [
+  {
+   "slug": "italian-game",
+   "eco": "C50",
+   "name": "Italian Game",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4",
+   "epd": "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "queens-gambit",
+   "eco": "D06",
+   "name": "Queen's Gambit",
+   "side": "white",
+   "sans": [
+    "d4",
+    "d5",
+    "c4"
+   ],
+   "pgn": "1. d4 d5 2. c4",
+   "epd": "rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "english-opening",
+   "eco": "A10",
+   "name": "English Opening",
+   "side": "white",
+   "sans": [
+    "c4"
+   ],
+   "pgn": "1. c4",
+   "epd": "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "bishops-opening",
+   "eco": "C23",
+   "name": "Bishop's Opening",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Bc4"
+   ],
+   "pgn": "1. e4 e5 2. Bc4",
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "zukertort-opening",
+   "eco": "A04",
+   "name": "Zukertort Opening",
+   "side": "white",
+   "sans": [
+    "Nf3"
+   ],
+   "pgn": "1. Nf3",
+   "epd": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "ruy-lopez",
+   "eco": "C60",
+   "name": "Ruy Lopez",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bb5"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5",
+   "epd": "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "london-system",
+   "eco": "D02",
+   "name": "London System",
+   "side": "white",
+   "sans": [
+    "d4",
+    "d5",
+    "Bf4"
+   ],
+   "pgn": "1. d4 d5 2. Bf4",
+   "epd": "rnbqkbnr/ppp1pppp/8/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "kings-gambit",
+   "eco": "C30",
+   "name": "King's Gambit",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "f4"
+   ],
+   "pgn": "1. e4 e5 2. f4",
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "scotch-game",
+   "eco": "C44",
+   "name": "Scotch Game",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "d4"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. d4",
+   "epd": "r1bqkbnr/pppp1ppp/2n5/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "vienna-game",
+   "eco": "C25",
+   "name": "Vienna Game",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nc3"
+   ],
+   "pgn": "1. e4 e5 2. Nc3",
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-bowdler-attack",
+   "eco": "B20",
+   "name": "Sicilian Defense: Bowdler Attack",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "Bc4"
+   ],
+   "pgn": "1. e4 c5 2. Bc4",
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/2B1P3/8/PPPP1PPP/RNBQK1NR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "open-sicilian",
+   "eco": "B32",
+   "name": "Open Sicilian",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "Nc6",
+    "d4",
+    "cxd4",
+    "Nxd4"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4",
+   "epd": "r1bqkbnr/pp1ppppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "nimzo-larsen-attack",
+   "eco": "A01",
+   "name": "Nimzo-Larsen Attack",
+   "side": "white",
+   "sans": [
+    "b3"
+   ],
+   "pgn": "1. b3",
+   "epd": "rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "french-defense-advance-variation",
+   "eco": "C02",
+   "name": "French Defense: Advance Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e6",
+    "d4",
+    "d5",
+    "e5"
+   ],
+   "pgn": "1. e4 e6 2. d4 d5 3. e5",
+   "epd": "rnbqkbnr/ppp2ppp/4p3/3pP3/3P4/8/PPP2PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-closed",
+   "eco": "B23",
+   "name": "Sicilian Defense: Closed",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "Nc3"
+   ],
+   "pgn": "1. e4 c5 2. Nc3",
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "caro-kann-defense-advance-variation",
+   "eco": "B12",
+   "name": "Caro-Kann Defense: Advance Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c6",
+    "d4",
+    "d5",
+    "e5"
+   ],
+   "pgn": "1. e4 c6 2. d4 d5 3. e5",
+   "epd": "rnbqkbnr/pp2pppp/2p5/3pP3/3P4/8/PPP2PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "four-knights-game",
+   "eco": "C47",
+   "name": "Four Knights Game",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Nc3",
+    "Nf6"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6",
+   "epd": "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-mcdonnell-attack",
+   "eco": "B21",
+   "name": "Sicilian Defense: McDonnell Attack",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "f4"
+   ],
+   "pgn": "1. e4 c5 2. f4",
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/4PP2/8/PPPP2PP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "french-defense-exchange-variation",
+   "eco": "C01",
+   "name": "French Defense: Exchange Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e6",
+    "d4",
+    "d5",
+    "exd5"
+   ],
+   "pgn": "1. e4 e6 2. d4 d5 3. exd5",
+   "epd": "rnbqkbnr/ppp2ppp/4p3/3P4/3P4/8/PPP2PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-alapin-variation",
+   "eco": "B22",
+   "name": "Sicilian Defense: Alapin Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "c3"
+   ],
+   "pgn": "1. e4 c5 2. c3",
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/4P3/2P5/PP1P1PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "caro-kann-defense-exchange-variation",
+   "eco": "B13",
+   "name": "Caro-Kann Defense: Exchange Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c6",
+    "d4",
+    "d5",
+    "exd5"
+   ],
+   "pgn": "1. e4 c6 2. d4 d5 3. exd5",
+   "epd": "rnbqkbnr/pp2pppp/2p5/3P4/3P4/8/PPP2PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "italian-game-two-knights-defense-modern-bishops-opening",
+   "eco": "C55",
+   "name": "Italian Game: Two Knights Defense, Modern Bishop's Opening",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Nf6",
+    "d3"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. d3",
+   "epd": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "danish-gambit",
+   "eco": "C21",
+   "name": "Danish Gambit",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "d4",
+    "exd4",
+    "c3"
+   ],
+   "pgn": "1. e4 e5 2. d4 exd4 3. c3",
+   "epd": "rnbqkbnr/pppp1ppp/8/8/3pP3/2P5/PP3PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "italian-game-two-knights-defense-knight-attack",
+   "eco": "C57",
+   "name": "Italian Game: Two Knights Defense, Knight Attack",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Nf6",
+    "Ng5"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5",
+   "epd": "r1bqkb1r/pppp1ppp/2n2n2/4p1N1/2B1P3/8/PPPP1PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "french-defense-paulsen-variation",
+   "eco": "C10",
+   "name": "French Defense: Paulsen Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e6",
+    "d4",
+    "d5",
+    "Nc3"
+   ],
+   "pgn": "1. e4 e6 2. d4 d5 3. Nc3",
+   "epd": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "scotch-game-scotch-gambit",
+   "eco": "C44",
+   "name": "Scotch Game: Scotch Gambit",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "d4",
+    "exd4",
+    "Bc4"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. d4 exd4 4. Bc4",
+   "epd": "r1bqkbnr/pppp1ppp/2n5/8/2BpP3/5N2/PPP2PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "ponziani-opening",
+   "eco": "C44",
+   "name": "Ponziani Opening",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "c3"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. c3",
+   "epd": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/2P2N2/PP1P1PPP/RNBQKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "blackmar-diemer-gambit",
+   "eco": "D00",
+   "name": "Blackmar-Diemer Gambit",
+   "side": "white",
+   "sans": [
+    "d4",
+    "d5",
+    "e4"
+   ],
+   "pgn": "1. d4 d5 2. e4",
+   "epd": "rnbqkbnr/ppp1pppp/8/3p4/3PP3/8/PPP2PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-smith-morra-gambit",
+   "eco": "B21",
+   "name": "Sicilian Defense: Smith-Morra Gambit",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "d4",
+    "cxd4",
+    "c3"
+   ],
+   "pgn": "1. e4 c5 2. d4 cxd4 3. c3",
+   "epd": "rnbqkbnr/pp1ppppp/8/8/3pP3/2P5/PP3PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-rossolimo-variation",
+   "eco": "B30",
+   "name": "Sicilian Defense: Rossolimo Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "Nc6",
+    "Bb5"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 Nc6 3. Bb5",
+   "epd": "r1bqkbnr/pp1ppppp/2n5/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "italian-game-giuoco-pianissimo",
+   "eco": "C50",
+   "name": "Italian Game: Giuoco Pianissimo",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Bc5",
+    "d3"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. d3",
+   "epd": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "colle-system",
+   "eco": "D04",
+   "name": "Colle System",
+   "side": "white",
+   "sans": [
+    "d4",
+    "d5",
+    "Nf3",
+    "Nf6",
+    "e3"
+   ],
+   "pgn": "1. d4 d5 2. Nf3 Nf6 3. e3",
+   "epd": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/4PN2/PPP2PPP/RNBQKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "jobava-london-system",
+   "eco": "D01",
+   "name": "Jobava London System",
+   "side": "white",
+   "sans": [
+    "d4",
+    "d5",
+    "Nc3",
+    "Nf6",
+    "Bf4"
+   ],
+   "pgn": "1. d4 d5 2. Nc3 Nf6 3. Bf4",
+   "epd": "rnbqkb1r/ppp1pppp/5n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "wayward-queen-attack",
+   "eco": "C20",
+   "name": "Wayward Queen Attack",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Qh5"
+   ],
+   "pgn": "1. e4 e5 2. Qh5",
+   "epd": "rnbqkbnr/pppp1ppp/8/4p2Q/4P3/8/PPPP1PPP/RNB1KBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "ruy-lopez-exchange-variation",
+   "eco": "C68",
+   "name": "Ruy Lopez: Exchange Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bb5",
+    "a6",
+    "Bxc6"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Bxc6",
+   "epd": "r1bqkbnr/1ppp1ppp/p1B5/4p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "vienna-game-vienna-gambit",
+   "eco": "C29",
+   "name": "Vienna Game: Vienna Gambit",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nc3",
+    "Nf6",
+    "f4"
+   ],
+   "pgn": "1. e4 e5 2. Nc3 Nf6 3. f4",
+   "epd": "rnbqkb1r/pppp1ppp/5n2/4p3/4PP2/2N5/PPPP2PP/R1BQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "kings-indian-attack",
+   "eco": "A07",
+   "name": "King's Indian Attack",
+   "side": "white",
+   "sans": [
+    "Nf3",
+    "d5",
+    "g3"
+   ],
+   "pgn": "1. Nf3 d5 2. g3",
+   "epd": "rnbqkbnr/ppp1pppp/8/3p4/8/5NP1/PPPPPP1P/RNBQKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "trompowsky-attack",
+   "eco": "A45",
+   "name": "Trompowsky Attack",
+   "side": "white",
+   "sans": [
+    "d4",
+    "Nf6",
+    "Bg5"
+   ],
+   "pgn": "1. d4 Nf6 2. Bg5",
+   "epd": "rnbqkb1r/pppppppp/5n2/6B1/3P4/8/PPP1PPPP/RN1QKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "caro-kann-defense-two-knights-attack",
+   "eco": "B10",
+   "name": "Caro-Kann Defense: Two Knights Attack",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c6",
+    "Nc3",
+    "d5",
+    "Nf3"
+   ],
+   "pgn": "1. e4 c6 2. Nc3 d5 3. Nf3",
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N2N2/PPPP1PPP/R1BQKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "italian-game-evans-gambit",
+   "eco": "C51",
+   "name": "Italian Game: Evans Gambit",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Bc5",
+    "b4"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. b4",
+   "epd": "r1bqk1nr/pppp1ppp/2n5/2b1p3/1PB1P3/5N2/P1PP1PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "r-ti-opening",
+   "eco": "A09",
+   "name": "Réti Opening",
+   "side": "white",
+   "sans": [
+    "Nf3",
+    "d5",
+    "c4"
+   ],
+   "pgn": "1. Nf3 d5 2. c4",
+   "epd": "rnbqkbnr/ppp1pppp/8/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "french-defense-tarrasch-variation",
+   "eco": "C03",
+   "name": "French Defense: Tarrasch Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e6",
+    "d4",
+    "d5",
+    "Nd2"
+   ],
+   "pgn": "1. e4 e6 2. d4 d5 3. Nd2",
+   "epd": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "caro-kann-defense-panov-attack",
+   "eco": "B13",
+   "name": "Caro-Kann Defense: Panov Attack",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c6",
+    "d4",
+    "d5",
+    "exd5",
+    "cxd5",
+    "c4"
+   ],
+   "pgn": "1. e4 c6 2. d4 d5 3. exd5 cxd5 4. c4",
+   "epd": "rnbqkbnr/pp2pppp/8/3p4/2PP4/8/PP3PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-moscow-variation",
+   "eco": "B51",
+   "name": "Sicilian Defense: Moscow Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "d6",
+    "Bb5+"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 d6 3. Bb5+",
+   "epd": "rnbqkbnr/pp2pppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "stonewall-attack",
+   "eco": "D00",
+   "name": "Stonewall Attack",
+   "side": "white",
+   "sans": [
+    "d4",
+    "d5",
+    "e3",
+    "Nf6",
+    "Bd3"
+   ],
+   "pgn": "1. d4 d5 2. e3 Nf6 3. Bd3",
+   "epd": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/3BP3/PPP2PPP/RNBQK1NR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-grand-prix-attack",
+   "eco": "B23",
+   "name": "Sicilian Defense: Grand Prix Attack",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "Nc3",
+    "Nc6",
+    "f4"
+   ],
+   "pgn": "1. e4 c5 2. Nc3 Nc6 3. f4",
+   "epd": "r1bqkbnr/pp1ppppp/2n5/2p5/4PP2/2N5/PPPP2PP/R1BQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-wing-gambit",
+   "eco": "B20",
+   "name": "Sicilian Defense: Wing Gambit",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c5",
+    "b4"
+   ],
+   "pgn": "1. e4 c5 2. b4",
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/1P2P3/8/P1PP1PPP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "italian-game-fried-liver-attack",
+   "eco": "C57",
+   "name": "Italian Game: Fried Liver Attack",
+   "side": "white",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Nf6",
+    "Ng5",
+    "d5",
+    "exd5",
+    "Nxd5",
+    "Nxf7"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Nxd5 6. Nxf7",
+   "epd": "r1bqkb1r/ppp2Npp/2n5/3np3/2B5/8/PPPP1PPP/RNBQK2R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "richter-veresov-attack",
+   "eco": "D01",
+   "name": "Richter-Veresov Attack",
+   "side": "white",
+   "sans": [
+    "d4",
+    "d5",
+    "Nc3",
+    "Nf6",
+    "Bg5"
+   ],
+   "pgn": "1. d4 d5 2. Nc3 Nf6 3. Bg5",
+   "epd": "rnbqkb1r/ppp1pppp/5n2/3p2B1/3P4/2N5/PPP1PPPP/R2QKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "caro-kann-defense-fantasy-variation",
+   "eco": "B12",
+   "name": "Caro-Kann Defense: Fantasy Variation",
+   "side": "white",
+   "sans": [
+    "e4",
+    "c6",
+    "d4",
+    "d5",
+    "f3"
+   ],
+   "pgn": "1. e4 c6 2. d4 d5 3. f3",
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p4/3PP3/5P2/PPP3PP/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "torre-attack",
+   "eco": "A46",
+   "name": "Torre Attack",
+   "side": "white",
+   "sans": [
+    "d4",
+    "Nf6",
+    "Nf3",
+    "e6",
+    "Bg5"
+   ],
+   "pgn": "1. d4 Nf6 2. Nf3 e6 3. Bg5",
+   "epd": "rnbqkb1r/pppp1ppp/4pn2/6B1/3P4/5N2/PPP1PPPP/RN1QKB1R b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "catalan-opening",
+   "eco": "E00",
+   "name": "Catalan Opening",
+   "side": "white",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "e6",
+    "g3"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 e6 3. g3",
+   "epd": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/6P1/PP2PP1P/RNBQKBNR b KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense",
+   "eco": "B20",
+   "name": "Sicilian Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5"
+   ],
+   "pgn": "1. e4 c5",
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "french-defense",
+   "eco": "C00",
+   "name": "French Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e6"
+   ],
+   "pgn": "1. e4 e6",
+   "epd": "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "scandinavian-defense",
+   "eco": "B01",
+   "name": "Scandinavian Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "d5"
+   ],
+   "pgn": "1. e4 d5",
+   "epd": "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "caro-kann-defense",
+   "eco": "B10",
+   "name": "Caro-Kann Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c6"
+   ],
+   "pgn": "1. e4 c6",
+   "epd": "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "scandinavian-defense-mieses-kotroc-variation",
+   "eco": "B01",
+   "name": "Scandinavian Defense: Mieses-Kotroc Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "d5",
+    "exd5",
+    "Qxd5"
+   ],
+   "pgn": "1. e4 d5 2. exd5 Qxd5",
+   "epd": "rnb1kbnr/ppp1pppp/8/3q4/8/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "philidor-defense",
+   "eco": "C41",
+   "name": "Philidor Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "d6"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 d6",
+   "epd": "rnbqkbnr/ppp2ppp/3p4/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "modern-defense",
+   "eco": "B06",
+   "name": "Modern Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "g6"
+   ],
+   "pgn": "1. e4 g6",
+   "epd": "rnbqkbnr/pppppp1p/6p1/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "italian-game-giuoco-piano",
+   "eco": "C50",
+   "name": "Italian Game: Giuoco Piano",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Bc5"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5",
+   "epd": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "petrovs-defense",
+   "eco": "C42",
+   "name": "Petrov's Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nf6"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nf6",
+   "epd": "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "queens-gambit-declined",
+   "eco": "D30",
+   "name": "Queen's Gambit Declined",
+   "side": "black",
+   "sans": [
+    "d4",
+    "d5",
+    "c4",
+    "e6"
+   ],
+   "pgn": "1. d4 d5 2. c4 e6",
+   "epd": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "italian-game-two-knights-defense",
+   "eco": "C55",
+   "name": "Italian Game: Two Knights Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Nf6"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6",
+   "epd": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "englund-gambit",
+   "eco": "A40",
+   "name": "Englund Gambit",
+   "side": "black",
+   "sans": [
+    "d4",
+    "e5"
+   ],
+   "pgn": "1. d4 e5",
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "owen-defense",
+   "eco": "B00",
+   "name": "Owen Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "b6"
+   ],
+   "pgn": "1. e4 b6",
+   "epd": "rnbqkbnr/p1pppppp/1p6/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "slav-defense",
+   "eco": "D10",
+   "name": "Slav Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "d5",
+    "c4",
+    "c6"
+   ],
+   "pgn": "1. d4 d5 2. c4 c6",
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "english-opening-kings-english-variation",
+   "eco": "A20",
+   "name": "English Opening: King's English Variation",
+   "side": "black",
+   "sans": [
+    "c4",
+    "e5"
+   ],
+   "pgn": "1. c4 e5",
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "queens-gambit-accepted",
+   "eco": "D20",
+   "name": "Queen's Gambit Accepted",
+   "side": "black",
+   "sans": [
+    "d4",
+    "d5",
+    "c4",
+    "dxc4"
+   ],
+   "pgn": "1. d4 d5 2. c4 dxc4",
+   "epd": "rnbqkbnr/ppp1pppp/8/8/2pP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "scandinavian-defense-modern-variation",
+   "eco": "B01",
+   "name": "Scandinavian Defense: Modern Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "d5",
+    "exd5",
+    "Nf6"
+   ],
+   "pgn": "1. e4 d5 2. exd5 Nf6",
+   "epd": "rnbqkb1r/ppp1pppp/5n2/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "kings-gambit-accepted",
+   "eco": "C33",
+   "name": "King's Gambit Accepted",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "f4",
+    "exf4"
+   ],
+   "pgn": "1. e4 e5 2. f4 exf4",
+   "epd": "rnbqkbnr/pppp1ppp/8/8/4Pp2/8/PPPP2PP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "nimzowitsch-defense",
+   "eco": "B00",
+   "name": "Nimzowitsch Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "Nc6"
+   ],
+   "pgn": "1. e4 Nc6",
+   "epd": "r1bqkbnr/pppppppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "alekhine-defense",
+   "eco": "B02",
+   "name": "Alekhine Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "Nf6"
+   ],
+   "pgn": "1. e4 Nf6",
+   "epd": "rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "ruy-lopez-morphy-defense",
+   "eco": "C70",
+   "name": "Ruy Lopez: Morphy Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bb5",
+    "a6"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6",
+   "epd": "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "dutch-defense",
+   "eco": "A80",
+   "name": "Dutch Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "f5"
+   ],
+   "pgn": "1. d4 f5",
+   "epd": "rnbqkbnr/ppppp1pp/8/5p2/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "kings-indian-defense",
+   "eco": "E61",
+   "name": "King's Indian Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "g6",
+    "Nc3",
+    "Bg7"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7",
+   "epd": "rnbqk2r/ppppppbp/5np1/8/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "ruy-lopez-berlin-defense",
+   "eco": "C65",
+   "name": "Ruy Lopez: Berlin Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bb5",
+    "Nf6"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6",
+   "epd": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "english-opening-symmetrical-variation",
+   "eco": "A30",
+   "name": "English Opening: Symmetrical Variation",
+   "side": "black",
+   "sans": [
+    "c4",
+    "c5"
+   ],
+   "pgn": "1. c4 c5",
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/2P5/8/PP1PPPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-najdorf-variation",
+   "eco": "B90",
+   "name": "Sicilian Defense: Najdorf Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "d6",
+    "d4",
+    "cxd4",
+    "Nxd4",
+    "Nf6",
+    "Nc3",
+    "a6"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6",
+   "epd": "rnbqkb1r/1p2pppp/p2p1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "elephant-gambit",
+   "eco": "C40",
+   "name": "Elephant Gambit",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "d5"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 d5",
+   "epd": "rnbqkbnr/ppp2ppp/8/3pp3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-taimanov-variation",
+   "eco": "B44",
+   "name": "Sicilian Defense: Taimanov Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "e6",
+    "d4",
+    "cxd4",
+    "Nxd4",
+    "Nc6"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 Nc6",
+   "epd": "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-hyperaccelerated-dragon",
+   "eco": "B27",
+   "name": "Sicilian Defense: Hyperaccelerated Dragon",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "g6"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 g6",
+   "epd": "rnbqkbnr/pp1ppp1p/6p1/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "pirc-defense",
+   "eco": "B07",
+   "name": "Pirc Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "d6",
+    "d4",
+    "Nf6",
+    "Nc3",
+    "g6"
+   ],
+   "pgn": "1. e4 d6 2. d4 Nf6 3. Nc3 g6",
+   "epd": "rnbqkb1r/ppp1pp1p/3p1np1/8/3PP3/2N5/PPP2PPP/R1BQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-accelerated-dragon",
+   "eco": "B34",
+   "name": "Sicilian Defense: Accelerated Dragon",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "Nc6",
+    "d4",
+    "cxd4",
+    "Nxd4",
+    "g6"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 g6",
+   "epd": "r1bqkbnr/pp1ppp1p/2n3p1/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "nimzo-indian-defense",
+   "eco": "E20",
+   "name": "Nimzo-Indian Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "e6",
+    "Nc3",
+    "Bb4"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4",
+   "epd": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N5/PP2PPPP/R1BQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "petrovs-defense-stafford-gambit",
+   "eco": "C42",
+   "name": "Petrov's Defense: Stafford Gambit",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nf6",
+    "Nxe5",
+    "Nc6"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nf6 3. Nxe5 Nc6",
+   "epd": "r1bqkb1r/pppp1ppp/2n2n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "budapest-gambit",
+   "eco": "A51",
+   "name": "Budapest Gambit",
+   "side": "black",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "e5"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 e5",
+   "epd": "rnbqkb1r/pppp1ppp/5n2/4p3/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "queens-gambit-declined-albin-countergambit",
+   "eco": "D08",
+   "name": "Queen's Gambit Declined: Albin Countergambit",
+   "side": "black",
+   "sans": [
+    "d4",
+    "d5",
+    "c4",
+    "e5"
+   ],
+   "pgn": "1. d4 d5 2. c4 e5",
+   "epd": "rnbqkbnr/ppp2ppp/8/3pp3/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "semi-slav-defense",
+   "eco": "D43",
+   "name": "Semi-Slav Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "d5",
+    "c4",
+    "c6",
+    "Nf3",
+    "Nf6",
+    "Nc3",
+    "e6"
+   ],
+   "pgn": "1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6",
+   "epd": "rnbqkb1r/pp3ppp/2p1pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "caro-kann-defense-classical-variation",
+   "eco": "B18",
+   "name": "Caro-Kann Defense: Classical Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c6",
+    "d4",
+    "d5",
+    "Nc3",
+    "dxe4",
+    "Nxe4",
+    "Bf5"
+   ],
+   "pgn": "1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Bf5",
+   "epd": "rn1qkbnr/pp2pppp/2p5/5b2/3PN3/8/PPP2PPP/R1BQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "queens-gambit-declined-chigorin-defense",
+   "eco": "D07",
+   "name": "Queen's Gambit Declined: Chigorin Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "d5",
+    "c4",
+    "Nc6"
+   ],
+   "pgn": "1. d4 d5 2. c4 Nc6",
+   "epd": "r1bqkbnr/ppp1pppp/2n5/3p4/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-kan-variation",
+   "eco": "B41",
+   "name": "Sicilian Defense: Kan Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "e6",
+    "d4",
+    "cxd4",
+    "Nxd4",
+    "a6"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 a6",
+   "epd": "rnbqkbnr/1p1p1ppp/p3p3/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-dragon-variation",
+   "eco": "B70",
+   "name": "Sicilian Defense: Dragon Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "d6",
+    "d4",
+    "cxd4",
+    "Nxd4",
+    "Nf6",
+    "Nc3",
+    "g6"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6",
+   "epd": "rnbqkb1r/pp2pp1p/3p1np1/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "gr-nfeld-defense",
+   "eco": "D80",
+   "name": "Grünfeld Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "g6",
+    "Nc3",
+    "d5"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 g6 3. Nc3 d5",
+   "epd": "rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "french-defense-winawer-variation",
+   "eco": "C15",
+   "name": "French Defense: Winawer Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e6",
+    "d4",
+    "d5",
+    "Nc3",
+    "Bb4"
+   ],
+   "pgn": "1. e4 e6 2. d4 d5 3. Nc3 Bb4",
+   "epd": "rnbqk1nr/ppp2ppp/4p3/3p4/1b1PP3/2N5/PPP2PPP/R1BQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "tarrasch-defense",
+   "eco": "D32",
+   "name": "Tarrasch Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "d5",
+    "c4",
+    "e6",
+    "Nc3",
+    "c5"
+   ],
+   "pgn": "1. d4 d5 2. c4 e6 3. Nc3 c5",
+   "epd": "rnbqkbnr/pp3ppp/4p3/2pp4/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-sveshnikov-variation",
+   "eco": "B33",
+   "name": "Sicilian Defense: Sveshnikov Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "Nc6",
+    "d4",
+    "cxd4",
+    "Nxd4",
+    "Nf6",
+    "Nc3",
+    "e5"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 e5",
+   "epd": "r1bqkb1r/pp1p1ppp/2n2n2/4p3/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "italian-game-two-knights-defense-traxler-counterattack",
+   "eco": "C57",
+   "name": "Italian Game: Two Knights Defense, Traxler Counterattack",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Nf6",
+    "Ng5",
+    "Bc5"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 Bc5",
+   "epd": "r1bqk2r/pppp1ppp/2n2n2/2b1p1N1/2B1P3/8/PPPP1PPP/RNBQK2R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "benko-gambit",
+   "eco": "A57",
+   "name": "Benko Gambit",
+   "side": "black",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "c5",
+    "d5",
+    "b5"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 c5 3. d5 b5",
+   "epd": "rnbqkb1r/p2ppppp/5n2/1ppP4/2P5/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "modern-benoni",
+   "eco": "A60",
+   "name": "Modern Benoni",
+   "side": "black",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "c5",
+    "d5",
+    "e6"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 c5 3. d5 e6",
+   "epd": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "ruy-lopez-schliemann-defense",
+   "eco": "C63",
+   "name": "Ruy Lopez: Schliemann Defense",
+   "side": "black",
+   "sans": [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bb5",
+    "f5"
+   ],
+   "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 f5",
+   "epd": "r1bqkbnr/pppp2pp/2n5/1B2pp2/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "sicilian-defense-scheveningen-variation",
+   "eco": "B80",
+   "name": "Sicilian Defense: Scheveningen Variation",
+   "side": "black",
+   "sans": [
+    "e4",
+    "c5",
+    "Nf3",
+    "d6",
+    "d4",
+    "cxd4",
+    "Nxd4",
+    "Nf6",
+    "Nc3",
+    "e6"
+   ],
+   "pgn": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 e6",
+   "epd": "rnbqkb1r/pp3ppp/3ppn2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "bogo-indian-defense",
+   "eco": "E11",
+   "name": "Bogo-Indian Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "e6",
+    "Nf3",
+    "Bb4+"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 e6 3. Nf3 Bb4+",
+   "epd": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP2PPPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  },
+  {
+   "slug": "queens-indian-defense",
+   "eco": "E12",
+   "name": "Queen's Indian Defense",
+   "side": "black",
+   "sans": [
+    "d4",
+    "Nf6",
+    "c4",
+    "e6",
+    "Nf3",
+    "b6"
+   ],
+   "pgn": "1. d4 Nf6 2. c4 e6 3. Nf3 b6",
+   "epd": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R w KQkq -",
+   "source": "recon/live6/02-openings.json"
+  }
+ ],
+ "report": {
+  "captured": [],
+  "capturedAvailable": false,
+  "source": "recon/live4/network.json#8 (returned [])"
+ }
+}

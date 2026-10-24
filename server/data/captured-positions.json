@@ -1,0 +1,4488 @@
+{
+ "generatedAt": "2026-10-24T05:04:50.377Z",
+ "_provenance": {
+  "reports": "recon/live2|live3|live4|live5/network*.json — openings.fetchPositionReportAndAnnotations",
+  "supplementary": "recon/live4/network.json#5 — /api/v1/openings/supplementary",
+  "repertoire": "recon/live4/network.json#3 — home.fetchHome_v2"
+ },
+ "profile": {
+  "eloRange": "2000-2200",
+  "ratingRange": "1800-2000",
+  "singleElo": 2100,
+  "ratingSystem": "Chess.com",
+  "trainingRating": 1900,
+  "trainingRatingDeviation": 350,
+  "missThreshold": 0.5,
+  "source": "recon/live4/network.json#2 — /api/user"
+ },
+ "reports": [
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+   "repertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "referenceColor": "white",
+   "sideToMove": "black",
+   "stockfish": {
+    "eval": 25,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 1403193,
+    "draw": 1140535,
+    "white": 1649637
+   },
+   "results": {
+    "black": 118957985,
+    "draw": 13962036,
+    "white": 126120892
+   },
+   "plans": [],
+   "complete": true,
+   "source": "recon/live3/network.json#13",
+   "suggestedMoves": [
+    {
+     "san": "d6",
+     "epdAfter": "rnbqkbnr/ppp1pppp/3p4/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.0507878382902395,
+     "incidence": 0.05370902642607689,
+     "masterResults": {
+      "black": 60894,
+      "draw": 47338,
+      "white": 76385
+     },
+     "results": {
+      "black": 6089520,
+      "draw": 661986,
+      "white": 6404622
+     },
+     "stockfish": {
+      "eval": 59,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Instead of contesting the center immediately, Black intends to attack it indirectly in \"hypermodern\" fashion.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "b6",
+     "epdAfter": "rnbqkbnr/p1pppppp/1p6/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.01243005578813722,
+     "incidence": 0.01255026925355196,
+     "masterResults": {
+      "black": 4855,
+      "draw": 2925,
+      "white": 6628
+     },
+     "results": {
+      "black": 1434877,
+      "draw": 151222,
+      "white": 1633794
+     },
+     "stockfish": {
+      "eval": 87,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Intending to place the light-squared bishop on the long diagonal where it pressures White's center and kingside. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "h6",
+     "epdAfter": "rnbqkbnr/ppppppp1/7p/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.00026740949604358444,
+     "incidence": 0.0002523722650948912,
+     "masterResults": {
+      "black": 70,
+      "draw": 20,
+      "white": 70
+     },
+     "results": {
+      "black": 30127,
+      "draw": 3155,
+      "white": 35988
+     },
+     "stockfish": {
+      "eval": 78,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nc6",
+     "epdAfter": "r1bqkbnr/pppppppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.01670392892724247,
+     "incidence": 0.017986243590712547,
+     "masterResults": {
+      "black": 11649,
+      "draw": 6923,
+      "white": 12771
+     },
+     "results": {
+      "black": 2079309,
+      "draw": 208292,
+      "white": 2039400
+     },
+     "stockfish": {
+      "eval": 66,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Developing the knight, aiming to gain space in the center with e5 or d5 next. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nh6",
+     "epdAfter": "rnbqkb1r/pppppppp/7n/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.00013604414681784262,
+     "incidence": 0.00010769852815428749,
+     "masterResults": {
+      "black": 30,
+      "draw": 18,
+      "white": 54
+     },
+     "results": {
+      "black": 16685,
+      "draw": 1551,
+      "white": 17005
+     },
+     "stockfish": {
+      "eval": 111,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "e5",
+     "epdAfter": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.24228097898960077,
+     "incidence": 0.23472994565963745,
+     "masterResults": {
+      "black": 268972,
+      "draw": 261221,
+      "white": 359883
+     },
+     "results": {
+      "black": 28431212,
+      "draw": 3267127,
+      "white": 31062347
+     },
+     "stockfish": {
+      "eval": 27,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Black grabs an equal share of the center and scope to develop some pieces.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "c5",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.2994869540164105,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 633680,
+      "draw": 473314,
+      "white": 682208
+     },
+     "results": {
+      "black": 35777410,
+      "draw": 4179829,
+      "white": 37622135
+     },
+     "stockfish": {
+      "eval": 45,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "A counter-attacking opening. The asymmetry generally leads to sharp games.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "a5",
+     "epdAfter": "rnbqkbnr/1ppppppp/8/p7/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.00041450595103484676,
+     "incidence": 0.0004756224516313523,
+     "masterResults": {
+      "black": 70,
+      "draw": 16,
+      "white": 53
+     },
+     "results": {
+      "black": 46401,
+      "draw": 4663,
+      "white": 56310
+     },
+     "stockfish": {
+      "eval": 90,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "f6",
+     "epdAfter": "rnbqkbnr/ppppp1pp/5p2/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.000530626604145732,
+     "incidence": 0.0005398085922934115,
+     "masterResults": {
+      "black": 58,
+      "draw": 14,
+      "white": 75
+     },
+     "results": {
+      "black": 57683,
+      "draw": 5467,
+      "white": 74304
+     },
+     "stockfish": {
+      "eval": 135,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "h5",
+     "epdAfter": "rnbqkbnr/ppppppp1/8/7p/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.0003744813854944991,
+     "incidence": 0.0003535104915499687,
+     "masterResults": {
+      "black": 90,
+      "draw": 12,
+      "white": 77
+     },
+     "results": {
+      "black": 43646,
+      "draw": 3801,
+      "white": 49559
+     },
+     "stockfish": {
+      "eval": 111,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "g6",
+     "epdAfter": "rnbqkbnr/pppppp1p/6p1/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.03061600929425384,
+     "incidence": 0.03059553913772106,
+     "masterResults": {
+      "black": 49019,
+      "draw": 31281,
+      "white": 49020
+     },
+     "results": {
+      "black": 3644138,
+      "draw": 393689,
+      "white": 3892972
+     },
+     "stockfish": {
+      "eval": 67,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Fianchettoing the bishop where it will be very powerful on the long diagonal. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "f5",
+     "epdAfter": "rnbqkbnr/ppppp1pp/8/5p2/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.0013483661555809912,
+     "incidence": 0.0012821067357435822,
+     "masterResults": {
+      "black": 62,
+      "draw": 17,
+      "white": 105
+     },
+     "results": {
+      "black": 153544,
+      "draw": 14461,
+      "white": 181277
+     },
+     "stockfish": {
+      "eval": 162,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "g5",
+     "epdAfter": "rnbqkbnr/pppppp1p/8/6p1/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.0006630419805538594,
+     "incidence": 0.0007366867503151298,
+     "masterResults": {
+      "black": 322,
+      "draw": 84,
+      "white": 431
+     },
+     "results": {
+      "black": 77791,
+      "draw": 6842,
+      "white": 87122
+     },
+     "stockfish": {
+      "eval": 176,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "d5",
+     "epdAfter": "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.08003732213528757,
+     "incidence": 0.07901187986135483,
+     "masterResults": {
+      "black": 46358,
+      "draw": 38753,
+      "white": 61833
+     },
+     "results": {
+      "black": 9644576,
+      "draw": 1147433,
+      "white": 9940932
+     },
+     "stockfish": {
+      "eval": 78,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Immediately breaking in the center and forcing White to make a decision. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nf6",
+     "epdAfter": "rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.029190500884313977,
+     "incidence": 0.02896929159760475,
+     "masterResults": {
+      "black": 30492,
+      "draw": 22710,
+      "white": 33632
+     },
+     "results": {
+      "black": 3598004,
+      "draw": 416406,
+      "white": 3547124
+     },
+     "stockfish": {
+      "eval": 66,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Provoking 2. e5 in the hope that White's centre will eventually be overextended.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "c6",
+     "epdAfter": "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.10489315253455735,
+     "incidence": 0.11663288623094559,
+     "masterResults": {
+      "black": 120421,
+      "draw": 102262,
+      "white": 141854
+     },
+     "results": {
+      "black": 12501806,
+      "draw": 1614157,
+      "white": 13055655
+     },
+     "stockfish": {
+      "eval": 37,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Preparing d5",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "e6",
+     "epdAfter": "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.12647300621581734,
+     "incidence": 0.1252136379480362,
+     "masterResults": {
+      "black": 174601,
+      "draw": 152957,
+      "white": 220210
+     },
+     "results": {
+      "black": 15049219,
+      "draw": 1853408,
+      "white": 15859056
+     },
+     "stockfish": {
+      "eval": 35,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Intending a d7-d5 advance to contest the center.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "a6",
+     "epdAfter": "rnbqkbnr/1ppppppp/p7/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.0020932060257215046,
+     "incidence": 0.0020783725194633007,
+     "masterResults": {
+      "black": 1407,
+      "draw": 595,
+      "white": 1487
+     },
+     "results": {
+      "black": 251508,
+      "draw": 25655,
+      "white": 265063
+     },
+     "stockfish": {
+      "eval": 67,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Na6",
+     "epdAfter": "r1bqkbnr/pppppppp/n7/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.00009900366588037775,
+     "incidence": 0.00014674833801109344,
+     "masterResults": {
+      "black": 53,
+      "draw": 17,
+      "white": 46
+     },
+     "results": {
+      "black": 12319,
+      "draw": 1151,
+      "white": 12176
+     },
+     "stockfish": {
+      "eval": 104,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "b5",
+     "epdAfter": "rnbqkbnr/p1pppppp/8/1p6/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.00016094368845897327,
+     "incidence": 0.0001383870985591784,
+     "masterResults": {
+      "black": 45,
+      "draw": 6,
+      "white": 40
+     },
+     "results": {
+      "black": 17447,
+      "draw": 1691,
+      "white": 22553
+     },
+     "stockfish": {
+      "eval": 159,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    }
+   ]
+  },
+  {
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -",
+   "repertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "referenceColor": "white",
+   "sideToMove": "black",
+   "stockfish": {
+    "eval": 29,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 230548,
+    "draw": 234607,
+    "white": 310193
+   },
+   "results": {
+    "black": 19286283,
+    "draw": 2324956,
+    "white": 21067355
+   },
+   "plans": [],
+   "complete": false,
+   "source": "recon/live2/network.json#17",
+   "suggestedMoves": [
+    {
+     "san": "Qe7",
+     "epdAfter": "rnb1kbnr/ppppqppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.002409592031077687,
+     "incidence": 0.0006896004197187722,
+     "masterResults": {
+      "black": 441,
+      "draw": 321,
+      "white": 607
+     },
+     "results": {
+      "black": 50229,
+      "draw": 5010,
+      "white": 47599
+     },
+     "stockfish": {
+      "eval": 95,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "b6",
+     "epdAfter": "rnbqkbnr/p1pp1ppp/1p6/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.00014595138724579352,
+     "incidence": 0.000028231568649061956,
+     "masterResults": {
+      "black": 0,
+      "draw": 1,
+      "white": 5
+     },
+     "results": {
+      "black": 2316,
+      "draw": 235,
+      "white": 3678
+     },
+     "stockfish": {
+      "eval": 194,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "g6",
+     "epdAfter": "rnbqkbnr/pppp1p1p/6p1/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.0001392735665097121,
+     "incidence": 0.00002700782351894304,
+     "masterResults": {
+      "black": 4,
+      "draw": 3,
+      "white": 9
+     },
+     "results": {
+      "black": 2291,
+      "draw": 272,
+      "white": 3381
+     },
+     "stockfish": {
+      "eval": 157,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Ne7",
+     "epdAfter": "rnbqkb1r/ppppnppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.000058647667727760667,
+     "incidence": 0.0000153237342601642,
+     "masterResults": {
+      "black": 1,
+      "draw": 1,
+      "white": 0
+     },
+     "results": {
+      "black": 978,
+      "draw": 102,
+      "white": 1423
+     },
+     "stockfish": {
+      "eval": 127,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "f5",
+     "epdAfter": "rnbqkbnr/pppp2pp/8/4pp2/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.017367512153750896,
+     "incidence": 0.0040543111972510815,
+     "masterResults": {
+      "black": 1000,
+      "draw": 527,
+      "white": 1561
+     },
+     "results": {
+      "black": 355252,
+      "draw": 31560,
+      "white": 354409
+     },
+     "stockfish": {
+      "eval": 147,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "d5",
+     "epdAfter": "rnbqkbnr/ppp2ppp/8/3pp3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.03286816337014289,
+     "incidence": 0.009199216030538082,
+     "masterResults": {
+      "black": 1340,
+      "draw": 485,
+      "white": 1716
+     },
+     "results": {
+      "black": 693462,
+      "draw": 67358,
+      "white": 641947
+     },
+     "stockfish": {
+      "eval": 104,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    }
+   ]
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -",
+   "repertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "referenceColor": "white",
+   "sideToMove": "black",
+   "stockfish": {
+    "eval": 48,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 469598,
+    "draw": 362485,
+    "white": 522801
+   },
+   "results": {
+    "black": 21481547,
+    "draw": 2572410,
+    "white": 22366423
+   },
+   "plans": [],
+   "complete": false,
+   "source": "recon/live2/network.json#20",
+   "suggestedMoves": [
+    {
+     "san": "h6",
+     "epdAfter": "rnbqkbnr/pp1pppp1/7p/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.00021158809988199148,
+     "incidence": 0.000043088813981739804,
+     "masterResults": {
+      "black": 34,
+      "draw": 26,
+      "white": 37
+     },
+     "results": {
+      "black": 4461,
+      "draw": 461,
+      "white": 4900
+     },
+     "stockfish": {
+      "eval": 70,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nf6",
+     "epdAfter": "rnbqkb1r/pp1ppppp/5n2/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.008725176312645437,
+     "incidence": 0.0026945224963128567,
+     "masterResults": {
+      "black": 4419,
+      "draw": 3327,
+      "white": 4677
+     },
+     "results": {
+      "black": 199105,
+      "draw": 22766,
+      "white": 183155
+     },
+     "stockfish": {
+      "eval": 63,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": "Attacking the undefended e4 pawn and forcing white to make a decision on what to do with it. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "g5",
+     "epdAfter": "rnbqkbnr/pp1ppp1p/8/2p3p1/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.00004155502389252307,
+     "incidence": 0.000011386486221454106,
+     "masterResults": {
+      "black": 3,
+      "draw": 0,
+      "white": 3
+     },
+     "results": {
+      "black": 684,
+      "draw": 62,
+      "white": 1183
+     },
+     "stockfish": {
+      "eval": 171,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Qa5",
+     "epdAfter": "rnb1kbnr/pp1ppppp/8/q1p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.000090175909805133,
+     "incidence": 0.000028514807127066888,
+     "masterResults": {
+      "black": 96,
+      "draw": 54,
+      "white": 122
+     },
+     "results": {
+      "black": 1823,
+      "draw": 216,
+      "white": 2147
+     },
+     "stockfish": {
+      "eval": 90,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "f6",
+     "epdAfter": "rnbqkbnr/pp1pp1pp/5p2/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "probability": 0.0000771212988777774,
+     "incidence": 0.000021876458049518988,
+     "masterResults": {
+      "black": 2,
+      "draw": 1,
+      "white": 10
+     },
+     "results": {
+      "black": 1303,
+      "draw": 115,
+      "white": 2162
+     },
+     "stockfish": {
+      "eval": 143,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    }
+   ]
+  },
+  {
+   "epd": "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq -",
+   "repertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "referenceColor": "white",
+   "sideToMove": "black",
+   "stockfish": {
+    "eval": 76,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 42819,
+    "draw": 36804,
+    "white": 58304
+   },
+   "results": {
+    "black": 7690122,
+    "draw": 940981,
+    "white": 7879402
+   },
+   "plans": [],
+   "complete": false,
+   "source": "recon/live2/network.json#21",
+   "suggestedMoves": [
+    {
+     "san": "h5",
+     "epdAfter": "rnbqkbnr/ppp1ppp1/8/3P3p/8/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.000015989819814717962,
+     "incidence": 8.348582696271478e-7,
+     "masterResults": {
+      "black": 0,
+      "draw": 0,
+      "white": 0
+     },
+     "results": {
+      "black": 103,
+      "draw": 4,
+      "white": 157
+     },
+     "stockfish": {
+      "eval": 139,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "h6",
+     "epdAfter": "rnbqkbnr/ppp1ppp1/7p/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.000010538744877882294,
+     "incidence": 4.6087976102171524e-7,
+     "masterResults": {
+      "black": 0,
+      "draw": 0,
+      "white": 0
+     },
+     "results": {
+      "black": 69,
+      "draw": 9,
+      "white": 96
+     },
+     "stockfish": {
+      "eval": 113,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Qd7",
+     "epdAfter": "rnb1kbnr/pppqpppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.00023348770979446116,
+     "incidence": 0.000016675310689606704,
+     "masterResults": {
+      "black": 2,
+      "draw": 1,
+      "white": 3
+     },
+     "results": {
+      "black": 1291,
+      "draw": 206,
+      "white": 2358
+     },
+     "stockfish": {
+      "eval": 149,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "a6",
+     "epdAfter": "rnbqkbnr/1pp1pppp/p7/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.00003706730957048255,
+     "incidence": 0.000004489660568651743,
+     "masterResults": {
+      "black": 0,
+      "draw": 0,
+      "white": 1
+     },
+     "results": {
+      "black": 257,
+      "draw": 28,
+      "white": 327
+     },
+     "stockfish": {
+      "eval": 122,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "e6",
+     "epdAfter": "rnbqkbnr/ppp2ppp/4p3/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.017325272606743405,
+     "incidence": 0.0014196843840181828,
+     "masterResults": {
+      "black": 24,
+      "draw": 13,
+      "white": 46
+     },
+     "results": {
+      "black": 129279,
+      "draw": 12634,
+      "white": 144136
+     },
+     "stockfish": {
+      "eval": 115,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": "Attempting to open up lines for the bishop and queen, but this move is considered an inaccuracy because it doesn't immediately address the lost pawn.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Na6",
+     "epdAfter": "r1bqkbnr/ppp1pppp/n7/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "probability": 0.000006299019927010107,
+     "incidence": 3.03475985674595e-7,
+     "masterResults": {
+      "black": 0,
+      "draw": 0,
+      "white": 0
+     },
+     "results": {
+      "black": 14,
+      "draw": 2,
+      "white": 88
+     },
+     "stockfish": {
+      "eval": 148,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    }
+   ]
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+   "repertoireId": "67eef914-3413-4581-aa14-d08873b3b64b",
+   "referenceColor": "black",
+   "sideToMove": "white",
+   "stockfish": {
+    "eval": 33,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 2815709,
+    "draw": 2496930,
+    "white": 3460040
+   },
+   "results": {
+    "black": 214370445,
+    "draw": 26393952,
+    "white": 231850257
+   },
+   "plans": [],
+   "complete": true,
+   "source": "recon/live4/network.json#12",
+   "suggestedMoves": [
+    {
+     "san": "g4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQKBNR b KQkq -",
+     "probability": 0.0024231093773914173,
+     "incidence": 0.0024839926045387983,
+     "masterResults": {
+      "black": 1789,
+      "draw": 480,
+      "white": 1834
+     },
+     "results": {
+      "black": 533939,
+      "draw": 50781,
+      "white": 560477
+     },
+     "stockfish": {
+      "eval": -126,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "f4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq -",
+     "probability": 0.012458771538641288,
+     "incidence": 0.012917717918753624,
+     "masterResults": {
+      "black": 18950,
+      "draw": 11614,
+      "white": 17283
+     },
+     "results": {
+      "black": 2678777,
+      "draw": 309151,
+      "white": 2900270
+     },
+     "stockfish": {
+      "eval": -33,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "d3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq -",
+     "probability": 0.004414926584142691,
+     "incidence": 0.0046021961607038975,
+     "masterResults": {
+      "black": 2109,
+      "draw": 1139,
+      "white": 2130
+     },
+     "results": {
+      "black": 975721,
+      "draw": 111529,
+      "white": 999309
+     },
+     "stockfish": {
+      "eval": -10,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "c4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.0493727687080985,
+     "incidence": 0.04975634068250656,
+     "masterResults": {
+      "black": 177720,
+      "draw": 176782,
+      "white": 231336
+     },
+     "results": {
+      "black": 10279229,
+      "draw": 1387300,
+      "white": 11667765
+     },
+     "stockfish": {
+      "eval": 18,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Advancing the c-pawn, aiming to develop the queenside knight with a very flexible position. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nh3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq -",
+     "probability": 0.00022191228966844518,
+     "incidence": 0.00022502736828755587,
+     "masterResults": {
+      "black": 157,
+      "draw": 75,
+      "white": 208
+     },
+     "results": {
+      "black": 47292,
+      "draw": 5470,
+      "white": 52117
+     },
+     "stockfish": {
+      "eval": -58,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "h4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq -",
+     "probability": 0.00039190278683148914,
+     "incidence": 0.0004380759783089161,
+     "masterResults": {
+      "black": 549,
+      "draw": 165,
+      "white": 741
+     },
+     "results": {
+      "black": 88455,
+      "draw": 8467,
+      "white": 88297
+     },
+     "stockfish": {
+      "eval": -49,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "b3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.011276848813071293,
+     "incidence": 0.012372642755508423,
+     "masterResults": {
+      "black": 20735,
+      "draw": 13481,
+      "white": 24378
+     },
+     "results": {
+      "black": 2401402,
+      "draw": 297888,
+      "white": 2630314
+     },
+     "stockfish": {
+      "eval": -13,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "c3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/2P5/PP1PPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.0018878678273060911,
+     "incidence": 0.0018834455404430628,
+     "masterResults": {
+      "black": 1014,
+      "draw": 548,
+      "white": 933
+     },
+     "results": {
+      "black": 413546,
+      "draw": 48523,
+      "white": 430165
+     },
+     "stockfish": {
+      "eval": 21,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "a3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.0007802487647790964,
+     "incidence": 0.0007445778464898467,
+     "masterResults": {
+      "black": 2044,
+      "draw": 1096,
+      "white": 2573
+     },
+     "results": {
+      "black": 165479,
+      "draw": 23072,
+      "white": 180206
+     },
+     "stockfish": {
+      "eval": 4,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "h3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/7P/PPPPPPP1/RNBQKBNR b KQkq -",
+     "probability": 0.00032175896094834163,
+     "incidence": 0.0003230020811315626,
+     "masterResults": {
+      "black": 332,
+      "draw": 135,
+      "white": 397
+     },
+     "results": {
+      "black": 69998,
+      "draw": 7729,
+      "white": 74341
+     },
+     "stockfish": {
+      "eval": -14,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "b4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/1P6/8/P1PPPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.004401391244208014,
+     "incidence": 0.004406052641570568,
+     "masterResults": {
+      "black": 6842,
+      "draw": 3790,
+      "white": 5982
+     },
+     "results": {
+      "black": 920056,
+      "draw": 118301,
+      "white": 1041805
+     },
+     "stockfish": {
+      "eval": -42,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "e3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.007838481030255993,
+     "incidence": 0.007806695997714996,
+     "masterResults": {
+      "black": 2755,
+      "draw": 1345,
+      "white": 2489
+     },
+     "results": {
+      "black": 1763759,
+      "draw": 186485,
+      "white": 1754337
+     },
+     "stockfish": {
+      "eval": 14,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Intending to play d4 and have a very safe and solid position. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "f3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq -",
+     "probability": 0.0007073585153794237,
+     "incidence": 0.0007693745428696275,
+     "masterResults": {
+      "black": 192,
+      "draw": 53,
+      "white": 189
+     },
+     "results": {
+      "black": 167304,
+      "draw": 15543,
+      "white": 151461
+     },
+     "stockfish": {
+      "eval": -68,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nc3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/2N5/PPPPPPPP/R1BQKBNR b KQkq -",
+     "probability": 0.005006266691002772,
+     "incidence": 0.005602412857115269,
+     "masterResults": {
+      "black": 7009,
+      "draw": 4995,
+      "white": 8287
+     },
+     "results": {
+      "black": 1047498,
+      "draw": 120345,
+      "white": 1198192
+     },
+     "stockfish": {
+      "eval": -5,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Na3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/N7/PPPPPPPP/R1BQKBNR b KQkq -",
+     "probability": 0.00008977927290422104,
+     "incidence": 0.00015188018733169883,
+     "masterResults": {
+      "black": 66,
+      "draw": 31,
+      "white": 75
+     },
+     "results": {
+      "black": 18854,
+      "draw": 1973,
+      "white": 21604
+     },
+     "stockfish": {
+      "eval": -70,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "d4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq -",
+     "probability": 0.29143220133838676,
+     "incidence": 0.29459428787231445,
+     "masterResults": {
+      "black": 920651,
+      "draw": 872725,
+      "white": 1166560
+     },
+     "results": {
+      "black": 61331420,
+      "draw": 8103553,
+      "white": 68300156
+     },
+     "stockfish": {
+      "eval": 31,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "The Queen's Pawn opening is more usually more positional in nature, White intends to develop the pieces while having a share of the center.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nf3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -",
+     "probability": 0.04820997150037586,
+     "incidence": 0.05113105848431587,
+     "masterResults": {
+      "black": 224340,
+      "draw": 249288,
+      "white": 317777
+     },
+     "results": {
+      "black": 9888323,
+      "draw": 1385124,
+      "white": 11511292
+     },
+     "stockfish": {
+      "eval": 36,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "A flexible first move that can transpose to many different lines.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "a4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.0003573587881174755,
+     "incidence": 0.0003642285009846091,
+     "masterResults": {
+      "black": 135,
+      "draw": 63,
+      "white": 211
+     },
+     "results": {
+      "black": 83012,
+      "draw": 7003,
+      "white": 78878
+     },
+     "stockfish": {
+      "eval": -21,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "g3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq -",
+     "probability": 0.009043126284442293,
+     "incidence": 0.009369045495986938,
+     "masterResults": {
+      "black": 16694,
+      "draw": 17003,
+      "white": 23639
+     },
+     "results": {
+      "black": 1948485,
+      "draw": 243469,
+      "white": 2081960
+     },
+     "stockfish": {
+      "eval": 22,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "e4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.5481014666125863,
+     "incidence": 0.5391957759857178,
+     "masterResults": {
+      "black": 1403184,
+      "draw": 1140535,
+      "white": 1649634
+     },
+     "results": {
+      "black": 118957977,
+      "draw": 13961926,
+      "white": 126120882
+     },
+     "stockfish": {
+      "eval": 25,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "\"Best by test\" according to Bobby Fisher.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    }
+   ]
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+   "repertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "referenceColor": "white",
+   "sideToMove": "white",
+   "stockfish": {
+    "eval": 33,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 2815709,
+    "draw": 2496930,
+    "white": 3460040
+   },
+   "results": {
+    "black": 214370445,
+    "draw": 26393952,
+    "white": 231850257
+   },
+   "plans": [],
+   "complete": true,
+   "source": "recon/live4/network.json#11",
+   "suggestedMoves": [
+    {
+     "san": "g4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQKBNR b KQkq -",
+     "probability": 0.0024231093773914173,
+     "incidence": 1,
+     "masterResults": {
+      "black": 1789,
+      "draw": 480,
+      "white": 1834
+     },
+     "results": {
+      "black": 533939,
+      "draw": 50781,
+      "white": 560477
+     },
+     "stockfish": {
+      "eval": -126,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "f4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq -",
+     "probability": 0.012458771538641288,
+     "incidence": 1,
+     "masterResults": {
+      "black": 18950,
+      "draw": 11614,
+      "white": 17283
+     },
+     "results": {
+      "black": 2678777,
+      "draw": 309151,
+      "white": 2900270
+     },
+     "stockfish": {
+      "eval": -33,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "d3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq -",
+     "probability": 0.004414926584142691,
+     "incidence": 1,
+     "masterResults": {
+      "black": 2109,
+      "draw": 1139,
+      "white": 2130
+     },
+     "results": {
+      "black": 975721,
+      "draw": 111529,
+      "white": 999309
+     },
+     "stockfish": {
+      "eval": -10,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "c4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.0493727687080985,
+     "incidence": 1,
+     "masterResults": {
+      "black": 177720,
+      "draw": 176782,
+      "white": 231336
+     },
+     "results": {
+      "black": 10279229,
+      "draw": 1387300,
+      "white": 11667765
+     },
+     "stockfish": {
+      "eval": 18,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Advancing the c-pawn, aiming to develop the queenside knight with a very flexible position. ",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Nh3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq -",
+     "probability": 0.00022191228966844518,
+     "incidence": 1,
+     "masterResults": {
+      "black": 157,
+      "draw": 75,
+      "white": 208
+     },
+     "results": {
+      "black": 47292,
+      "draw": 5470,
+      "white": 52117
+     },
+     "stockfish": {
+      "eval": -58,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "h4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq -",
+     "probability": 0.00039190278683148914,
+     "incidence": 1,
+     "masterResults": {
+      "black": 549,
+      "draw": 165,
+      "white": 741
+     },
+     "results": {
+      "black": 88455,
+      "draw": 8467,
+      "white": 88297
+     },
+     "stockfish": {
+      "eval": -49,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "b3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.011276848813071293,
+     "incidence": 1,
+     "masterResults": {
+      "black": 20735,
+      "draw": 13481,
+      "white": 24378
+     },
+     "results": {
+      "black": 2401402,
+      "draw": 297888,
+      "white": 2630314
+     },
+     "stockfish": {
+      "eval": -13,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "",
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "c3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/2P5/PP1PPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.0018878678273060911,
+     "incidence": 1,
+     "masterResults": {
+      "black": 1014,
+      "draw": 548,
+      "white": 933
+     },
+     "results": {
+      "black": 413546,
+      "draw": 48523,
+      "white": 430165
+     },
+     "stockfish": {
+      "eval": 21,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "a3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.0007802487647790964,
+     "incidence": 1,
+     "masterResults": {
+      "black": 2044,
+      "draw": 1096,
+      "white": 2573
+     },
+     "results": {
+      "black": 165479,
+      "draw": 23072,
+      "white": 180206
+     },
+     "stockfish": {
+      "eval": 4,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "h3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/7P/PPPPPPP1/RNBQKBNR b KQkq -",
+     "probability": 0.00032175896094834163,
+     "incidence": 1,
+     "masterResults": {
+      "black": 332,
+      "draw": 135,
+      "white": 397
+     },
+     "results": {
+      "black": 69998,
+      "draw": 7729,
+      "white": 74341
+     },
+     "stockfish": {
+      "eval": -14,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "b4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/1P6/8/P1PPPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.004401391244208014,
+     "incidence": 1,
+     "masterResults": {
+      "black": 6842,
+      "draw": 3790,
+      "white": 5982
+     },
+     "results": {
+      "black": 920056,
+      "draw": 118301,
+      "white": 1041805
+     },
+     "stockfish": {
+      "eval": -42,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "e3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.007838481030255993,
+     "incidence": 1,
+     "masterResults": {
+      "black": 2755,
+      "draw": 1345,
+      "white": 2489
+     },
+     "results": {
+      "black": 1763759,
+      "draw": 186485,
+      "white": 1754337
+     },
+     "stockfish": {
+      "eval": 14,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Intending to play d4 and have a very safe and solid position. ",
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "f3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq -",
+     "probability": 0.0007073585153794237,
+     "incidence": 1,
+     "masterResults": {
+      "black": 192,
+      "draw": 53,
+      "white": 189
+     },
+     "results": {
+      "black": 167304,
+      "draw": 15543,
+      "white": 151461
+     },
+     "stockfish": {
+      "eval": -68,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Nc3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/2N5/PPPPPPPP/R1BQKBNR b KQkq -",
+     "probability": 0.005006266691002772,
+     "incidence": 1,
+     "masterResults": {
+      "black": 7009,
+      "draw": 4995,
+      "white": 8287
+     },
+     "results": {
+      "black": 1047498,
+      "draw": 120345,
+      "white": 1198192
+     },
+     "stockfish": {
+      "eval": -5,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Na3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/N7/PPPPPPPP/R1BQKBNR b KQkq -",
+     "probability": 0.00008977927290422104,
+     "incidence": 1,
+     "masterResults": {
+      "black": 66,
+      "draw": 31,
+      "white": 75
+     },
+     "results": {
+      "black": 18854,
+      "draw": 1973,
+      "white": 21604
+     },
+     "stockfish": {
+      "eval": -70,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "d4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq -",
+     "probability": 0.29143220133838676,
+     "incidence": 1,
+     "masterResults": {
+      "black": 920651,
+      "draw": 872725,
+      "white": 1166560
+     },
+     "results": {
+      "black": 61331420,
+      "draw": 8103553,
+      "white": 68300156
+     },
+     "stockfish": {
+      "eval": 31,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "The Queen's Pawn opening is more usually more positional in nature, White intends to develop the pieces while having a share of the center.",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Nf3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -",
+     "probability": 0.04820997150037586,
+     "incidence": 1,
+     "masterResults": {
+      "black": 224340,
+      "draw": 249288,
+      "white": 317777
+     },
+     "results": {
+      "black": 9888323,
+      "draw": 1385124,
+      "white": 11511292
+     },
+     "stockfish": {
+      "eval": 36,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "A flexible first move that can transpose to many different lines.",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 1
+    },
+    {
+     "san": "a4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq -",
+     "probability": 0.0003573587881174755,
+     "incidence": 1,
+     "masterResults": {
+      "black": 135,
+      "draw": 63,
+      "white": 211
+     },
+     "results": {
+      "black": 83012,
+      "draw": 7003,
+      "white": 78878
+     },
+     "stockfish": {
+      "eval": -21,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "g3",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq -",
+     "probability": 0.009043126284442293,
+     "incidence": 1,
+     "masterResults": {
+      "black": 16694,
+      "draw": 17003,
+      "white": 23639
+     },
+     "results": {
+      "black": 1948485,
+      "draw": 243469,
+      "white": 2081960
+     },
+     "stockfish": {
+      "eval": 22,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "e4",
+     "epdAfter": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.5481014666125863,
+     "incidence": 1,
+     "masterResults": {
+      "black": 1403184,
+      "draw": 1140535,
+      "white": 1649634
+     },
+     "results": {
+      "black": 118957977,
+      "draw": 13961926,
+      "white": 126120882
+     },
+     "stockfish": {
+      "eval": 25,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "\"Best by test\" according to Bobby Fisher.",
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    }
+   ]
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq -",
+   "repertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "referenceColor": "white",
+   "sideToMove": "black",
+   "stockfish": {
+    "eval": 31,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 920657,
+    "draw": 872729,
+    "white": 1166564
+   },
+   "results": {
+    "black": 61331425,
+    "draw": 8103584,
+    "white": 68300162
+   },
+   "plans": [],
+   "complete": true,
+   "source": "recon/live4/network.json#13",
+   "suggestedMoves": [
+    {
+     "san": "d5",
+     "epdAfter": "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.3244878608383911,
+     "incidence": 0.3233519494533539,
+     "masterResults": {
+      "black": 227153,
+      "draw": 253522,
+      "white": 338232
+     },
+     "results": {
+      "black": 19410198,
+      "draw": 2769200,
+      "white": 22513993
+     },
+     "stockfish": {
+      "eval": 32,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Controlling the center and opening up the diagonal for the light-Squared bishop",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nf6",
+     "epdAfter": "rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.3473671731964525,
+     "incidence": 0.3403998613357544,
+     "masterResults": {
+      "black": 536795,
+      "draw": 491482,
+      "white": 638326
+     },
+     "results": {
+      "black": 21618543,
+      "draw": 2870829,
+      "white": 23355305
+     },
+     "stockfish": {
+      "eval": 36,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Preventing e4 while developing a piece.",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "c5",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.04740555337169473,
+     "incidence": 0.0489930622279644,
+     "masterResults": {
+      "black": 14840,
+      "draw": 10199,
+      "white": 16650
+     },
+     "results": {
+      "black": 3043983,
+      "draw": 344600,
+      "white": 3140829
+     },
+     "stockfish": {
+      "eval": 77,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Immediately breaking in the center and challenging the white d-pawn. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "a6",
+     "epdAfter": "rnbqkbnr/1ppppppp/p7/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.0015479633738575023,
+     "incidence": 0.0016908874968066812,
+     "masterResults": {
+      "black": 491,
+      "draw": 196,
+      "white": 349
+     },
+     "results": {
+      "black": 97058,
+      "draw": 10994,
+      "white": 105157
+     },
+     "stockfish": {
+      "eval": 68,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "h5",
+     "epdAfter": "rnbqkbnr/ppppppp1/8/7p/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.00039804648008169243,
+     "incidence": 0.00038472472806461155,
+     "masterResults": {
+      "black": 103,
+      "draw": 15,
+      "white": 104
+     },
+     "results": {
+      "black": 24597,
+      "draw": 2267,
+      "white": 27961
+     },
+     "stockfish": {
+      "eval": 122,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "g5",
+     "epdAfter": "rnbqkbnr/pppppp1p/8/6p1/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.0002193992992537832,
+     "incidence": 0.00020739494357258081,
+     "masterResults": {
+      "black": 38,
+      "draw": 8,
+      "white": 23
+     },
+     "results": {
+      "black": 12407,
+      "draw": 1186,
+      "white": 16626
+     },
+     "stockfish": {
+      "eval": 209,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "f6",
+     "epdAfter": "rnbqkbnr/ppppp1pp/5p2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.0010259761466444907,
+     "incidence": 0.0009700104128569365,
+     "masterResults": {
+      "black": 78,
+      "draw": 13,
+      "white": 122
+     },
+     "results": {
+      "black": 59102,
+      "draw": 6246,
+      "white": 75965
+     },
+     "stockfish": {
+      "eval": 154,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "c6",
+     "epdAfter": "rnbqkbnr/pp1ppppp/2p5/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.03743034522387895,
+     "incidence": 0.039898473769426346,
+     "masterResults": {
+      "black": 2841,
+      "draw": 2434,
+      "white": 4633
+     },
+     "results": {
+      "black": 2262466,
+      "draw": 309126,
+      "white": 2583883
+     },
+     "stockfish": {
+      "eval": 46,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Black makes this move intending to fight in the center with d5. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nc6",
+     "epdAfter": "r1bqkbnr/pppppppp/2n5/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.007315393684014085,
+     "incidence": 0.008754258044064045,
+     "masterResults": {
+      "black": 2301,
+      "draw": 1558,
+      "white": 2952
+     },
+     "results": {
+      "black": 483844,
+      "draw": 50034,
+      "white": 473709
+     },
+     "stockfish": {
+      "eval": 89,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Developing the knight, while aiming to pressure the center possibly with e5 aw some point. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Na6",
+     "epdAfter": "r1bqkbnr/pppppppp/n7/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.00011697811011538948,
+     "incidence": 0.00014723125786986202,
+     "masterResults": {
+      "black": 89,
+      "draw": 51,
+      "white": 65
+     },
+     "results": {
+      "black": 7736,
+      "draw": 695,
+      "white": 7681
+     },
+     "stockfish": {
+      "eval": 105,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "e5",
+     "epdAfter": "rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.030163820684551226,
+     "incidence": 0.031249644234776497,
+     "masterResults": {
+      "black": 1362,
+      "draw": 571,
+      "white": 1849
+     },
+     "results": {
+      "black": 1910388,
+      "draw": 196244,
+      "white": 2047987
+     },
+     "stockfish": {
+      "eval": 146,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Breaking in in the center and immediately challenging the d4 pawn. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "e6",
+     "epdAfter": "rnbqkbnr/pppp1ppp/4p3/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.08212524018284335,
+     "incidence": 0.08135511726140976,
+     "masterResults": {
+      "black": 40815,
+      "draw": 39012,
+      "white": 52911
+     },
+     "results": {
+      "black": 4972372,
+      "draw": 643494,
+      "white": 5695668
+     },
+     "stockfish": {
+      "eval": 55,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Advancing the e-pawn allowing Black to continue with a number of different plans depending on how white proceeds. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "Nh6",
+     "epdAfter": "rnbqkb1r/pppppppp/7n/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.00008607823197170169,
+     "incidence": 0.000053563842811854556,
+     "masterResults": {
+      "black": 8,
+      "draw": 0,
+      "white": 6
+     },
+     "results": {
+      "black": 5600,
+      "draw": 529,
+      "white": 5727
+     },
+     "stockfish": {
+      "eval": 118,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "f5",
+     "epdAfter": "rnbqkbnr/ppppp1pp/8/5p2/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.026109867028807042,
+     "incidence": 0.02713599056005478,
+     "masterResults": {
+      "black": 29571,
+      "draw": 24957,
+      "white": 38279
+     },
+     "results": {
+      "black": 1597263,
+      "draw": 200642,
+      "white": 1798342
+     },
+     "stockfish": {
+      "eval": 76,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Black's goal is to prevent e4 and fight to play e5 himself",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "g6",
+     "epdAfter": "rnbqkbnr/pppppp1p/6p1/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.039140090079098244,
+     "incidence": 0.03835916891694069,
+     "masterResults": {
+      "black": 30877,
+      "draw": 22298,
+      "white": 32660
+     },
+     "results": {
+      "black": 2431458,
+      "draw": 290856,
+      "white": 2668653
+     },
+     "stockfish": {
+      "eval": 63,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Fianchettoing the bishop on the long diagonal where it will pressure White's center and queenside. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "b5",
+     "epdAfter": "rnbqkbnr/p1pppppp/8/1p6/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.001649222913441622,
+     "incidence": 0.0017363626975566149,
+     "masterResults": {
+      "black": 1138,
+      "draw": 718,
+      "white": 1475
+     },
+     "results": {
+      "black": 104637,
+      "draw": 11301,
+      "white": 111218
+     },
+     "stockfish": {
+      "eval": 117,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "b6",
+     "epdAfter": "rnbqkbnr/p1pppppp/1p6/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.01192339609466924,
+     "incidence": 0.01216881163418293,
+     "masterResults": {
+      "black": 2181,
+      "draw": 1254,
+      "white": 3007
+     },
+     "results": {
+      "black": 727273,
+      "draw": 83642,
+      "white": 831356
+     },
+     "stockfish": {
+      "eval": 89,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Aiming to place the bishop on the long diagonal where it can pressure White's center and queenside. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "a5",
+     "epdAfter": "rnbqkbnr/1ppppppp/8/p7/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.0004155220455638016,
+     "incidence": 0.000490784936118871,
+     "masterResults": {
+      "black": 38,
+      "draw": 15,
+      "white": 42
+     },
+     "results": {
+      "black": 25096,
+      "draw": 2666,
+      "white": 29470
+     },
+     "stockfish": {
+      "eval": 103,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "d6",
+     "epdAfter": "rnbqkbnr/ppp1pppp/3p4/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.039581001427732646,
+     "incidence": 0.04154535382986069,
+     "masterResults": {
+      "black": 29747,
+      "draw": 24307,
+      "white": 32737
+     },
+     "results": {
+      "black": 2507665,
+      "draw": 305836,
+      "white": 2638195
+     },
+     "stockfish": {
+      "eval": 63,
+      "mate": null
+     },
+     "needed": true,
+     "danger": 0,
+     "annotation": "Opening up the light squared bishop with the aim of breaking in the center later with either e5 or c5. ",
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    },
+    {
+     "san": "h6",
+     "epdAfter": "rnbqkbnr/ppppppp1/7p/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+     "probability": 0.0004755285053517667,
+     "incidence": 0.0004078389029018581,
+     "masterResults": {
+      "black": 165,
+      "draw": 61,
+      "white": 198
+     },
+     "results": {
+      "black": 29374,
+      "draw": 3177,
+      "white": 32946
+     },
+     "stockfish": {
+      "eval": 87,
+      "mate": null
+     },
+     "needed": false,
+     "danger": 0,
+     "annotation": null,
+     "similarPositionCount": null,
+     "similarPositionMatchCount": null
+    }
+   ]
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "repertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "referenceColor": "white",
+   "sideToMove": "white",
+   "stockfish": {
+    "eval": 45,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 633685,
+    "draw": 473321,
+    "white": 682217
+   },
+   "results": {
+    "black": 35777413,
+    "draw": 4179842,
+    "white": 37622139
+   },
+   "plans": [],
+   "complete": true,
+   "source": "recon/live4/network.json#14",
+   "suggestedMoves": [
+    {
+     "san": "c3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/2P5/PP1P1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.06351967637179533,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 45263,
+      "draw": 40266,
+      "white": 47034
+     },
+     "results": {
+      "black": 2196756,
+      "draw": 288983,
+      "white": 2442079
+     },
+     "stockfish": {
+      "eval": 18,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Aiming to play for a central space advantage with d4. ",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "b4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/1P2P3/8/P1PP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.01654310421656555,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 2547,
+      "draw": 981,
+      "white": 2226
+     },
+     "results": {
+      "black": 597932,
+      "draw": 54125,
+      "white": 631347
+     },
+     "stockfish": {
+      "eval": -41,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Bb5",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/1Bp5/4P3/8/PPPP1PPP/RNBQK1NR b KQkq -",
+     "probability": 0.00022107674622980428,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 31,
+      "draw": 3,
+      "white": 8
+     },
+     "results": {
+      "black": 9008,
+      "draw": 826,
+      "white": 7317
+     },
+     "stockfish": {
+      "eval": -7,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "h3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/7P/PPPP1PP1/RNBQKBNR b KQkq -",
+     "probability": 0.00012908066799284355,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 12,
+      "draw": 7,
+      "white": 29
+     },
+     "results": {
+      "black": 4901,
+      "draw": 533,
+      "white": 4580
+     },
+     "stockfish": {
+      "eval": 7,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Qe2",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPPQPPP/RNB1KBNR b KQkq -",
+     "probability": 0.00021491531630164578,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 62,
+      "draw": 28,
+      "white": 24
+     },
+     "results": {
+      "black": 7781,
+      "draw": 801,
+      "white": 8091
+     },
+     "stockfish": {
+      "eval": -42,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Qh5",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p4Q/4P3/8/PPPP1PPP/RNB1KBNR b KQkq -",
+     "probability": 0.00046152719367722827,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 46,
+      "draw": 5,
+      "white": 21
+     },
+     "results": {
+      "black": 17766,
+      "draw": 1479,
+      "white": 16560
+     },
+     "stockfish": {
+      "eval": -44,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Activating the queen and attacking the c5 pawn. White aims to play Bc4 next to launch an attack on f7, but this simplistic plan is objectively a mistake. ",
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "e5",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p1P3/8/8/PPPP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.0008093515141404688,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 48,
+      "draw": 20,
+      "white": 18
+     },
+     "results": {
+      "black": 31773,
+      "draw": 2968,
+      "white": 28048
+     },
+     "stockfish": {
+      "eval": -66,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Advancing the e-pawn in order to gain space. The pawn will eventually be overextended here and difficult to protect. ",
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "d3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/3P4/PPP2PPP/RNBQKBNR b KQkq -",
+     "probability": 0.01277193528993021,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 4648,
+      "draw": 2910,
+      "white": 4399
+     },
+     "results": {
+      "black": 464839,
+      "draw": 52931,
+      "white": 473069
+     },
+     "stockfish": {
+      "eval": -16,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Supporting the e4 pawn, opting for a closed position instead of the normal Sicilian positions which are typically open structures.",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Ke2",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPPKPPP/RNBQ1BNR b kq -",
+     "probability": 0.00008426206577483706,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 17,
+      "draw": 1,
+      "white": 17
+     },
+     "results": {
+      "black": 3627,
+      "draw": 294,
+      "white": 2616
+     },
+     "stockfish": {
+      "eval": -113,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Ba6",
+     "epdAfter": "rnbqkbnr/pp1ppppp/B7/2p5/4P3/8/PPPP1PPP/RNBQK1NR b KQkq -",
+     "probability": 0.000008069153002149,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 0,
+      "draw": 0,
+      "white": 0
+     },
+     "results": {
+      "black": 554,
+      "draw": 16,
+      "white": 56
+     },
+     "stockfish": {
+      "eval": -448,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Qf3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/5Q2/PPPP1PPP/RNB1KBNR b KQkq -",
+     "probability": 0.0007190826986867157,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 21,
+      "draw": 1,
+      "white": 5
+     },
+     "results": {
+      "black": 27022,
+      "draw": 2412,
+      "white": 26352
+     },
+     "stockfish": {
+      "eval": -69,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Bringing out the queen early to attempt an attack on Black's king. This is a bad move and can be easily countered. ",
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "g3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/6P1/PPPP1P1P/RNBQKBNR b KQkq -",
+     "probability": 0.00678885168914828,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 2413,
+      "draw": 1628,
+      "white": 2291
+     },
+     "results": {
+      "black": 235830,
+      "draw": 30581,
+      "white": 260264
+     },
+     "stockfish": {
+      "eval": 0,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "b3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/1P6/P1PP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.0059132067981866425,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 4731,
+      "draw": 3095,
+      "white": 5149
+     },
+     "results": {
+      "black": 213658,
+      "draw": 25411,
+      "white": 219674
+     },
+     "stockfish": {
+      "eval": -9,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "h4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P2P/8/PPPP1PP1/RNBQKBNR b KQkq -",
+     "probability": 0.00009062973603531886,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 5,
+      "draw": 2,
+      "white": 13
+     },
+     "results": {
+      "black": 3428,
+      "draw": 306,
+      "white": 3297
+     },
+     "stockfish": {
+      "eval": -24,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "g4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P1P1/8/PPPP1P1P/RNBQKBNR b KQkq -",
+     "probability": 0.00006591956621883383,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 2,
+      "draw": 3,
+      "white": 8
+     },
+     "results": {
+      "black": 2649,
+      "draw": 210,
+      "white": 2255
+     },
+     "stockfish": {
+      "eval": -97,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "c4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/2P1P3/8/PP1P1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.011222438783164508,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 4306,
+      "draw": 2714,
+      "white": 2863
+     },
+     "results": {
+      "black": 399876,
+      "draw": 52574,
+      "white": 418180
+     },
+     "stockfish": {
+      "eval": 6,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Advancing the c-pawn and controlling the d5 square. ",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "f3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/5P2/PPPP2PP/RNBQKBNR b KQkq -",
+     "probability": 0.0008166601559171756,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 38,
+      "draw": 5,
+      "white": 21
+     },
+     "results": {
+      "black": 33057,
+      "draw": 3097,
+      "white": 27202
+     },
+     "stockfish": {
+      "eval": -46,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Nh3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/7N/PPPP1PPP/RNBQKB1R b KQkq -",
+     "probability": 0.000023498507864085663,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 26,
+      "draw": 5,
+      "white": 28
+     },
+     "results": {
+      "black": 913,
+      "draw": 112,
+      "white": 798
+     },
+     "stockfish": {
+      "eval": -46,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "a3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/P7/1PPP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.009638358350672345,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 1695,
+      "draw": 657,
+      "white": 1593
+     },
+     "results": {
+      "black": 339172,
+      "draw": 35863,
+      "white": 372703
+     },
+     "stockfish": {
+      "eval": -16,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Nc3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR b KQkq -",
+     "probability": 0.11203972539409111,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 74045,
+      "draw": 47204,
+      "white": 74062
+     },
+     "results": {
+      "black": 3874043,
+      "draw": 454873,
+      "white": 4363058
+     },
+     "stockfish": {
+      "eval": 26,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Developing the knight while protecting e4 and controlling d5. ",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Ne2",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPPNPPP/RNBQKB1R b KQkq -",
+     "probability": 0.004152661981350357,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 3191,
+      "draw": 2546,
+      "white": 4283
+     },
+     "results": {
+      "black": 144311,
+      "draw": 17506,
+      "white": 160344
+     },
+     "stockfish": {
+      "eval": 28,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "d4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/3PP3/8/PPP2PPP/RNBQKBNR b KQkq -",
+     "probability": 0.07911337899855211,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 13570,
+      "draw": 6238,
+      "white": 11455
+     },
+     "results": {
+      "black": 2802619,
+      "draw": 300517,
+      "white": 3034432
+     },
+     "stockfish": {
+      "eval": 20,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Offering up a pawn which will be followed up by c3 to gain quick development and good attacking chances. ",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 1
+    },
+    {
+     "san": "Bc4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/2B1P3/8/PPPP1PPP/RNBQK1NR b KQkq -",
+     "probability": 0.03546512621637648,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 2733,
+      "draw": 811,
+      "white": 1244
+     },
+     "results": {
+      "black": 1333884,
+      "draw": 132871,
+      "white": 1284608
+     },
+     "stockfish": {
+      "eval": -1,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Avoiding major lines of the Sicilian, aiming for an attack on f7. ",
+     "similarPositionCount": 1,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "a4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/P3P3/8/1PPP1PPP/RNBQKBNR b KQkq -",
+     "probability": 0.00016176976066608614,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 16,
+      "draw": 2,
+      "white": 29
+     },
+     "results": {
+      "black": 6288,
+      "draw": 695,
+      "white": 5567
+     },
+     "stockfish": {
+      "eval": -9,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Nf3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -",
+     "probability": 0.5946502366337123,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 466917,
+      "draw": 360002,
+      "white": 518991
+     },
+     "results": {
+      "black": 21347414,
+      "draw": 2557010,
+      "white": 22228181
+     },
+     "stockfish": {
+      "eval": 48,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Bd3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/3B4/PPPP1PPP/RNBQK1NR b KQkq -",
+     "probability": 0.00015000117170288802,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 15,
+      "draw": 1,
+      "white": 2
+     },
+     "results": {
+      "black": 5588,
+      "draw": 615,
+      "white": 5434
+     },
+     "stockfish": {
+      "eval": -14,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Be2",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPPBPPP/RNBQK1NR b KQkq -",
+     "probability": 0.0014135841277646485,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 968,
+      "draw": 565,
+      "white": 1319
+     },
+     "results": {
+      "black": 50381,
+      "draw": 6248,
+      "white": 53036
+     },
+     "stockfish": {
+      "eval": 12,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Na3",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P3/N7/PPPP1PPP/R1BQKBNR b KQkq -",
+     "probability": 0.0003201365558488379,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 489,
+      "draw": 338,
+      "white": 553
+     },
+     "results": {
+      "black": 11956,
+      "draw": 1327,
+      "white": 11553
+     },
+     "stockfish": {
+      "eval": -4,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "Qg4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4P1Q1/8/PPPP1PPP/RNB1KBNR b KQkq -",
+     "probability": 0.000011523678568564224,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 3,
+      "draw": 0,
+      "white": 13
+     },
+     "results": {
+      "black": 543,
+      "draw": 43,
+      "white": 308
+     },
+     "stockfish": {
+      "eval": -84,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": null,
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    },
+    {
+     "san": "f4",
+     "epdAfter": "rnbqkbnr/pp1ppppp/8/2p5/4PP2/8/PPPP2PP/RNBQKBNR b KQkq -",
+     "probability": 0.041805405182721585,
+     "incidence": 0.2938162088394165,
+     "masterResults": {
+      "black": 5803,
+      "draw": 3236,
+      "white": 4511
+     },
+     "results": {
+      "black": 1564759,
+      "draw": 150176,
+      "white": 1528303
+     },
+     "stockfish": {
+      "eval": -15,
+      "mate": null
+     },
+     "needed": null,
+     "danger": null,
+     "annotation": "Gaining space by advancing the f-pawn before playing Nf3. ",
+     "similarPositionCount": 0,
+     "similarPositionMatchCount": 0
+    }
+   ]
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -",
+   "repertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "referenceColor": "white",
+   "sideToMove": "black",
+   "stockfish": {
+    "eval": 36,
+    "mate": null
+   },
+   "masterResults": {
+    "black": 224340,
+    "draw": 249288,
+    "white": 317777
+   },
+   "results": {
+    "black": 9888323,
+    "draw": 1385124,
+    "white": 11511292
+   },
+   "plans": [],
+   "complete": false,
+   "source": "recon/live4/network.json#13",
+   "suggestedMoves": []
+  }
+ ],
+ "annotations": [
+  {
+   "epd": "r1bqkbnr/pp1ppp1p/2n3p1/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+   "san": "Nc3",
+   "text": "Developing the knight while helping to control the center. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
+   "san": "e4",
+   "text": "\"Best by test\" according to Bobby Fisher.",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqk2r/pp1pppbp/2n2np1/8/3NP3/2N1B3/PPP2PPP/R2QKB1R w KQkq -",
+   "san": "Bc4",
+   "text": "Developing the bishop. White will plan to attack on the kingside while Black attacks on the queenside. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqk1nr/pp1pppbp/2n3p1/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq -",
+   "san": "Be3",
+   "text": "Developing the bishop and supporting the knight on d4, while aiming to continue by castling queenside and attacking on the kingside. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqkbnr/pp1ppppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq -",
+   "san": "Nxd4",
+   "text": "Recapturing the pawn, this is the Open Sicilian. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqk1nr/pp1pppbp/2n3p1/8/3NP3/2N1B3/PPP2PPP/R2QKB1R b KQkq -",
+   "san": "Nf6",
+   "text": "Developing the knight and pressuring the white center while preparing to castle. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+   "san": "c5",
+   "text": "A counter-attacking opening. The asymmetry generally leads to sharp games.",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+   "san": "d4",
+   "text": "Breaking in the center, the main line of the Classical Sicilian. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqkbnr/pp1ppppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R b KQkq -",
+   "san": "g6",
+   "text": "Fianchettoing the bishop to pressure the central dark squares and queenside. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqkbnr/pp1ppppp/2n5/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq -",
+   "san": "cxd4",
+   "text": "Exchanging pawns, practically the only good move. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqkbnr/pp1ppp1p/2n3p1/8/3NP3/2N5/PPP2PPP/R1BQKB1R b KQkq -",
+   "san": "Bg7",
+   "text": "Placing the bishop on the long diagonal where it pressuring the dark squares along the diagonal. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -",
+   "san": "Nc6",
+   "text": "Developing a knight to its most natural square, but potentially blocking the c-pawn. This move can lead to the Sveshnikov or Accelerated Dragon lines.",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live2/network.json#11"
+  },
+  {
+   "epd": "r1bqkbnr/pp1p1ppp/2n5/4p3/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+   "san": "Nb5",
+   "text": "Removing the knight from the threat of the e5 pawn, and  threatening Nd6+ which would be positionally crushing.",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live3/network.json#16"
+  },
+  {
+   "epd": "r1bqkbnr/1p3ppp/p1np4/1N2p3/4P3/2N5/PPP2PPP/R1BQKB1R w KQkq -",
+   "san": "Na3",
+   "text": "Retreating the knight, where it would be very strong if allowed to maneuver to c4 then e3, taking advnatage of the d5 hole. ",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live3/network.json#16"
+  },
+  {
+   "epd": "r1bqkbnr/pp3ppp/2np4/1N2p3/4P3/8/PPP2PPP/RNBQKB1R w KQkq -",
+   "san": "N1c3",
+   "text": "Developing the knight and aiming to take advantage of the weakened d5 square.",
+   "mine": false,
+   "repertoireId": null,
+   "source": "recon/live3/network.json#16"
+  }
+ ],
+ "supplementary": [
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq -",
+   "fullName": "Bird Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq -",
+   "fullName": "Hungarian Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "r2qkb1r/pppnpppp/5n2/1B1P1b2/3P4/5P2/PPP3PP/RNBQK1NR w KQkq -",
+   "fullName": "Scandinavian Defense: Portuguese Variation, Portuguese Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppppppnp/6p1/4P3/3P2P1/8/PPP2P1P/RNBQKBNR w KQkq -",
+   "fullName": "Norwegian Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/p1pppppp/8/1p6/8/1P6/P1PPPPPP/RNBQKBNR w KQkq -",
+   "fullName": "Nimzo-Larsen Attack: Polish Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+   "fullName": "Indian Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppp1pppp/3p1n2/8/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "fullName": "Old Indian Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "fullName": "Benoni Defense: Modern Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppppp1pp/8/5p2/3P4/8/PPP1PPPP/RNBQKBNR w KQkq -",
+   "fullName": "Dutch Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppp1p/6p1/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "fullName": "Modern Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "fullName": "Alekhine Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqk2r/pp1nbppp/2pp1n2/4p3/3PP3/2N2N2/PPP1BPPP/R1BQ1RK1 w kq -",
+   "fullName": "Philidor Defense: Lion Variation, Lion's Claw, with Be2 and c6",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "fullName": "Caro-Kann Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppp1pp1p/3p1np1/8/3PP3/2N5/PPP1BPPP/R1BQK1NR b KQkq -",
+   "fullName": "Pirc Defense: Classical Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppppppp/5n2/6B1/3P4/8/PPP1PPPP/RN1QKBNR b KQkq -",
+   "fullName": "Trompowsky Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/2p5/8/4P3/3P4/PPP2PPP/RNBQKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Breyer Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbq1rk1/pp2npbp/2p3p1/3pp3/1P2P3/3P1NP1/P1PN1PBP/R1BQ1RK1 b - -",
+   "fullName": "Caro-Kann Defense: Breyer Variation, Stein Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/2p5/8/4P3/1P6/P1PP1PPP/RNBQKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Euwe Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N2Q2/PPPP1PPP/R1B1KBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Goldman Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/6N1/4p3/2N5/PPPP1PPP/R1BQKB1R b KQkq -",
+   "fullName": "Caro-Kann Defense: Hector Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/2p5/8/2B1P3/8/PPPP1PPP/RNBQK1NR b KQkq -",
+   "fullName": "Caro-Kann Defense: Hillbilly Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/7Q/4p3/1B6/PPPP1PPP/RNB1K1NR b KQkq -",
+   "fullName": "Caro-Kann Defense: Hillbilly Attack, Schaeffer Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/2p5/8/1P2P3/8/P1PP1PPP/RNBQKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Labahn Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/1P1p4/4P3/8/P1PP1PPP/RNBQKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Labahn Attack, Double Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp1p1ppp/2p5/4p3/1P2P3/8/PBPP1PPP/RN1QKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Labahn Attack, Polish Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/6B1/4p3/2NP4/PPP2PPP/R2QKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Scorpion-Horus Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/2p5/8/4P1P1/8/PPPP1P1P/RNBQKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Spike Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnb1kbnr/ppppqppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+   "fullName": "Gunderam Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/8/4p1P1/2NP4/PPP2P1P/R1BQKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Spike Variation, Scorpion-Grob Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/3pP3/2P5/8/PP1P1PPP/RNBQKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: Toikkanen Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppppp1p/5np1/8/1P3P2/5N2/P1PPP1PP/RNBQKB1R b KQkq -",
+   "fullName": "Bird Opening: Batavo-Polish Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N2N2/PPPP1PPP/R1BQKB1R b KQkq -",
+   "fullName": "Caro-Kann Defense: Two Knights Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkbnr/ppp2ppp/2np4/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq -",
+   "fullName": "Italian Game: Paris Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qkbnr/pp2pppp/2p5/3p4/4P1b1/2N2N2/PPPP1PPP/R1BQKB1R w KQkq -",
+   "fullName": "Caro-Kann Defense: Two Knights Attack, Mindeno Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qkbnr/pp2pppp/2p5/3p4/4P3/2N2b1P/PPPP1PP1/R1BQKB1R w KQkq -",
+   "fullName": "Caro-Kann Defense: Two Knights Attack, Mindeno Variation, Exchange Line",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppp2ppp/5n2/3pp3/3PP3/2N5/PPP2PPP/R1BQKBNR w KQkq -",
+   "fullName": "Blackmar-Diemer Gambit: Lemberger Countergambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1pppp/8/3p4/3P4/3Q4/PPP1PPPP/RNB1KBNR b KQkq -",
+   "fullName": "Amazon Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/N7/PPPPPPPP/R1BQKBNR b KQkq -",
+   "fullName": "Sodium Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkbnr/pppp1ppp/2n5/4p3/8/1P2P3/PBPP1PPP/RN1QKBNR b KQkq -",
+   "fullName": "Nimzo-Larsen Attack: Modern Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qkbnr/ppp2ppp/8/3p4/5p2/6PB/PPPPP2P/RNBQK2R w KQkq -",
+   "fullName": "Amar Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppp1pppp/5n2/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR b KQkq -",
+   "fullName": "Queen's Pawn Game: Hübsch Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1b1kbnr/1pqp1ppp/p1n1p3/8/3NP3/2N1BP2/PPP3PP/R2QKB1R b KQkq -",
+   "fullName": "Sicilian Defense: Taimanov Variation, Bastrikov Variation, English Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1pppp/8/8/2pP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "fullName": "Queen's Gambit Accepted",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "fullName": "Queen's Gambit Declined",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq -",
+   "fullName": "Anderssen's Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1b1kbnr/1pqp1ppp/p1n1p3/8/3NP3/2N1B3/PPPQ1PPP/R3KB1R b KQkq -",
+   "fullName": "Sicilian Defense: Taimanov Variation, Bastrikov Variation, English Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R b KQkq -",
+   "fullName": "Indian Defense: Anti-Nimzo-Indian",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppp2pp/4pn2/5P2/3P4/8/PPP2PPP/RNBQKBNR w KQkq -",
+   "fullName": "French Defense: Franco-Hiva Gambit Accepted",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppppppp/5n2/8/5P2/8/PPPPP1PP/RNBQKBNR w KQkq -",
+   "fullName": "Bird Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bq1rk1/ppp2ppp/2nb1n2/3pp3/P7/1PP1P1P1/1B1P1P1P/RN1QKBNR b KQ -",
+   "fullName": "Formation: Cabbage Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnb1kbnr/ppp2ppp/3q4/4p3/1P2p3/P4P2/1BPP2PP/RN1QKBNR b KQkq -",
+   "fullName": "Polish Opening: Orangutan-Diemer Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/1p3ppp/2p1pn2/P2p4/4P3/P2P4/1BP2PPP/RN1QKBNR b KQkq -",
+   "fullName": "Polish Opening: Orangutan-Hartlaub Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1b1k1nr/ppppq2p/2n2pp1/4pP2/1bB1P3/8/PBPP2PP/RN1QK1NR w KQkq -",
+   "fullName": "Polish Opening: Tartakower Gambit, Brinckmann Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N4P/PPPP1PP1/R1BQKBNR b KQkq -",
+   "fullName": "Caro-Kann Defense: St. Patrick's Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppp2ppp/5n2/3p4/5p2/P1N1PN2/1PPP2PP/R1BQKB1R b KQkq -",
+   "fullName": "Van't Kruijs Opening: Keoni-Hiva Gambit Delayed",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq -",
+   "fullName": "Scandinavian Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/p1pppppp/1p6/8/8/1P6/P1PPPPPP/RNBQKBNR w KQkq -",
+   "fullName": "Nimzo-Larsen Attack: Symmetrical Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/p2p2pp/4p3/1PpP1p2/4P3/8/PP3PPP/RNBQKBNR w KQkq -",
+   "fullName": "English Defense: Blumenfeld-Hiva Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqk1nr/ppp2ppp/4p3/3p4/1b1PP3/P1N5/1PP2PPP/R1BQKBNR b KQkq -",
+   "fullName": "French Defense: Winawer Variation, Winckelmann-Riemer Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq -",
+   "fullName": "Amar Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/p2p1ppp/8/1pp5/2BpP3/5N2/PPP2PPP/RNBQK2R w KQkq -",
+   "fullName": "Center Game: Kieseritzky Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppp1ppp/8/8/2B1P3/8/PB3PPP/RN1QK1NR b KQkq -",
+   "fullName": "Danish Gambit Accepted",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/1ppppppp/p7/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+   "fullName": "St. George Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppp1ppp/8/8/4Pp2/8/PPPP2PP/RNBQKBNR w KQkq -",
+   "fullName": "King's Gambit Accepted",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnb1k2r/ppp2p1p/5n2/3qN3/1b1P1ppP/2N5/PPP2KP1/R1BQ1B1R b kq -",
+   "fullName": "King's Gambit Accepted: Kieseritzky Gambit, Brentano Defense, Kaplanek Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/8/3pp3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+   "fullName": "Elephant Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bq1rk1/pp1nbppp/2p4n/3pp1N1/2BPPP2/2P5/PP4PP/RNBQ1RK1 w - -",
+   "fullName": "Philidor Defense: Hanham, Berger Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppp1ppp/8/4p3/3Pn3/5N2/PPP2PPP/RNBQKB1R w KQkq -",
+   "fullName": "Russian Game: Modern Attack, Symmetrical Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqk2r/ppp1b1pp/3p1n2/3Pp3/4N3/2PB4/PP3PPP/RNBQK2R w KQkq -",
+   "fullName": "Ponziani Opening: Ponziani Countergambit, Cordel Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkb1r/pp1p1Npp/2p1nn2/8/2B1P3/8/PPP2PPP/RNBQ1RK1 b kq -",
+   "fullName": "Scotch Game: Cochrane Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "N1bk3r/pp1p1ppp/2n2n2/8/1b6/P4B1q/1PPN1P1P/R1BQK2R b KQ -",
+   "fullName": "Scotch Game: Berger Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bk2nr/pppp1ppp/2n5/1N6/P4q2/8/1PPNBPPP/R2Q1RK1 b - -",
+   "fullName": "Scotch Game: Horwitz Attack, McDonnell Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bk2nr/pppp1ppp/2n5/1N6/2P2q2/8/PP1NBPPP/R2Q1RK1 b - -",
+   "fullName": "Scotch Game: Horwitz Attack, Vienna Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkbnr/pppp1ppp/8/4p3/3nP3/5N2/PPP2PPP/RNBQKB1R w KQkq -",
+   "fullName": "Scotch Game: Lolli Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1b1kbnr/pppp1Npp/8/8/4q3/5n2/PPPPBP1P/RNBQKR2 w Qkq -",
+   "fullName": "Blackburne Shilling Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqk1nr/pppp2pp/2n5/2b1pp2/2B1P3/2P2N2/PP1P1PPP/RNBQK2R w KQkq -",
+   "fullName": "Italian Game: Classical Variation, Alexandre Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqk2r/pppp1ppp/2nb1n2/4p3/2BPP3/5N2/PPP2PPP/RNBQK2R w KQkq -",
+   "fullName": "Italian Game: Scotch Gambit Declined",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkb1r/pppp1ppp/2n5/4p3/2BPn3/5N2/PPP2PPP/RNBQK2R w KQkq -",
+   "fullName": "Italian Game: Two Knights Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkbnr/pppp1ppp/8/1B2p3/3nP3/5N2/PPPP1PPP/RNBQK2R w KQkq -",
+   "fullName": "Ruy Lopez: Bird Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bq1rk1/2p1bppp/2np1n2/pp2p3/4P3/1BP2N1P/PP1P1PP1/RNBQR1K1 w - -",
+   "fullName": "Ruy Lopez: Closed, Keres Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1pppp/8/8/3Pp3/2N5/PPP2PPP/R1BQKBNR b KQkq -",
+   "fullName": "Blackmar-Diemer Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qkbnr/pppbpppp/8/8/3Pp3/2N5/PPP2PPP/R1BQKBNR w KQkq -",
+   "fullName": "Blackmar-Diemer Gambit Declined: Grosshans Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppp1ppp1/5n2/7p/3P4/2N2N2/PPP3PP/R1BQKB1R w KQkq -",
+   "fullName": "Blackmar-Diemer Gambit: Rook Pawn Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppp1pppp/8/3p4/3Pn3/2N5/PPP2PPP/R1BQKBNR w KQkq -",
+   "fullName": "Queen's Pawn Game: Hübsch Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/8/3pp3/5P2/6PN/PPPPP2P/RNBQKB1R b KQkq -",
+   "fullName": "Amar Opening: Paris Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppp1p/8/6p1/8/6P1/PPPPPP1P/RNBQKBNR w KQkq -",
+   "fullName": "Hungarian Opening: Myers Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/2N5/PPPPPPPP/R1BQKBNR b KQkq -",
+   "fullName": "Van Geet Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkb1r/pp3ppp/2n1pn2/2pp4/2PP4/5NP1/PP2PPBP/RNBQK2R w KQkq -",
+   "fullName": "Catalan Opening: Open Defense, Tarrasch Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/ppp2ppp/4pn2/8/Q1pP4/6P1/PP2PPBP/RNB1K1NR b KQkq -",
+   "fullName": "Catalan Opening: Open Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pp1p1ppp/4pn2/2p5/2PP4/5N2/PP2PPPP/RNBQKB1R w KQkq -",
+   "fullName": "Blumenfeld Countergambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqk2r/p1pp1ppp/1p2pn2/8/1bPP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq -",
+   "fullName": "Nimzo-Indian Defense: Three Knights Variation, Duchamp Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qk2r/pbpp1ppp/1p2pn2/6B1/1bPP4/2N5/PP1NPPPP/R2QKB1R b KQkq -",
+   "fullName": "Nimzo-Indian Defense: Three Knights Variation, Duchamp Variation, Modern Line",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/p1pp1ppp/1p2p3/8/2PP4/8/PP2PPPP/RNBQKBNR w KQkq -",
+   "fullName": "English Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqk2r/pppp1ppp/4pn2/8/2PP4/P1P5/4PPPP/R1BQKBNR b KQkq -",
+   "fullName": "Nimzo-Indian Defense: Sämisch Variation, Accelerated",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbq1rk1/pp1p1ppp/4pn2/2p5/1bPP4/2N1PN2/PP3PPP/R1BQKB1R w KQ -",
+   "fullName": "Nimzo-Indian Defense: Normal Variation, Hübner Deferred",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkbnr/pp1p1ppp/2n5/4p3/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -\n",
+   "fullName": "Sicilian Defense: Löwenthal Variation",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqk2r/ppp2ppp/2nb1n2/3pp3/8/1N1PP1N1/PPP2PPP/R1BQKB1R b KQkq -",
+   "fullName": "Cow Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qkbnr/ppp2ppp/8/3p4/8/6PB/PPPPP3/RNBQ1RK1 b kq -",
+   "fullName": "Amar Opening: Paris Gambit, Gent Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkb1r/ppp2ppp/2np1n2/4p3/2P5/1PN1P3/P2P1PPP/R1BQKBNR w KQkq -",
+   "fullName": "Amsterdam Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/1ppppppp/8/p7/1P6/P7/2PPPPPP/RNBQKBNR b KQkq -",
+   "fullName": "Anderssen's Opening: Polish Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq -",
+   "fullName": "Barnes Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq -",
+   "fullName": "Barnes Opening: Fool's Mate",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1pp1p/6p1/8/3Pp3/2P2P2/PP4PP/RNBQKBNR b KQkq -",
+   "fullName": "Barnes Opening: Gedult Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppppp1pp/8/8/4p3/2N2P2/PPPP2PP/R1BQKBNR b KQkq -",
+   "fullName": "Barnes Opening: Gedult Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPPKPP/RNBQ1BNR b kq -",
+   "fullName": "Barnes Opening: Hammerschlag",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/8/7P/PPPPPPP1/RNBQKBNR b KQkq -",
+   "fullName": "Clemenz Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppppppp1/8/7p/6P1/7P/PPPPPP2/RNBQKBNR b KQkq -",
+   "fullName": "Clemenz Opening: Spike Lee Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/8/3pp3/8/P6P/1PPPPPP1/RNBQKBNR w KQkq -",
+   "fullName": "Creepy Crawly Formation: Classical Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bq1rk1/ppp2ppp/2nb1n2/3pp3/8/PPPPPPP1/7P/RNBQKBNR b KQ -",
+   "fullName": "Formation: Hippopotamus Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bq1rk1/ppp2ppp/2nb1n2/3pp3/8/P2PP1PP/1PPN1PB1/R1BQK1NR b KQ -",
+   "fullName": "Formation: Shy Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/8/P6P/1PPPPPP1/RNBQKBNR b KQkq -",
+   "fullName": "Global Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppppp/8/8/6P1/8/PPPPPP1P/RNBQKBNR b KQkq -",
+   "fullName": "Grob Opening",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppppp1pp/8/5p2/6P1/8/PPPPPP1P/RNBQKBNR w KQkq -",
+   "fullName": "Grob Opening: Alessi Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppp1p/8/6p1/6P1/8/PPPPPP1P/RNBQKBNR w KQkq -",
+   "fullName": "Grob Opening: Double Grob",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppppp1p/8/6p1/5PP1/8/PPPPP2P/RNBQKBNR b KQkq -",
+   "fullName": "Grob Opening: Double Grob, Coca-Cola Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1pppp/8/3p4/6P1/8/PPPPPPBP/RNBQK1NR b KQkq -",
+   "fullName": "Grob Opening: Grob Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p4/6P1/8/PPPPPPBP/RNBQK1NR w KQkq -",
+   "fullName": "Grob Opening: Grob Gambit Declined",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1ppp1/8/3p3P/8/8/PPPPPPBP/RNBQK1NR b KQkq -",
+   "fullName": "Grob Opening: Grob Gambit, Basman Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qkbnr/ppp1pppp/8/3p4/2P3b1/8/PP1PPPBP/RNBQK1NR b KQkq -",
+   "fullName": "Grob Opening: Grob Gambit, Fritz Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "q3kbnr/p1pnpppp/8/8/2Pp2b1/8/PP1PPP1P/RNBQK1NR w KQk -",
+   "fullName": "Grob Opening: Grob Gambit, Fritz Gambit, Romford Countergambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/8/3p4/3p2P1/2P5/PP2PPBP/RNBQK1NR b KQkq -",
+   "fullName": "Grob Opening: Grob Gambit, Keres Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/8/2p3P1/1P6/P2PPPBP/RNBQK1NR b KQkq -",
+   "fullName": "Grob Opening: Grob Gambit, Richter-Grob Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp3ppp/2p5/3pp3/6P1/7P/PPPPPPB1/RNBQK1NR w KQkq -",
+   "fullName": "Grob Opening: Keene Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqk2r/pp2nppp/2pb4/3p4/2PPp1P1/2N4P/PP2PPB1/R1BQK1NR w KQkq -",
+   "fullName": "Grob Opening: Keene Defense, Main Line",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkbnr/pppp1ppp/2n5/4p3/6P1/7P/PPPPPP2/RNBQKBNR w KQkq -",
+   "fullName": "Grob Opening: London Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qkbnr/ppp1pppp/8/8/2Pp2b1/8/PP1PPPBP/RNBQK1NR w KQkq -",
+   "fullName": "Grob Opening: Romford Countergambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p2P1/8/8/PPPPPPBP/RNBQK1NR b KQkq -",
+   "fullName": "Grob Opening: Spike Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/8/3pp3/2P3P1/8/PP1PPPBP/RNBQK1NR b KQkq -",
+   "fullName": "Grob Opening: Spike, Hurst Attack",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1pppp/8/8/4p1P1/2N5/PPPP1P1P/R1BQKBNR b KQkq -",
+   "fullName": "Grob Opening: Zilbermints Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp1ppp1/8/7p/4p1P1/2N5/PPPP1P1P/R1BQKBNR w KQkq -",
+   "fullName": "Grob Opening: Zilbermints Gambit, Schiller Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/8/4p3/4p1P1/2NP4/PPP2P1P/R1BQKBNR b KQkq -",
+   "fullName": "Grob Opening: Zilbermints Gambit, Zilbermints-Hartlaub Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "r1bqkbnr/ppp3pp/2n5/4Pp2/3pN3/6P1/PPP1PP1P/R1BQKBNR w KQkq f6",
+   "fullName": "Hungarian Opening: Asten Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqk1nr/ppp1bppp/8/3p4/4p2N/P2P2P1/1PP1PP1P/RNBQKB1R b KQkq -",
+   "fullName": "Hungarian Opening: Burk Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/8/3pp3/1P6/6P1/P1PPPPBP/RNBQK1NR b KQkq -",
+   "fullName": "Hungarian Opening: Bücker Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppp2ppp/4p3/3p4/8/6P1/PPPPPPBP/RNBQK1NR w KQkq -",
+   "fullName": "Hungarian Opening: Catalan Formation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppppp1pp/8/5p2/8/6P1/PPPPPP1P/RNBQKBNR w KQkq -",
+   "fullName": "Hungarian Opening: Dutch Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/ppppp2p/6p1/7Q/4p3/6P1/PPPP1P1P/RNB1KBNR w KQkq -",
+   "fullName": "Hungarian Opening: Pachman Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rn1qkbnr/ppp2ppp/8/3p4/5p2/6PB/PPPPP2P/RNBQ1RK1 b kq -",
+   "fullName": "Hungarian Opening: Paris Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppp1ppp/8/4p3/8/5NP1/PPPPPP1P/RNBQKB1R b KQkq -",
+   "fullName": "Hungarian Opening: Reversed Alekhine",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkb1r/pppp1ppp/5n2/8/1P2p3/6P1/P1PPPP1P/RNBQKBNR b KQkq -",
+   "fullName": "Hungarian Opening: Reversed Brooklyn Defense, Brooklyn Benko Gambit",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/8/2pp4/8/6P1/PPPPPPBP/RNBQK1NR w KQkq -",
+   "fullName": "Hungarian Opening: Reversed Modern Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pppp1ppp/8/8/4p2N/6P1/PPPPPP1P/RNBQKB1R b KQkq -",
+   "fullName": "Hungarian Opening: Reversed Norwegian Defense",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp1ppppp/8/2p5/8/6P1/PPPPPP1P/RNBQKBNR w KQkq -",
+   "fullName": "Hungarian Opening: Sicilian Invitation",
+   "friendlyName": null
+  },
+  {
+   "epd": "rnbqkbnr/pp2pppp/2p5/3p4/8/6P1/PPPPPPBP/RNBQK1NR w KQkq -",
+   "fullName": "Hungarian Opening: Slav Formation",
+   "friendlyName": null
+  }
+ ],
+ "repertoireReports": {
+  "black": {
+   "referenceRepertoireId": "67eef914-3413-4581-aa14-d08873b3b64b",
+   "characteristics": {
+    "avgCpLoss": 0,
+    "effectiveness": 0.10097350180149078,
+    "eval": 0.33000001311302185,
+    "expectedResults": 0.4815073609352112,
+    "learnability": null,
+    "pathConcessionCp": 0,
+    "sharpness": 0,
+    "soundness": 0.9900000095367432
+   },
+   "coverage": 0,
+   "biggestMiss": {
+    "ecoCodeName": null,
+    "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+    "incidence": 0.5391957759857178,
+    "lines": [
+     "1.e4"
+    ],
+    "needed": true
+   },
+   "biggestMisses": {
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": {
+     "ecoCodeName": null,
+     "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+     "incidence": 0.5391957759857178,
+     "lines": [
+      "1.e4"
+     ],
+     "needed": true
+    }
+   },
+   "gaps": [
+    "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -",
+    "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq -",
+    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+    "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq -",
+    "rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq -",
+    "rnbqkbnr/pppppppp/8/8/8/2N5/PPPPPPPP/R1BQKBNR b KQkq -",
+    "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq -",
+    "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -",
+    "rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq -"
+   ],
+   "side": "black",
+   "tooLarge": false,
+   "source": "recon/live4/network.json#3"
+  },
+  "white": {
+   "referenceRepertoireId": "c5af9aa0-8ef3-4806-a8ec-2ce4cd43dbca",
+   "characteristics": {
+    "avgCpLoss": 0.40024206042289734,
+    "effectiveness": 0.009999999776482582,
+    "eval": 0.3131141662597656,
+    "expectedResults": 0.5126354694366455,
+    "learnability": 0.5857499837875366,
+    "pathConcessionCp": 10.990166664123535,
+    "sharpness": 0.40446239709854126,
+    "soundness": 0.9361481666564941
+   },
+   "coverage": 0.03542173281311989,
+   "biggestMiss": {
+    "ecoCodeName": null,
+    "epd": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "incidence": 0.23472994565963745,
+    "lines": [
+     "1.e4 e5"
+    ],
+    "needed": true
+   },
+   "biggestMisses": {
+    "r1bqkbnr/1p3ppp/p1np4/1N2p3/4P3/2N5/PPP2PPP/R1BQKB1R w KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkbnr/5ppp/p1np4/1p2p3/4P3/N1N5/PPP2PPP/R1BQKB1R w KQkq -",
+     "incidence": 0.007193749770522118,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 d6 6.N1c3 a6 7.Na3 b5"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/1p3ppp/p1np4/4p3/4P3/N1N5/PPP2PPP/R1BQKB1R b KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkbnr/5ppp/p1np4/1p2p3/4P3/N1N5/PPP2PPP/R1BQKB1R w KQkq -",
+     "incidence": 0.007193749770522118,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 d6 6.N1c3 a6 7.Na3 b5"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/pp1p1ppp/2n5/1N2p3/4P3/8/PPP2PPP/RNBQKB1R b KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkbnr/1p1p1ppp/p1n5/1N2p3/4P3/8/PPP2PPP/RNBQKB1R w KQkq -",
+     "incidence": 0.007512199226766825,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 a6"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/pp1p1ppp/2n5/4p3/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkbnr/1p1p1ppp/p1n5/1N2p3/4P3/8/PPP2PPP/RNBQKB1R w KQkq -",
+     "incidence": 0.007512199226766825,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 a6"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/pp1ppppp/2n5/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkb1r/pp1ppppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+     "incidence": 0.030367432162165642,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 Nf6"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkb1r/pp1ppppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+     "incidence": 0.030367432162165642,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 Nf6"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/pp1ppppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R b KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkb1r/pp1ppppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+     "incidence": 0.030367432162165642,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 Nf6"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/pp1ppppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R w KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkb1r/pp1ppppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+     "incidence": 0.030367432162165642,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 Nf6"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/pp3ppp/2np4/1N2p3/4P3/2N5/PPP2PPP/R1BQKB1R b KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkbnr/5ppp/p1np4/1p2p3/4P3/N1N5/PPP2PPP/R1BQKB1R w KQkq -",
+     "incidence": 0.007193749770522118,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 d6 6.N1c3 a6 7.Na3 b5"
+     ],
+     "needed": true
+    },
+    "r1bqkbnr/pp3ppp/2np4/1N2p3/4P3/8/PPP2PPP/RNBQKB1R w KQkq -": {
+     "ecoCodeName": null,
+     "epd": "r1bqkbnr/5ppp/p1np4/1p2p3/4P3/N1N5/PPP2PPP/R1BQKB1R w KQkq -",
+     "incidence": 0.007193749770522118,
+     "lines": [
+      "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 d6 6.N1c3 a6 7.Na3 b5"
+     ],
+     "needed": true
+    },
+    "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -": {
+     "ecoCodeName": null,
+     "epd": "rnbqkbnr/pp2pppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "incidence": 0.09575352817773819,
+     "lines": [
+      "1.e4 c5 2.Nf3 d6"
+     ],
+     "needed": true
+    },
+    "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -": {
+     "ecoCodeName": null,
+     "epd": "rnbqkbnr/pp2pppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+     "incidence": 0.09575352817773819,
+     "lines": [
+      "1.e4 c5 2.Nf3 d6"
+     ],
+     "needed": true
+    },
+    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -": {
+     "ecoCodeName": null,
+     "epd": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "incidence": 0.23472994565963745,
+     "lines": [
+      "1.e4 e5"
+     ],
+     "needed": true
+    },
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": {
+     "ecoCodeName": null,
+     "epd": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+     "incidence": 0.23472994565963745,
+     "lines": [
+      "1.e4 e5"
+     ],
+     "needed": true
+    }
+   },
+   "gaps": [
+    "r1bqkb1r/pp1ppppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+    "r1bqkbnr/1p1p1ppp/p1n5/1N2p3/4P3/8/PPP2PPP/RNBQKB1R w KQkq -",
+    "r1bqkbnr/5ppp/p1np4/1p2p3/4P3/N1N5/PPP2PPP/R1BQKB1R w KQkq -",
+    "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+    "r1bqkbnr/pp1ppp1p/2n3p1/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+    "r1bqkbnr/pp2pppp/2np4/8/3NP3/8/PPP2PPP/RNBQKB1R w KQkq -",
+    "r1bqkbnr/pppppppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/1p1ppppp/p7/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+    "rnbqkbnr/p1pppppp/1p6/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+    "rnbqkbnr/pp1ppp1p/6p1/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+    "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/pp2pppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq -",
+    "rnbqkbnr/ppp1pppp/3p4/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -",
+    "rnbqkbnr/pppppp1p/6p1/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -"
+   ],
+   "side": "white",
+   "tooLarge": false,
+   "source": "recon/live4/network.json#3"
+  }
+ }
+}

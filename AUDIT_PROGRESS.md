@@ -111,8 +111,8 @@ Report: `audit/progress/02-builder-gap.md`
 - [ ] D040 candidate annotations
 - [ ] D041/D042/D043 inline ranked candidate list
 - [ ] D045/D046/D047 style autofill + autofill this gap
-- [ ] D048 exclude moves flow
-- [ ] D049 next gap in line
+- [x] D048 exclude moves flow
+- [x] D049 next gap in line
 - [ ] D050 plans button
 - [ ] D051 notes editor
 - [ ] D052/D053 disable/remove branch UX
@@ -130,11 +130,11 @@ Report: `audit/progress/02-builder-gap.md`
 ### `dashboard-settings` — Dashboard, Settings, Repertoire, Add
 Report: `audit/progress/02-dashboard-settings.md`
 
-- [ ] D059 real characteristics display
+- [x] D059 real characteristics display
 - [ ] D061 repertoire list/rename/delete/clone UI
-- [ ] D062 chapters/sections
+- [x] D062 chapters/sections
 - [ ] D063/D064 import/export UI
-- [ ] D066 trim tools
+- [x] D066 trim tools
 - [ ] D107 document `/` entry behaviour
 - [ ] D108 daily reviews list
 - [ ] D109/D110/D111 openings report / connect-account cleanup
@@ -170,18 +170,18 @@ Report: `audit/progress/02-visual-fidelity.md`
 Owner: `model-games` (ModelPage.tsx + model server data)
 Report: `audit/progress/03-model-games.md`
 
-- [ ] D094 model-game history UI
-- [ ] D095 correct game
+- [x] D094 model-game history UI
+- [x] D095 correct game
 - [ ] D096/D097 daily + random
-- [ ] D098 history screen
+- [x] D098 history screen
 - [ ] D099 interactive guess-the-move
 - [ ] D100 real hints
-- [ ] D101 eval graph
-- [ ] D102 game review UI
-- [ ] D103 progress stats
-- [ ] D104 model source setting
-- [ ] D105 opening link
-- [ ] D106 player ratings/annotations
+- [x] D101 eval graph
+- [x] D102 game review UI
+- [x] D103 progress stats
+- [x] D104 model source setting
+- [x] D105 opening link
+- [x] D106 player ratings/annotations
 
 ## Batch 4 — missing screens (parallel, new files)
 
@@ -196,9 +196,9 @@ Report: `audit/progress/03-model-games.md`
 ### `content-surfaces` — openings guides, coaches, blog, repertoires
 - [ ] D061 `/repertoires` list
 - [ ] D120–D133 opening data/guides/reports
-- [ ] D163 opening guide routes
-- [ ] D164 coaches routes
-- [ ] D165 blog routes
+- [x] D163 opening guide routes
+- [x] D164 coaches routes
+- [x] D165 blog routes
 - [ ] D166 production slug URLs
 - [ ] D167 onboarding/welcome
 - [ ] D169 help links

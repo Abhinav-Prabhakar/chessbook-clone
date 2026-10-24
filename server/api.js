@@ -7,6 +7,8 @@ import {
   createRepertoire,
   searchOpenings,
   syncRepertoireTotals,
+  slugify,
+  loadOpenings,
 } from "./db.js";
 import {
   epdOf,
@@ -46,6 +48,33 @@ import {
   weakEpdQuery,
 } from "./repertoire.js";
 import { checkDatabase } from "./integrity.js";
+import {
+  STYLES,
+  annotationForMove,
+  annotationsForPosition,
+  candidateList,
+  fullNameForEpd,
+  pathForEpd,
+  positionHeading,
+  reportForEpd,
+  scoreCandidate,
+} from "./opening-data.js";
+import { chooseGap, computeGaps } from "./gaps.js";
+import {
+  dailyGame,
+  gameDetail,
+  gameRow,
+  gameRows,
+  gameSummary,
+  history as modelHistory,
+  markReviewed,
+  nextGame,
+  progressFor,
+  randomGame,
+} from "./model-games.js";
+import { addBranchAt, addLineFromSans, lineEpds } from "./branches.js";
+import { exportJson, exportPgn, parsePgnGames } from "./pgn.js";
+import { importCapturedData } from "./seed-data.js";
 
 export const api = Router();
 
@@ -112,16 +141,6 @@ function moveById(id) {
   return db.prepare("SELECT * FROM line_moves WHERE id = ?").get(Number(id));
 }
 
-function lineEpds(sans) {
-  const chess = new Chess();
-  const out = [epdOf(chess.fen())];
-  for (const san of sans) {
-    chess.move(san);
-    out.push(epdOf(chess.fen()));
-  }
-  return out;
-}
-
 /**
  * There is no authentication in local-first mode. Every request is scoped to
  * the one profile stored in this installation's SQLite database.
@@ -180,23 +199,32 @@ api.get("/dashboard", requireAuth, (req, res) => {
     streak: streak.current,
   };
 
-  const modelGame = db.prepare("SELECT * FROM model_games ORDER BY id LIMIT 1").get();
+  const dailyModel = dailyGame(db, req.user.id, {});
+  const modelGame = dailyModel.game
+    ? {
+        id: dailyModel.game.id,
+        white: dailyModel.game.white,
+        black: dailyModel.game.black,
+        whiteFullName: dailyModel.game.whiteFullName,
+        blackFullName: dailyModel.game.blackFullName,
+        event: dailyModel.game.event,
+        year: dailyModel.game.year,
+        result: dailyModel.game.result,
+        resultLabel: dailyModel.game.resultLabel,
+        players: dailyModel.game.players,
+        progressState: dailyModel.game.progressState,
+        daily: dailyModel.daily,
+        source: dailyModel.game.source,
+        moveCount: dailyModel.game.moveCount,
+      }
+    : null;
   res.json({
     user: userOut(getLocalUser()),
     repertoires,
     tasks,
     streak: daily.streak,
     daily,
-    modelGame: modelGame
-      ? {
-          id: modelGame.id,
-          white: modelGame.white,
-          black: modelGame.black,
-          event: modelGame.event,
-          year: modelGame.year,
-          result: modelGame.result,
-        }
-      : null,
+    modelGame,
     connected: false,
   });
 });
@@ -208,7 +236,1056 @@ api.get("/stats/streak", requireAuth, (req, res) => {
   });
 });
 
-/* -------------------------------------------------------------- repertoires --- */
+/* ------------------------------------------------------- repertoire extras --- */
+
+api.post("/repertoires/:key/clone", requireAuth, (req, res) => {
+  const source = getRepertoire(req.user.id, req.params.key);
+  if (!source) return res.status(404).json({ error: "Repertoire not found" });
+  const name = String(req.body?.name || `${source.name} copy`).trim();
+  if (!name) return res.status(400).json({ error: "Name is required" });
+  const targetId = createRepertoire(
+    req.user.id,
+    source.color,
+    name,
+    String(req.body?.description ?? source.description ?? "")
+  );
+  const stamp = now();
+
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    // Chapters first, so cloned lines keep their section.
+    const chapterMap = new Map();
+    const chapters = db
+      .prepare("SELECT * FROM repertoire_chapters WHERE repertoire_id = ? ORDER BY sort_order, id")
+      .all(source.id);
+    const insertChapter = db.prepare(
+      `INSERT INTO repertoire_chapters
+         (repertoire_id, name, description, sort_order, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    );
+    for (const chapter of chapters) {
+      const id = Number(
+        insertChapter.run(
+          targetId,
+          chapter.name,
+          chapter.description,
+          chapter.sort_order,
+          stamp,
+          stamp
+        ).lastInsertRowid
+      );
+      chapterMap.set(chapter.id, id);
+    }
+
+    const lines = db
+      .prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id")
+      .all(source.id);
+    const insertLine = db.prepare(
+      `INSERT INTO lines
+         (repertoire_id, opening_id, name, moves, pgn, fen, epd, side, expected_san,
+          learned, mastered, saved, due_at, origin, autofill_style, chapter_id,
+          source_ref, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, NULL, 'clone', ?, ?, ?, ?)`
+    );
+    for (const line of lines) {
+      insertLine.run(
+        targetId,
+        line.opening_id ?? null,
+        line.name,
+        line.moves,
+        line.pgn,
+        line.fen,
+        line.epd ?? null,
+        line.side,
+        line.expected_san,
+        line.autofill_style ?? null,
+        line.chapter_id ? chapterMap.get(line.chapter_id) ?? null : null,
+        `clone:${source.id}`,
+        stamp
+      );
+    }
+
+    const notes = db
+      .prepare("SELECT * FROM notes WHERE repertoire_id = ?")
+      .all(source.id);
+    const insertNote = db.prepare(
+      `INSERT INTO notes (user_id, repertoire_id, epd, san, note, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+    for (const note of notes) {
+      insertNote.run(
+        req.user.id,
+        targetId,
+        note.epd,
+        note.san,
+        note.note,
+        stamp,
+        stamp
+      );
+    }
+
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+
+  rebuildRepertoireMoves(db, targetId);
+  syncRepertoireTotals(targetId);
+  const repertoire = db.prepare("SELECT * FROM repertoires WHERE id = ?").get(targetId);
+  res.status(201).json({
+    repertoire: repStats(repertoire),
+    sourceId: source.id,
+    cloned: {
+      lines: db.prepare("SELECT COUNT(*) AS n FROM lines WHERE repertoire_id = ?").get(targetId).n,
+      notes: db.prepare("SELECT COUNT(*) AS n FROM notes WHERE repertoire_id = ?").get(targetId).n,
+    },
+  });
+});
+
+api.get("/repertoires/:key/chapters", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const chapters = db
+    .prepare("SELECT * FROM repertoire_chapters WHERE repertoire_id = ? ORDER BY sort_order, id")
+    .all(repertoire.id)
+    .map((chapter) => ({
+      id: chapter.id,
+      name: chapter.name,
+      description: chapter.description,
+      sortOrder: chapter.sort_order,
+      lineCount: db
+        .prepare("SELECT COUNT(*) AS n FROM lines WHERE repertoire_id = ? AND chapter_id = ?")
+        .get(repertoire.id, chapter.id).n,
+      createdAt: chapter.created_at,
+      updatedAt: chapter.updated_at,
+    }));
+  res.json({ chapters, count: chapters.length, available: true });
+});
+
+api.post("/repertoires/:key/chapters", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const name = String(req.body?.name || "").trim();
+  if (!name) return res.status(400).json({ error: "Chapter name is required" });
+  const stamp = now();
+  const max = db
+    .prepare("SELECT COALESCE(MAX(sort_order), -1) AS n FROM repertoire_chapters WHERE repertoire_id = ?")
+    .get(repertoire.id).n;
+  const id = Number(
+    db
+      .prepare(
+        `INSERT INTO repertoire_chapters
+           (repertoire_id, name, description, sort_order, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        repertoire.id,
+        name,
+        String(req.body?.description || ""),
+        req.body?.sortOrder == null ? Number(max) + 1 : Number(req.body.sortOrder),
+        stamp,
+        stamp
+      ).lastInsertRowid
+  );
+  res.status(201).json({
+    chapter: db.prepare("SELECT * FROM repertoire_chapters WHERE id = ?").get(id),
+  });
+});
+
+api.patch("/chapters/:id", requireAuth, (req, res) => {
+  const chapter = db
+    .prepare(
+      `SELECT c.* FROM repertoire_chapters c
+       JOIN repertoires r ON r.id = c.repertoire_id
+       WHERE c.id = ? AND r.user_id = ?`
+    )
+    .get(Number(req.params.id), req.user.id);
+  if (!chapter) return res.status(404).json({ error: "Chapter not found" });
+  const name = req.body?.name != null ? String(req.body.name).trim() : chapter.name;
+  const description =
+    req.body?.description != null ? String(req.body.description) : chapter.description;
+  const sortOrder =
+    req.body?.sortOrder != null ? Number(req.body.sortOrder) : chapter.sort_order;
+  db.prepare(
+    "UPDATE repertoire_chapters SET name = ?, description = ?, sort_order = ?, updated_at = ? WHERE id = ?"
+  ).run(name || chapter.name, description, sortOrder, now(), chapter.id);
+  res.json({
+    chapter: db.prepare("SELECT * FROM repertoire_chapters WHERE id = ?").get(chapter.id),
+  });
+});
+
+api.delete("/chapters/:id", requireAuth, (req, res) => {
+  const chapter = db
+    .prepare(
+      `SELECT c.* FROM repertoire_chapters c
+       JOIN repertoires r ON r.id = c.repertoire_id
+       WHERE c.id = ? AND r.user_id = ?`
+    )
+    .get(Number(req.params.id), req.user.id);
+  if (!chapter) return res.status(404).json({ error: "Chapter not found" });
+  db.prepare("UPDATE lines SET chapter_id = NULL WHERE chapter_id = ?").run(chapter.id);
+  db.prepare("DELETE FROM repertoire_chapters WHERE id = ?").run(chapter.id);
+  res.json({ ok: true, deleted: chapter.id });
+});
+
+api.get("/repertoires/:key/transpositions", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const lines = db
+    .prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id")
+    .all(repertoire.id);
+  const byEpd = new Map();
+  for (const line of lines) {
+    const sans = lineSans(line);
+    let epds;
+    try {
+      epds = lineEpds(sans);
+    } catch {
+      continue;
+    }
+    epds.forEach((epd, index) => {
+      if (!byEpd.has(epd)) byEpd.set(epd, []);
+      byEpd.get(epd).push({
+        lineId: line.id,
+        name: line.name,
+        moves: sans,
+        ply: index,
+        final: index === sans.length,
+      });
+    });
+  }
+  const groups = [...byEpd.entries()]
+    .filter(([, entries]) => new Set(entries.map((entry) => entry.lineId)).size > 1)
+    .map(([epd, entries]) => ({
+      epd,
+      final: entries.some((entry) => entry.final),
+      lines: entries,
+    }))
+    .sort((a, b) => Number(b.final) - Number(a.final) || a.epd.localeCompare(b.epd));
+  res.json({
+    repertoire: repStats(repertoire),
+    groups,
+    count: groups.length,
+    available: true,
+  });
+});
+
+api.post("/repertoires/:key/transpositions/merge", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const epd = cleanEpd(req.body?.epd);
+  const keepId = req.body?.keepLineId != null ? Number(req.body.keepLineId) : null;
+  const rows = epd
+    ? db.prepare("SELECT * FROM lines WHERE repertoire_id = ? AND epd = ? ORDER BY id").all(repertoire.id, epd)
+    : db
+        .prepare(
+          `SELECT l.* FROM lines l
+           WHERE l.repertoire_id = ?
+             AND l.epd IN (
+               SELECT epd FROM lines WHERE repertoire_id = ?
+               GROUP BY epd HAVING COUNT(*) > 1
+             )
+           ORDER BY l.epd, l.id`
+        )
+        .all(repertoire.id, repertoire.id);
+  const grouped = new Map();
+  for (const row of rows) {
+    if (!row.epd) continue;
+    if (!grouped.has(row.epd)) grouped.set(row.epd, []);
+    grouped.get(row.epd).push(row);
+  }
+  const removed = [];
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    for (const [finalKey, group] of grouped) {
+      if (group.length < 2) continue;
+      const keep =
+        group.find((row) => row.id === keepId) || group[0];
+      for (const row of group) {
+        if (row.id === keep.id) continue;
+        db.prepare("DELETE FROM lines WHERE id = ?").run(row.id);
+        removed.push({ lineId: row.id, epd: finalKey, keptLineId: keep.id });
+      }
+    }
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+  if (removed.length) {
+    rebuildRepertoireMoves(db, repertoire.id);
+    syncRepertoireTotals(repertoire.id);
+  }
+  const fresh = db.prepare("SELECT * FROM repertoires WHERE id = ?").get(repertoire.id);
+  res.json({ ok: true, removed, merged: removed.length, repertoire: repStats(fresh) });
+});
+
+api.post("/repertoires/:key/trim", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const mode = String(req.body?.mode || "autofilled");
+  const dryRun = Boolean(req.body?.dryRun);
+  const threshold = Math.max(0, Number(req.body?.threshold ?? 0.01));
+  const lines = db
+    .prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id")
+    .all(repertoire.id);
+  const remove = new Map();
+
+  if (mode === "autofilled") {
+    for (const line of lines) {
+      if (line.origin === "autofill") remove.set(line.id, "autofilled");
+    }
+  } else if (mode === "rare" || mode === "sidelines") {
+    const seenFinal = new Set();
+    for (const line of lines) {
+      if (!line.epd) continue;
+      if (seenFinal.has(line.epd)) {
+        remove.set(line.id, "transposition");
+        continue;
+      }
+      seenFinal.add(line.epd);
+      if (mode !== "rare") continue;
+      const sans = lineSans(line);
+      const last = sans[sans.length - 1];
+      const parentPath = lineSans(line).slice(0, -1);
+      const parentEpd = epdFromMoves(parentPath);
+      const report = reportForEpd(db, parentEpd, { repertoireColor: repertoire.color });
+      const candidate = report?.candidates.find((row) => row.san_key === sanKey(last));
+      const probability = candidate?.probability == null ? null : Number(candidate.probability);
+      if (probability != null && probability < threshold) {
+        remove.set(line.id, "below-threshold");
+      }
+    }
+  } else if (mode === "pastGoal") {
+    const goal = Math.max(0.01, Math.min(1, Number(req.body?.coverageGoal ?? 0.9)));
+    // Remove the least-likely branches while coverage stays above the goal.
+    const coverageRows = [];
+    for (const line of lines) {
+      const sans = lineSans(line);
+      const last = sans[sans.length - 1];
+      const parentEpd = epdFromMoves(sans.slice(0, -1));
+      const report = reportForEpd(db, parentEpd, { repertoireColor: repertoire.color });
+      const candidate = report?.candidates.find((row) => row.san_key === sanKey(last));
+      coverageRows.push({
+        line,
+        probability: Number(candidate?.probability ?? 0),
+        report: Boolean(report),
+      });
+    }
+    const total = coverageRows.reduce((sum, row) => sum + row.probability, 0);
+    let covered = total;
+    for (const row of [...coverageRows].sort((a, b) => a.probability - b.probability)) {
+      if (!row.report || total <= 0) continue;
+      if (covered / total <= goal) break;
+      remove.set(row.line.id, "past-coverage-goal");
+      covered -= row.probability;
+    }
+  } else {
+    return res.status(400).json({
+      error: "mode must be autofilled, rare, sidelines or pastGoal",
+    });
+  }
+
+  const removed = [...remove.entries()].map(([lineId, reason]) => ({ lineId, reason }));
+  if (!dryRun && removed.length) {
+    const removeLine = db.prepare("DELETE FROM lines WHERE id = ?");
+    for (const entry of removed) removeLine.run(entry.lineId);
+    rebuildRepertoireMoves(db, repertoire.id);
+    syncRepertoireTotals(repertoire.id);
+  }
+  const fresh = db.prepare("SELECT * FROM repertoires WHERE id = ?").get(repertoire.id);
+  res.json({
+    ok: true,
+    mode,
+    dryRun,
+    removed,
+    removedCount: removed.length,
+    remaining: lines.length - removed.length,
+    repertoire: repStats(fresh),
+  });
+});
+
+api.post("/repertoires/:key/import", requireAuth, async (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const body = req.body;
+  const text =
+    typeof body === "string"
+      ? body
+      : String(body?.pgn ?? body?.text ?? body?.pgnText ?? "");
+  if (!text.trim()) {
+    return res.status(400).json({ error: "Provide PGN text (pgn, text or a raw text/plain body)" });
+  }
+  const defaultName = String(body?.name || "").trim();
+  const maxPly = body?.maxPly != null ? Math.max(1, Number(body.maxPly)) : null;
+  const parsed = parsePgnGames(text);
+  const results = [];
+  let created = 0;
+  let transpositions = 0;
+
+  for (const game of parsed) {
+    if (!game.ok) {
+      results.push({ ok: false, error: game.error });
+      continue;
+    }
+    let sans = maxPly ? game.sans.slice(0, maxPly) : [...game.sans];
+    // A repertoire branch must end on the repertoire's move. Trim a single
+    // trailing opponent move rather than silently storing an unanswerable line.
+    let trimmed = false;
+    if ((sans.length % 2 === 1 ? "white" : "black") !== repertoire.color && sans.length > 1) {
+      sans = sans.slice(0, -1);
+      trimmed = true;
+    }
+    if (!sans.length) {
+      results.push({ ok: false, error: "The PGN has no move for this repertoire" });
+      continue;
+    }
+    const name =
+      defaultName ||
+      (game.white && game.black
+        ? `${game.white} – ${game.black}`
+        : game.event || `Imported line ${results.length + 1}`);
+    const added = addLineFromSans(db, repertoire, {
+      sans,
+      name,
+      origin: "import",
+      sourceRef: game.event || "pgn",
+    });
+    if (added.error) {
+      results.push({ ok: false, error: added.error });
+      continue;
+    }
+    if (added.created) created += 1;
+    if (added.transposition) transpositions += 1;
+    results.push({
+      ok: true,
+      lineId: added.line.id,
+      created: added.created,
+      transposition: added.transposition,
+      transpositionOf: added.transpositionOf,
+      trimmed,
+      moves: sans.length,
+      name: added.line.name,
+    });
+  }
+
+  const fresh = db.prepare("SELECT * FROM repertoires WHERE id = ?").get(repertoire.id);
+  res.status(created ? 201 : 200).json({
+    ok: true,
+    imported: created,
+    transpositions,
+    total: parsed.length,
+    trimmed: results.filter((result) => result.trimmed).length,
+    results,
+    repertoire: repStats(fresh),
+  });
+});
+
+api.get("/repertoires/:key/export", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const format = String(req.query.format || "pgn").toLowerCase();
+  if (format === "json") {
+    const payload = exportJson(db, repertoire, { stats: repStats(repertoire) });
+    if (req.query.download === "1") {
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${slugify(repertoire.name) || "repertoire"}.json"`
+      );
+    }
+    return res.json(payload);
+  }
+  if (format !== "pgn") {
+    return res.status(400).json({ error: "format must be pgn or json" });
+  }
+  const text = exportPgn(db, repertoire);
+  res.setHeader("Content-Type", "application/x-chess-pgn; charset=utf-8");
+  if (req.query.download === "1") {
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${slugify(repertoire.name) || "repertoire"}.pgn"`
+    );
+  }
+  res.send(text);
+});
+
+/* ------------------------------------------------------- import/opening --- */
+
+api.get("/openings/supplementary", requireAuth, (req, res) => {
+  const epd = cleanEpd(req.query.epd, req.query.fen);
+  if (epd) {
+    const row = db.prepare("SELECT * FROM opening_names WHERE epd = ?").get(epd);
+    return res.json({
+      positions: row
+        ? [
+            {
+              epd: row.epd,
+              fullName: row.full_name,
+              friendlyName: row.friendly_name ?? null,
+              source: row.source,
+            },
+          ]
+        : [],
+      count: row ? 1 : 0,
+      available: Boolean(row),
+    });
+  }
+  const q = String(req.query.q || "").trim();
+  const limit = Math.min(1000, Math.max(1, Number(req.query.limit) || 200));
+  const offset = Math.max(0, Number(req.query.offset) || 0);
+  const rows = q
+    ? db
+        .prepare(
+          `SELECT * FROM opening_names WHERE full_name LIKE ? OR friendly_name LIKE ?
+           ORDER BY full_name LIMIT ? OFFSET ?`
+        )
+        .all(`%${q}%`, `%${q}%`, limit, offset)
+    : db
+        .prepare("SELECT * FROM opening_names ORDER BY full_name LIMIT ? OFFSET ?")
+        .all(limit, offset);
+  const total = q
+    ? db
+        .prepare("SELECT COUNT(*) AS n FROM opening_names WHERE full_name LIKE ? OR friendly_name LIKE ?")
+        .get(`%${q}%`, `%${q}%`).n
+    : db.prepare("SELECT COUNT(*) AS n FROM opening_names").get().n;
+  res.json({
+    positions: rows.map((row) => ({
+      epd: row.epd,
+      fullName: row.full_name,
+      friendlyName: row.friendly_name ?? null,
+      source: row.source,
+    })),
+    count: rows.length,
+    total,
+    offset,
+    hasMore: offset + rows.length < total,
+    source: "recon/live4/network.json#5 (/api/v1/openings/supplementary)",
+  });
+});
+
+api.get("/openings/position", requireAuth, (req, res) => {
+  const epd =
+    cleanEpd(req.query.epd, req.query.fen) ||
+    (req.query.moves ? epdFromMoves(req.query.moves) : null);
+  if (!epd) return res.status(400).json({ error: "Provide epd, fen or moves" });
+  const report = reportForEpd(db, epd);
+  const detail = candidateList(db, { epd, repertoire: null, prefixMoves: [] });
+  const name = fullNameForEpd(db, epd);
+  const alias = db.prepare("SELECT * FROM opening_aliases WHERE epd = ? LIMIT 1").get(epd);
+  res.json({
+    position: {
+      epd,
+      fen: detail.fen,
+      side: detail.side,
+      name: name.name,
+      fullName: name.fullName,
+      friendlyName: name.friendlyName,
+      aliases: alias
+        ? [{ fullName: alias.full_name, friendlyName: alias.friendly_name, targetEpd: alias.target_epd, kind: alias.kind }]
+        : [],
+      annotations: annotationsForPosition(db, epd),
+      plans: report ? safeJson(report.plans, []) : [],
+      plansAvailable: Boolean(report && safeJson(report.plans, []).length),
+      stockfish: detail.stockfish,
+      masterResults: report
+        ? {
+            white: report.master_white,
+            draw: report.master_draw,
+            black: report.master_black,
+          }
+        : null,
+      peerResults: report
+        ? {
+            white: report.peer_white,
+            draw: report.peer_draw,
+            black: report.peer_black,
+          }
+        : null,
+      reportAvailable: Boolean(report),
+      reportSource: report?.source ?? null,
+      complete: report ? Boolean(report.complete) : null,
+      ratingBand: detail.ratingBand,
+      incidenceByBand: detail.incidenceByBand,
+      bandsAvailable: detail.bandsAvailable,
+    },
+    candidates: detail.candidates,
+    available: detail.available,
+    source: detail.source,
+  });
+});
+
+api.get("/openings/imports", requireAuth, (_req, res) => {
+  const imports = db
+    .prepare("SELECT * FROM opening_imports ORDER BY imported_at DESC")
+    .all()
+    .map((row) => ({
+      source: row.source,
+      version: row.version,
+      rows: row.rows,
+      importedAt: row.imported_at,
+    }));
+  const current = db
+    .prepare("SELECT version, COUNT(*) AS rows FROM openings GROUP BY version")
+    .all();
+  res.json({ imports, current });
+});
+
+api.post("/openings/reimport", requireAuth, (req, res) => {
+  loadOpenings({ force: Boolean(req.body?.force) });
+  const imports = db
+    .prepare("SELECT * FROM opening_imports ORDER BY imported_at DESC")
+    .all()
+    .map((row) => ({
+      source: row.source,
+      version: row.version,
+      rows: row.rows,
+      importedAt: row.imported_at,
+    }));
+  res.json({
+    ok: true,
+    imports,
+    current:
+      db.prepare("SELECT version, COUNT(*) AS rows FROM openings GROUP BY version").all(),
+    skipped: process.env.CHESSBOOK_SKIP_OPENINGS === "1",
+  });
+});
+
+api.get("/openings/report", requireAuth, (req, res) => {
+  const timeRange = String(req.query.timeRange || "90d");
+  const captured = db.prepare("SELECT * FROM data_sources WHERE dataset = 'positions'").get();
+  const days = /^(\d+)d$/.exec(timeRange);
+  const rangeClause = days
+    ? "AND julianday(rv.created_at) >= julianday('now', ?)"
+    : "";
+  const rangeValue = days ? `-${Number(days[1])} days` : null;
+  const rows = db
+    .prepare(
+      `SELECT l.name AS name, l.id AS lineId, r.color AS color,
+              COUNT(rv.id) AS reviews,
+              COALESCE(SUM(rv.correct), 0) AS correct,
+              COALESCE(SUM(CASE WHEN rv.correct = 0 THEN 1 ELSE 0 END), 0) AS wrong
+       FROM lines l
+       JOIN repertoires r ON r.id = l.repertoire_id
+       LEFT JOIN reviews rv ON rv.line_id = l.id ${rangeClause}
+       GROUP BY l.id
+       HAVING reviews > 0
+       ORDER BY wrong DESC, reviews DESC`
+    )
+    .all(...(rangeValue ? [rangeValue] : []));
+  const weak = rows
+    .filter((row) => row.wrong > 0)
+    .map((row) => ({
+      name: row.name,
+      lineId: row.lineId,
+      color: row.color,
+      reviews: row.reviews,
+      correct: row.correct,
+      wrong: row.wrong,
+      accuracy: row.reviews ? Math.round((row.correct / row.reviews) * 1000) / 10 : null,
+      source: "local-reviews",
+    }))
+    .slice(0, 10);
+  const worst = [...weak].sort((a, b) => a.accuracy - b.accuracy).slice(0, 10);
+  res.json({
+    timeRange,
+    available: true,
+    capturedAvailable: false,
+    captured: [],
+    source: weak.length ? "local-reviews" : null,
+    weak,
+    worst,
+    reason: weak.length ? null : "No reviewed lines in this local profile yet.",
+    importedAt: captured?.imported_at ?? null,
+  });
+});
+
+api.get("/openings/guides", requireAuth, (req, res) => {
+  const side = req.query.side === "white" || req.query.side === "black" ? req.query.side : null;
+  const q = String(req.query.q || "").trim();
+  const rows = db
+    .prepare(
+      `SELECT * FROM opening_guides
+       ${side ? "WHERE side = ?" : "WHERE 1=1"}
+       ${q ? "AND (name LIKE ? OR eco LIKE ?)" : ""}
+       ORDER BY sort_order`
+    )
+    .all(...[side, q ? `%${q}%` : null, q ? `%${q}%` : null].filter((value) => value != null));
+  const guides = rows.map((row) => {
+    const course = findCourseForGuide(db, row);
+    return {
+      id: row.id,
+      slug: row.slug,
+      eco: row.eco,
+      name: row.name,
+      side: row.side,
+      family: row.family,
+      moves: String(row.sans || "").split(" ").filter(Boolean),
+      pgn: row.pgn,
+      epd: row.epd,
+      coverage: course?.coverage ?? null,
+      coveragePercent:
+        course?.coverage == null
+          ? null
+          : Math.round(Number(course.coverage) * 1000) / 10,
+      course: course ? { id: course.id, slug: course.slug, name: course.name } : null,
+      source: row.source,
+    };
+  });
+  res.json({
+    guides,
+    white: guides.filter((guide) => guide.side === "white"),
+    black: guides.filter((guide) => guide.side === "black"),
+    total: guides.length,
+    available: guides.length > 0,
+    source: "recon/live6/02-openings.json",
+  });
+});
+
+api.get("/openings/guides/:slug", requireAuth, (req, res) => {
+  const row = db
+    .prepare("SELECT * FROM opening_guides WHERE slug = ? OR name = ? LIMIT 1")
+    .get(String(req.params.slug), String(req.params.slug));
+  if (!row) return res.status(404).json({ error: "Opening guide not found" });
+  const sans = String(row.sans || "").split(" ").filter(Boolean);
+  const chess = new Chess();
+  const steps = [];
+  let notes = [];
+  for (let i = 0; i < sans.length; i += 1) {
+    const epd = epdOf(chess.fen());
+    const fen = chess.fen();
+    const move = chess.move(sans[i]);
+    const annotation = annotationForMove(db, epd, move.san);
+    const positionAnnotations = annotationsForPosition(db, epd);
+    notes.push(
+      ...positionAnnotations
+        .filter((annotation) => !annotation.san || annotation.san === move.san)
+        .map((annotation) => ({ ...annotation, ply: i + 1 }))
+    );
+    steps.push({
+      ply: i + 1,
+      moveNumber: Math.floor(i / 2) + 1,
+      side: move.color === "w" ? "white" : "black",
+      san: move.san,
+      epd,
+      fen,
+      fenAfter: chess.fen(),
+      annotation: annotation?.text ?? null,
+      name: fullNameForEpd(db, epdOf(chess.fen())).name,
+    });
+  }
+  const report = reportForEpd(db, row.epd, { repertoireColor: row.side });
+  const course = findCourseForGuide(db, row);
+  res.json({
+    guide: {
+      id: row.id,
+      slug: row.slug,
+      eco: row.eco,
+      name: row.name,
+      side: row.side,
+      family: row.family,
+      moves: sans,
+      pgn: row.pgn,
+      epd: row.epd,
+      steps,
+      notes,
+      notesAvailable: notes.length > 0,
+      plans: report?.plans ? JSON.parse(report.plans) : [],
+      plansAvailable: Boolean(report?.plans && JSON.parse(report.plans).length),
+      reportAvailable: Boolean(report),
+      coverage: course?.coverage ?? null,
+      coveragePercent:
+        course?.coverage == null
+          ? null
+          : Math.round(Number(course.coverage) * 1000) / 10,
+      course: course ? { id: course.id, slug: course.slug, name: course.name } : null,
+      source: row.source,
+    },
+  });
+});
+
+api.get("/openings/:slug", requireAuth, (req, res) => {
+  const row = db
+    .prepare("SELECT * FROM opening_guides WHERE slug = ? OR name = ? LIMIT 1")
+    .get(String(req.params.slug), String(req.params.slug));
+  if (!row) return res.status(404).json({ error: "Opening guide not found" });
+  res.redirect(307, `/api/openings/guides/${encodeURIComponent(row.slug)}`);
+});
+
+api.get("/courses", requireAuth, (req, res) => {
+  const side = req.query.side === "white" || req.query.side === "black" ? req.query.side : null;
+  const q = String(req.query.q || "").trim();
+  const official = req.query.official;
+  const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 100));
+  const offset = Math.max(0, Number(req.query.offset) || 0);
+  const clauses = [];
+  const values = [];
+  if (side) {
+    clauses.push("side = ?");
+    values.push(side);
+  }
+  if (q) {
+    clauses.push("(name LIKE ? OR description LIKE ?)");
+    values.push(`%${q}%`, `%${q}%`);
+  }
+  if (official === "1" || official === "true") clauses.push("official = 1");
+  if (official === "0" || official === "false") clauses.push("official = 0");
+  const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+  const total = db.prepare(`SELECT COUNT(*) AS n FROM courses ${where}`).get(...values).n;
+  const rows = db
+    .prepare(`SELECT * FROM courses ${where} ORDER BY official DESC, side, name LIMIT ? OFFSET ?`)
+    .all(...values, limit, offset);
+  res.json({
+    courses: rows.map(courseOut),
+    total,
+    offset,
+    hasMore: offset + rows.length < total,
+    available: total > 0,
+    source: "recon position reports (courses arrays)",
+  });
+});
+
+api.get("/courses/:id", requireAuth, (req, res) => {
+  const key = String(req.params.id);
+  const row = db
+    .prepare("SELECT * FROM courses WHERE id = ? OR slug = ? LIMIT 1")
+    .get(key, key);
+  if (!row) return res.status(404).json({ error: "Course not found" });
+  const chapters = db
+    .prepare("SELECT * FROM course_chapters WHERE course_id = ? ORDER BY sort_order")
+    .all(row.id)
+    .map((chapter) => ({
+      id: chapter.id,
+      name: chapter.name,
+      description: chapter.description,
+      sortOrder: chapter.sort_order,
+    }));
+  const guide = findGuideForCourse(db, row);
+  res.json({
+    course: {
+      ...courseOut(row),
+      chapters,
+      chaptersAvailable: chapters.length > 0,
+      guide: guide
+        ? { slug: guide.slug, name: guide.name, moves: String(guide.sans || "").split(" ") }
+        : null,
+    },
+  });
+});
+
+api.post("/courses/:id/clone", requireAuth, (req, res) => {
+  const key = String(req.params.id);
+  const course = db
+    .prepare("SELECT * FROM courses WHERE id = ? OR slug = ? LIMIT 1")
+    .get(key, key);
+  if (!course) return res.status(404).json({ error: "Course not found" });
+  const name = String(req.body?.name || course.name).trim() || course.name;
+  const repertoireId = createRepertoire(
+    req.user.id,
+    course.side,
+    name,
+    course.description || ""
+  );
+  const guide = findGuideForCourse(db, course);
+  let imported = 0;
+  if (guide) {
+    const sans = String(guide.sans || "").split(" ").filter(Boolean);
+    const added = addLineFromSans(db, db.prepare("SELECT * FROM repertoires WHERE id = ?").get(repertoireId), {
+      sans,
+      name: guide.name,
+      origin: "course",
+      sourceRef: `course:${course.id}`,
+    });
+    if (added.created) imported += 1;
+  }
+  rebuildRepertoireMoves(db, repertoireId);
+  syncRepertoireTotals(repertoireId);
+  const repertoire = db.prepare("SELECT * FROM repertoires WHERE id = ?").get(repertoireId);
+  res.status(201).json({
+    repertoire: repStats(repertoire),
+    course: courseOut(course),
+    imported,
+    guide: guide ? guide.slug : null,
+    chapters: [],
+    chaptersAvailable: false,
+    note:
+      "The capture contains course metadata and a matching opening line, but no chapter/move tree; the cloned repertoire starts with that line.",
+  });
+});
+
+api.get("/coaches", requireAuth, (req, res) => {
+  const rows = db.prepare("SELECT * FROM coaches ORDER BY name COLLATE NOCASE").all();
+  res.json({
+    coaches: rows.map(coachOut),
+    total: rows.length,
+    available: rows.length > 0,
+    source: "recon/live6/04-coaches.json",
+  });
+});
+
+api.get("/coaches/:slug", requireAuth, (req, res) => {
+  const row = db
+    .prepare("SELECT * FROM coaches WHERE slug = ? OR name = ? LIMIT 1")
+    .get(String(req.params.slug), String(req.params.slug));
+  if (!row) return res.status(404).json({ error: "Coach not found" });
+  res.json({ coach: coachOut(row) });
+});
+
+api.get("/blog", requireAuth, (req, res) => {
+  const rows = db
+    .prepare("SELECT * FROM blog_posts ORDER BY published_at DESC, sort_order")
+    .all();
+  res.json({
+    posts: rows.map(postOut),
+    total: rows.length,
+    available: rows.length > 0,
+    source: "recon/live6/05-blog.json",
+  });
+});
+
+api.get("/blog/:slug", requireAuth, (req, res) => {
+  const row = db
+    .prepare("SELECT * FROM blog_posts WHERE slug = ? OR title = ? LIMIT 1")
+    .get(String(req.params.slug), String(req.params.slug));
+  if (!row) return res.status(404).json({ error: "Blog post not found" });
+  res.json({ post: postOut(row), bodyAvailable: false });
+});
+
+function courseOut(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    side: row.side,
+    authorName: row.author_name ?? null,
+    authorTitle: row.author_title ?? null,
+    avatarImage: row.avatar_image ?? null,
+    description: row.description ?? null,
+    descriptionShort: row.description_short ?? null,
+    official: Boolean(row.official),
+    featured: Boolean(row.featured),
+    moveCount: row.move_count ?? null,
+    coverage: row.coverage,
+    coveragePercent:
+      row.coverage == null ? null : Math.round(Number(row.coverage) * 1000) / 10,
+    eloRanges: safeJson(row.elo_ranges, []),
+    characteristics: {
+      available: Object.keys(safeJson(row.characteristics, {})).length > 0,
+      ...safeJson(row.characteristics, {}),
+    },
+    videoId: row.video_id ?? null,
+    source: row.source,
+  };
+}
+
+function coachOut(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    rating: row.rating,
+    headline: row.headline,
+    bio: row.bio,
+    languages: safeJson(row.languages, []),
+    price: row.price,
+    platforms: safeJson(row.platforms, []),
+    firstLessonFree: Boolean(row.first_lesson_free),
+    source: row.source,
+  };
+}
+
+function postOut(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    publishedAt: row.published_at,
+    excerpt: row.excerpt,
+    sortOrder: row.sort_order,
+    source: row.source,
+  };
+}
+
+function safeJson(value, fallback) {
+  try {
+    return JSON.parse(value || "");
+  } catch {
+    return fallback;
+  }
+}
+
+function findGuideForCourse(db, course) {
+  const guides = db.prepare("SELECT * FROM opening_guides WHERE side = ? ORDER BY sort_order").all(course.side);
+  const words = String(course.name || "").toLowerCase();
+  const direct = guides.find((guide) => {
+    const guideName = String(guide.name || "").toLowerCase();
+    return words.includes(guideName) || guideName.includes(words);
+  });
+  if (direct) return direct;
+  const aliases = [
+    ["spanish", "ruy lopez"],
+    ["qgd", "queen's gambit declined"],
+    ["caro-kann", "caro-kann"],
+    ["london", "london"],
+    ["reti", "réti"],
+    ["nimzo-larsen", "nimzo-larsen"],
+    ["bird", "bird"],
+    ["kings-indian-attack", "king's indian attack"],
+    ["english", "english"],
+  ];
+  for (const [needle, guideNeedle] of aliases) {
+    if (words.includes(needle)) {
+      const match = guides.find((guide) =>
+        String(guide.name).toLowerCase().includes(guideNeedle)
+      );
+      if (match) return match;
+    }
+  }
+  return null;
+}
+
+function findCourseForGuide(db, guide) {
+  const courses = db
+    .prepare("SELECT * FROM courses WHERE side = ? ORDER BY official DESC, name")
+    .all(guide.side);
+  const guideName = String(guide.name || "").toLowerCase();
+  const family = String(guide.family || "").toLowerCase();
+  const direct =
+    courses.find((course) => {
+      const name = String(course.name || "").toLowerCase();
+      return name.includes(guideName) || name.includes(family);
+    }) || null;
+  if (direct) return direct;
+
+  const aliases = [
+    ["ruy lopez", "spanish"],
+    ["queen's gambit declined", "qgd"],
+    ["queen's gambit", "qgd"],
+    ["caro-kann", "caro-kann"],
+    ["london", "london"],
+    ["réti", "reti"],
+    ["reti", "reti"],
+    ["nimzo-larsen", "nimzo-larsen"],
+    ["bird opening", "bird"],
+    ["king's indian attack", "kings-indian-attack"],
+    ["english opening", "english"],
+    ["italian game", "italian"],
+    ["scandinavian defense", "scandinavian"],
+    ["french defense", "french"],
+    ["sicilian defense", "sicilian"],
+  ];
+  for (const [guideNeedle, courseNeedle] of aliases) {
+    if (guideName.includes(guideNeedle) || family.includes(guideNeedle)) {
+      const match = courses.find((course) =>
+        String(course.name).toLowerCase().includes(courseNeedle)
+      );
+      if (match) return match;
+    }
+  }
+  return null;
+}
+
 
 api.get("/repertoires", requireAuth, (req, res) => {
   const rows = db
@@ -238,7 +1315,27 @@ api.get("/repertoires/:key", requireAuth, (req, res) => {
     .prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id")
     .all(repertoire.id)
     .map((line) => lineView(line, repertoire));
-  res.json({ repertoire: repStats(repertoire), lines });
+  const chapters = db
+    .prepare("SELECT * FROM repertoire_chapters WHERE repertoire_id = ? ORDER BY sort_order, id")
+    .all(repertoire.id)
+    .map((chapter) => ({
+      id: chapter.id,
+      name: chapter.name,
+      description: chapter.description,
+      sortOrder: chapter.sort_order,
+      lineCount: lines.filter((line) => line.chapterId === chapter.id).length,
+    }));
+  const captured = db
+    .prepare("SELECT * FROM repertoire_characteristics WHERE repertoire_id = ?")
+    .get(repertoire.id);
+  res.json({
+    repertoire: repStats(repertoire),
+    lines,
+    chapters,
+    chaptersAvailable: true,
+    characteristicsSource: captured?.source ?? null,
+    coverageSource: captured?.source ?? null,
+  });
 });
 
 api.patch("/repertoires/:key", requireAuth, (req, res) => {
@@ -303,84 +1400,572 @@ api.post("/repertoires/:key/reset", requireAuth, (req, res) => {
   res.json({ ok: true, repertoire: repStats(repertoire) });
 });
 
+function cleanEpd(...values) {
+  for (const value of values) {
+    const raw = String(value || "").trim();
+    if (!raw) continue;
+    if (raw.includes("/")) {
+      const parts = raw.split(/\s+/);
+      if (parts.length >= 4) {
+        const epd = parts.slice(0, 4).join(" ");
+        if (isEpdLike(epd)) return epd;
+      }
+    }
+  }
+  return null;
+}
+
+function epdFromMoves(moves) {
+  const sans = Array.isArray(moves)
+    ? moves.map(String)
+    : String(moves || "").split(/\s+/).filter(Boolean);
+  const chess = new Chess();
+  for (const san of sans) chess.move(san);
+  return epdOf(chess.fen());
+}
+
+function requestPosition(req, repertoire) {
+  const explicit = cleanEpd(req.query.epd, req.query.fen);
+  if (explicit) {
+    const path = pathForEpd(db, repertoire.id, explicit);
+    return { epd: explicit, prefixMoves: path?.prefixMoves ?? [] };
+  }
+  if (req.query.moves || req.query.path || req.query.sans) {
+    const moves = req.query.moves ?? req.query.path ?? req.query.sans;
+    const epd = epdFromMoves(moves);
+    const sans = Array.isArray(moves)
+      ? moves.map(String)
+      : String(moves).split(/\s+/).filter(Boolean);
+    return { epd, prefixMoves: sans };
+  }
+  if (req.query.line || req.query.lineId) {
+    const line = getLineForUser(req.user.id, Number(req.query.line ?? req.query.lineId));
+    if (!line) return null;
+    const sans = lineSans(line);
+    const ply = req.query.ply != null ? Math.max(1, Math.min(sans.length, Number(req.query.ply))) : sans.length;
+    const chess = new Chess();
+    for (const san of sans.slice(0, ply - 1)) chess.move(san);
+    return { epd: epdOf(chess.fen()), prefixMoves: sans.slice(0, ply - 1), lineId: line.id };
+  }
+  return null;
+}
+
+function gapResponse(repertoire, detail, gap, gaps = [], req) {
+  const limit =
+    req.query.limit != null ? Math.max(0, Number(req.query.limit)) : null;
+  const offset = Math.max(0, Number(req.query.offset) || 0);
+  const shown = detail
+    ? {
+        ...detail,
+        candidates: limit == null
+          ? detail.candidates.slice(offset)
+          : detail.candidates.slice(offset, offset + limit),
+        offset,
+        limit,
+        hasMore: offset + (limit == null ? detail.candidates.length : limit) < detail.candidates.length,
+        nextOffset:
+          offset + (limit == null ? detail.candidates.length : limit) < detail.candidates.length
+            ? offset + (limit == null ? detail.candidates.length : limit)
+            : null,
+      }
+    : null;
+  const path = gap?.path ?? detail?.prefixMoves ?? [];
+  const heading = positionHeading(path, detail?.side ?? gap?.side ?? repertoire.color);
+  const line = gap?.lineId
+    ? db.prepare("SELECT * FROM lines WHERE id = ?").get(gap.lineId)
+    : null;
+  return {
+    repertoire: repStats(repertoire),
+    gap: line ? lineView(line, repertoire) : null,
+    line: line ? lineView(line, repertoire) : null,
+    position: gap
+      ? {
+          epd: gap.epd,
+          fen: gap.fen,
+          side: gap.side,
+          ply: gap.ply,
+          moveNumber: gap.moveNumber,
+          prefixMoves: path,
+          pathPgn: gap.pathPgn ?? pgnFromSans(path),
+          heading,
+          note:
+            notesForPosition(db, repertoire.id, gap.epd).find((note) => !note.san) ??
+            null,
+          annotations: annotationsForPosition(db, gap.epd),
+          incidence: gap.incidence ?? null,
+          oneIn: gap.oneIn ?? null,
+          candidateCount: gap.candidateCount ?? null,
+          savedCount: gap.savedCount ?? null,
+          missingCount: gap.missingCount ?? null,
+          coverage: gap.coverage ?? null,
+          bestMissing: gap.bestMissing ?? null,
+          capturedMiss: Boolean(gap.capturedMiss),
+        }
+      : null,
+    // Full ranked candidate list for the current position. This is not the
+    // saved-line list: every captured candidate is returned in play-rate order.
+    candidates: shown?.candidates ?? [],
+    candidatePosition: shown,
+    available: Boolean(shown?.available),
+    candidateSource: shown?.source ?? null,
+    total: shown?.total ?? 0,
+    hasMore: Boolean(shown?.hasMore),
+    nextOffset: shown?.nextOffset ?? null,
+    gaps,
+    stats: repStats(repertoire),
+  };
+}
+
 api.get("/repertoires/:key/gap", requireAuth, (req, res) => {
   const repertoire = getRepertoire(req.user.id, req.params.key);
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
-  const gap = db
-    .prepare(
-      `SELECT * FROM lines WHERE repertoire_id = ?
-       ORDER BY mastered ASC, learned ASC, id ASC LIMIT 1`
-    )
-    .get(repertoire.id);
-  let position = null;
-  let candidates = [];
-  if (gap) {
-    const prefixMoves = lineSans(gap).slice(0, -1);
-    const widths = new Map();
-    const allLines = db
-      .prepare("SELECT * FROM lines WHERE repertoire_id = ?")
-      .all(repertoire.id);
-    const rows = db
-      .prepare(
-        `SELECT * FROM openings WHERE fen = ? AND side = ?
-         ORDER BY eco, name LIMIT 80`
-      )
-      .all(gap.fen, repertoire.color);
-    for (const row of rows) {
-      if (widths.has(row.expected_san)) continue;
-      const branchSan = [...prefixMoves, row.expected_san].join(" ");
-      const branch = allLines.filter(
-        (line) =>
-          lineSans(line).slice(0, prefixMoves.length + 1).join(" ") === branchSan
-      );
-      const mastery = branch.length
-        ? Math.round(
-            branch.reduce((sum, line) => sum + Number(line.mastered || 0), 0) /
-              branch.length
-          )
-        : 0;
-      widths.set(row.expected_san, {
-        san: row.expected_san,
-        openingId: row.id,
-        name: row.name,
-        eco: row.eco,
-        pgn: row.pgn,
-        mastery,
-        lineCount: branch.length,
-        lineId: branch[0]?.id ?? null,
-        inRepertoire: branch.length > 0,
-        // This install has no engine/peer/incidence database: be explicit.
-        eval: null,
-        masters: null,
-        peers: null,
-        incidence: null,
-      });
-    }
-    candidates = [...widths.values()].slice(0, 10);
-    position = {
-      fen: gap.fen,
-      epd: epdOf(gap.fen),
-      side: gap.side,
-      prefixMoves,
-      moveNumber: Math.floor(prefixMoves.length / 2) + 1,
-      note: notesForPosition(db, repertoire.id, epdOf(gap.fen)).find((n) => !n.san) ?? null,
+  const requested = requestPosition(req, repertoire);
+  const lineId = requested?.lineId ?? (req.query.lineId ? Number(req.query.lineId) : null);
+  const selection = chooseGap(db, repertoire, {
+    lineId: lineId && !requested?.epd ? lineId : null,
+    epd: requested?.epd ?? null,
+    afterEpd: cleanEpd(req.query.after),
+  });
+  const detail = selection.detail ?? selection.position;
+  res.json(
+    gapResponse(repertoire, detail, selection.gap, selection.gaps, req)
+  );
+});
+
+api.get("/repertoires/:key/gaps", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const lineId = req.query.lineId ? Number(req.query.lineId) : null;
+  const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 50));
+  const gaps = computeGaps(db, repertoire, { lineId, limit });
+  res.json({
+    repertoire: repStats(repertoire),
+    gaps,
+    total: gaps.length,
+    available: gaps.length > 0,
+  });
+});
+
+api.get("/repertoires/:key/gap/next", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const afterEpd = cleanEpd(req.query.after, req.query.epd);
+  const lineId = req.query.lineId ? Number(req.query.lineId) : null;
+  const selection = chooseGap(db, repertoire, { lineId, afterEpd });
+  const detail = selection.detail ?? selection.position;
+  res.json(gapResponse(repertoire, detail, selection.gap, selection.gaps, req));
+});
+
+/**
+ * Builder: the full ranked candidate list for a position (saved and missing
+ * moves), with the exact path, notes and opening names. It never restricts the
+ * list to already-saved lines.
+ */
+api.get("/repertoires/:key/candidates", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const requested = requestPosition(req, repertoire);
+  const epd = requested?.epd ?? epdOf(new Chess().fen());
+  const limit = req.query.limit != null ? Math.max(0, Number(req.query.limit)) : null;
+  const offset = Math.max(0, Number(req.query.offset) || 0);
+  const detail = candidateList(db, {
+    epd,
+    repertoire,
+    prefixMoves: requested?.prefixMoves ?? pathForEpd(db, repertoire.id, epd)?.prefixMoves ?? [],
+    includeExcluded: req.query.hideExcluded !== "1",
+    limit,
+    offset,
+  });
+  const heading = positionHeading(detail.prefixMoves, detail.side);
+  const line = requested?.lineId
+    ? db.prepare("SELECT * FROM lines WHERE id = ?").get(requested.lineId)
+    : null;
+  res.json({
+    repertoire: repStats(repertoire),
+    position: {
+      ...detail,
+      heading,
+      note:
+        notesForPosition(db, repertoire.id, epd).find((note) => !note.san) ?? null,
+      annotations: annotationsForPosition(db, epd),
+    },
+    line: line ? lineView(line, repertoire) : null,
+    candidates: detail.candidates,
+    total: detail.total,
+    hasMore: detail.hasMore,
+    nextOffset: detail.nextOffset,
+    available: detail.available,
+    stats: repStats(repertoire),
+  });
+});
+
+
+function persistExclusion(repertoire, epd, san) {
+  const clean = String(epd || "").split(" ").slice(0, 4).join(" ");
+  if (!isEpdLike(clean)) return false;
+  let chess;
+  try {
+    chess = new Chess(fenFromEpd(clean));
+  } catch {
+    return false;
+  }
+  const move = findLegalMove(chess.fen(), san);
+  if (!move) return false;
+  db.prepare(
+    `INSERT OR IGNORE INTO repertoire_exclusions
+       (repertoire_id, epd, san, san_key, created_at)
+     VALUES (?, ?, ?, ?, ?)`
+  ).run(repertoire.id, clean, move.san, sanKey(move.san), now());
+  return true;
+}
+
+function autofillAt(repertoire, epd, { style = "expected", maxMoves = 1, dryRun = false } = {}) {
+  const path = pathForEpd(db, repertoire.id, epd);
+  const detail = candidateList(db, {
+    epd,
+    repertoire,
+    prefixMoves: path?.prefixMoves ?? [],
+    includeExcluded: false,
+  });
+  if (!detail.available) {
+    return { epd, inserted: [], skipped: [{ reason: "no-captured-report" }], considered: 0 };
+  }
+  if (detail.side !== repertoire.color) {
+    return {
+      epd,
+      inserted: [],
+      skipped: [{ reason: "not-your-turn", side: detail.side }],
+      considered: detail.candidates.length,
     };
   }
-  const stats = repStats(repertoire);
-  res.json({ repertoire: stats, gap: gap ? lineView(gap, repertoire) : null, position, candidates, stats });
-});
+  const playable = detail.candidates.filter(
+    (candidate) => !candidate.saved && !candidate.excluded
+  );
+  const ranked = [...playable].sort((a, b) => {
+    const as = scoreCandidate(a, style);
+    const bs = scoreCandidate(b, style);
+    return bs - as || Number(b.probability ?? 0) - Number(a.probability ?? 0);
+  });
+  const selected = ranked.slice(0, Math.max(1, Math.min(5, Number(maxMoves) || 1)));
+  const inserted = [];
+  const skipped = [];
+  for (const candidate of selected) {
+    if (dryRun) {
+      inserted.push({
+        epd,
+        san: candidate.san,
+        name: candidate.name,
+        rank: candidate.rank,
+        style,
+        styleScore: Math.round(scoreCandidate(candidate, style) * 1e6) / 1e6,
+        dryRun: true,
+      });
+      continue;
+    }
+    const added = addBranchAt(db, repertoire, {
+      epd,
+      san: candidate.san,
+      name: candidate.name || path?.lineName || `${repertoire.name} line`,
+      origin: "autofill",
+      autofillStyle: style,
+      sourceRef: candidate.source,
+    });
+    if (added.error) {
+      skipped.push({ san: candidate.san, reason: added.error });
+    } else {
+      inserted.push({
+        epd,
+        san: candidate.san,
+        name: candidate.name,
+        lineId: added.line.id,
+        name: added.line.name,
+        created: added.created,
+        transpositionOf: added.transpositionOf,
+        rank: candidate.rank,
+        style,
+        styleScore: Math.round(scoreCandidate(candidate, style) * 1e6) / 1e6,
+      });
+    }
+  }
+  for (const candidate of playable.filter((c) => !selected.includes(c))) {
+    skipped.push({ san: candidate.san, reason: "not-selected" });
+  }
+  return { epd, inserted, skipped, considered: detail.candidates.length, style };
+}
 
 api.post("/repertoires/:key/autofill", requireAuth, (req, res) => {
   const repertoire = getRepertoire(req.user.id, req.params.key);
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
-  // Kept for the current client. It deliberately does not invent review
-  // state: autofill is implemented properly by the builder workstream.
-  const gaps = db
+  const style = STYLES.includes(String(req.body?.style || ""))
+    ? String(req.body.style)
+    : "expected";
+  const requested = requestPosition(req, repertoire);
+  const explicit = requested?.epd ?? cleanEpd(req.body?.epd, req.body?.fen);
+  const dryRun = Boolean(req.body?.dryRun);
+  const maxMoves = Math.max(1, Math.min(5, Number(req.body?.maxMoves) || 1));
+
+  // Persist exclusions sent with the autofill request.
+  const exclusions = Array.isArray(req.body?.excludeMoves) ? req.body.excludeMoves : [];
+  for (const exclusion of exclusions) {
+    const epd = cleanEpd(exclusion.epd) || explicit;
+    if (epd && exclusion.san) persistExclusion(repertoire, epd, exclusion.san);
+  }
+
+  let targetEpd = explicit;
+  if (!targetEpd) {
+    const selection = chooseGap(db, repertoire);
+    targetEpd = selection.gap?.epd ?? null;
+  }
+  if (!targetEpd) {
+    return res.status(404).json({
+      error: "No captured candidate position is available to autofill",
+      code: "no_candidates",
+      filled: 0,
+      considered: 0,
+      repertoire: repStats(repertoire),
+    });
+  }
+
+  const targets = [];
+  if (req.body?.allFromHere || req.body?.all === true) {
+    const selection = chooseGap(db, repertoire, { epd: targetEpd });
+    const startPath = selection.position?.prefixMoves ?? [];
+    const gaps = computeGaps(db, repertoire, { limit: 200 });
+    const fromHere = gaps.filter(
+      (gap) =>
+        gap.path.length >= startPath.length &&
+        startPath.every((san, index) => gap.path[index] === san)
+    );
+    targets.push(targetEpd);
+    for (const gap of fromHere) {
+      if (gap.epd !== targetEpd) targets.push(gap.epd);
+      if (targets.length >= 20) break;
+    }
+  } else {
+    targets.push(targetEpd);
+  }
+
+  const results = [];
+  const inserted = [];
+  const skipped = [];
+  for (const epd of [...new Set(targets)]) {
+    const result = autofillAt(repertoire, epd, { style, maxMoves, dryRun });
+    results.push(result);
+    inserted.push(...result.inserted);
+    skipped.push(
+      ...result.skipped.map((entry) => ({ ...entry, epd: result.epd }))
+    );
+  }
+
+  const fresh = db.prepare("SELECT * FROM repertoires WHERE id = ?").get(repertoire.id);
+  res.json({
+    filled: inserted.length,
+    considered: results.reduce((n, result) => n + result.considered, 0),
+    inserted,
+    skipped,
+    style,
+    styles: STYLES,
+    styleSource: "heuristic-from-captured-fields",
+    dryRun,
+    targetEpd,
+    allFromHere: Boolean(req.body?.allFromHere || req.body?.all === true),
+    positions: results.map((result) => ({
+      epd: result.epd,
+      inserted: result.inserted.length,
+      considered: result.considered,
+      skipped: result.skipped.length,
+    })),
+    repertoire: repStats(fresh),
+  });
+});
+
+api.get("/repertoires/:key/exclusions", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const epd = cleanEpd(req.query.epd);
+  const rows = epd
+    ? db
+        .prepare("SELECT * FROM repertoire_exclusions WHERE repertoire_id = ? AND epd = ? ORDER BY id")
+        .all(repertoire.id, epd)
+    : db
+        .prepare("SELECT * FROM repertoire_exclusions WHERE repertoire_id = ? ORDER BY epd, id")
+        .all(repertoire.id);
+  res.json({
+    exclusions: rows.map((row) => ({
+      id: row.id,
+      epd: row.epd,
+      san: row.san,
+      createdAt: row.created_at,
+    })),
+    count: rows.length,
+  });
+});
+
+api.post("/repertoires/:key/exclusions", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const epd = cleanEpd(req.body?.epd, req.body?.fen);
+  if (!epd) return res.status(400).json({ error: "A valid epd or fen is required" });
+  const moves = Array.isArray(req.body?.moves) ? req.body.moves : [req.body?.san];
+  const added = [];
+  for (const san of moves) {
+    if (!san) continue;
+    if (persistExclusion(repertoire, epd, san)) added.push(san);
+  }
+  if (!added.length) return res.status(400).json({ error: "No legal move to exclude" });
+  res.status(201).json({
+    ok: true,
+    added,
+    exclusions: db
+      .prepare("SELECT * FROM repertoire_exclusions WHERE repertoire_id = ? AND epd = ?")
+      .all(repertoire.id, epd)
+      .map((row) => ({ id: row.id, epd: row.epd, san: row.san, createdAt: row.created_at })),
+  });
+});
+
+api.delete("/repertoires/:key/exclusions/:id", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const row = db
+    .prepare("SELECT * FROM repertoire_exclusions WHERE id = ? AND repertoire_id = ?")
+    .get(Number(req.params.id), repertoire.id);
+  if (!row) return res.status(404).json({ error: "Exclusion not found" });
+  db.prepare("DELETE FROM repertoire_exclusions WHERE id = ?").run(row.id);
+  res.json({ ok: true, deleted: row.id });
+});
+
+api.delete("/repertoires/:key/exclusions", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const epd = cleanEpd(req.query.epd);
+  const san = req.query.san ? String(req.query.san) : null;
+  if (!epd) return res.status(400).json({ error: "epd is required" });
+  const result = san
+    ? db
+        .prepare("DELETE FROM repertoire_exclusions WHERE repertoire_id = ? AND epd = ? AND san_key = ?")
+        .run(repertoire.id, epd, sanKey(san))
+    : db
+        .prepare("DELETE FROM repertoire_exclusions WHERE repertoire_id = ? AND epd = ?")
+        .run(repertoire.id, epd);
+  res.json({ ok: true, deleted: Number(result.changes || 0) });
+});
+
+/**
+ * Coverage model from captured position reports.
+ *
+ * Coverage is the probability mass of the captured candidate list that the
+ * repertoire answers. It is undefined (not 0) for positions without a report.
+ */
+api.get("/repertoires/:key/coverage", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+
+  const rows = db
     .prepare(
-      "SELECT id FROM lines WHERE repertoire_id = ? AND learned = 0 ORDER BY id LIMIT 6"
+      `SELECT DISTINCT epd FROM line_moves
+       WHERE repertoire_id = ? AND is_user = 1 ORDER BY epd`
     )
     .all(repertoire.id);
-  res.json({ filled: 0, considered: gaps.length, repertoire: repStats(repertoire) });
+
+  const positions = [];
+  let coveredMass = 0;
+  let totalMass = 0;
+  for (const row of rows) {
+    const path = pathForEpd(db, repertoire.id, row.epd);
+    const detail = candidateList(db, {
+      epd: row.epd,
+      repertoire,
+      prefixMoves: path?.prefixMoves ?? [],
+    });
+    if (!detail.available) {
+      positions.push({
+        epd: row.epd,
+        fen: detail.fen,
+        side: detail.side,
+        prefixMoves: detail.prefixMoves,
+        available: false,
+        coverage: null,
+        savedCount: detail.savedMoves.length,
+        candidateCount: null,
+        missing: [],
+      });
+      continue;
+    }
+    const mass = detail.candidates.reduce(
+      (sum, candidate) => sum + Number(candidate.probability ?? 0),
+      0
+    );
+    const covered = detail.candidates.reduce(
+      (sum, candidate) =>
+        sum + (candidate.saved ? Number(candidate.probability ?? 0) : 0),
+      0
+    );
+    totalMass += mass;
+    coveredMass += covered;
+    positions.push({
+      epd: row.epd,
+      fen: detail.fen,
+      side: detail.side,
+      prefixMoves: detail.prefixMoves,
+      available: true,
+      coverage: mass > 0 ? Math.round((covered / mass) * 1000) / 10 : null,
+      savedCount: detail.candidates.filter((candidate) => candidate.saved).length,
+      candidateCount: detail.candidates.length,
+      missing: detail.candidates
+        .filter((candidate) => !candidate.saved)
+        .map((candidate) => ({
+          san: candidate.san,
+          name: candidate.name,
+          probability: candidate.probability,
+          incidence: candidate.incidence,
+          oneIn: candidate.oneIn,
+          eval: candidate.eval,
+          masters: candidate.masters,
+        })),
+    });
+  }
+
+  const captured = db
+    .prepare("SELECT * FROM repertoire_characteristics WHERE repertoire_id = ?")
+    .get(repertoire.id);
+  res.json({
+    repertoire: repStats(repertoire),
+    available: positions.some((position) => position.available),
+    coverage: totalMass > 0 ? Math.round((coveredMass / totalMass) * 1000) / 10 : null,
+    capturedCoverage: captured?.coverage == null ? null : Number(captured.coverage),
+    source: totalMass > 0 ? "captured-position-reports" : null,
+    positionsWithReport: positions.filter((position) => position.available).length,
+    positionsWithoutReport: positions.filter((position) => !position.available).length,
+    positions,
+  });
+});
+
+api.get("/repertoires/:key/position-report", requireAuth, (req, res) => {
+  const repertoire = getRepertoire(req.user.id, req.params.key);
+  if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
+  const requested = requestPosition(req, repertoire);
+  const epd = requested?.epd;
+  if (!epd) return res.status(400).json({ error: "Provide epd, fen, moves or line" });
+  const detail = candidateList(db, {
+    epd,
+    repertoire,
+    prefixMoves: requested?.prefixMoves ?? [],
+    includeExcluded: true,
+  });
+  res.json({
+    repertoire: repStats(repertoire),
+    position: {
+      ...detail,
+      heading: positionHeading(detail.prefixMoves, detail.side),
+      note:
+        notesForPosition(db, repertoire.id, epd).find((note) => !note.san) ?? null,
+      annotations: annotationsForPosition(db, epd),
+      report: reportForEpd(db, epd, { repertoireColor: repertoire.color }),
+      name: fullNameForEpd(db, epd),
+    },
+    candidates: detail.candidates,
+    available: detail.available,
+  });
 });
 
 api.get("/repertoires/:key/learn", requireAuth, (req, res) => {
@@ -574,20 +2159,20 @@ api.post("/repertoires/:key/lines", requireAuth, (req, res) => {
   const openingId = req.body?.openingId;
   const pgn = String(req.body?.pgn || "").trim();
   const rawMoves = req.body?.moves ?? req.body?.sans;
-  let row = null;
+  let opening = null;
   let sans = null;
   let name = String(req.body?.name || "").trim();
 
   if (openingId) {
-    row = db.prepare("SELECT * FROM openings WHERE id = ?").get(Number(openingId));
-    if (!row) return res.status(400).json({ error: "Opening not found" });
-    if (row.side !== repertoire.color) {
+    opening = db.prepare("SELECT * FROM openings WHERE id = ?").get(Number(openingId));
+    if (!opening) return res.status(400).json({ error: "Opening not found" });
+    if (opening.side !== repertoire.color) {
       return res.status(400).json({
-        error: `That opening practises ${row.side}; this is a ${repertoire.color} repertoire`,
+        error: `That opening practises ${opening.side}; this is a ${repertoire.color} repertoire`,
       });
     }
-    sans = String(row.sans || "").split(" ").filter(Boolean);
-    name = name || row.name || "New line";
+    sans = String(opening.sans || "").split(" ").filter(Boolean);
+    name = name || opening.name || "New line";
   } else if (pgn || rawMoves) {
     try {
       if (rawMoves) {
@@ -606,65 +2191,29 @@ api.post("/repertoires/:key/lines", requireAuth, (req, res) => {
       return res.status(400).json({ error: `Could not read that line: ${error.message}` });
     }
     name = name || "Imported line";
-    row = { id: null, name };
   }
   if (!sans || !sans.length) {
     return res.status(400).json({ error: "Choose an opening or provide a PGN/moves" });
   }
 
-  const lastSide = sans.length % 2 === 1 ? "white" : "black";
-  if (lastSide !== repertoire.color) {
-    return res.status(400).json({
-      error: `That line ends with a ${lastSide} move; add it to a ${lastSide} repertoire`,
-    });
-  }
-
-  const joined = sans.join(" ");
-  const duplicate = db
-    .prepare("SELECT * FROM lines WHERE repertoire_id = ? AND moves = ? LIMIT 1")
-    .get(repertoire.id, joined);
-  if (duplicate) {
-    return res.json({
-      line: lineView(duplicate, repertoire),
-      repertoire: repStats(repertoire),
-      created: false,
-    });
-  }
-
-  const before = new Chess();
-  for (const san of sans.slice(0, -1)) before.move(san);
-  const stamp = now();
-  const result = db
-    .prepare(
-      `INSERT INTO lines
-        (repertoire_id, opening_id, name, moves, pgn, fen, side, expected_san,
-         learned, mastered, saved, due_at, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, NULL, ?)`
-    )
-    .run(
-      repertoire.id,
-      row.id ?? null,
-      name || "New line",
-      joined,
-      row.pgn ? String(row.pgn) : pgn || pgnFromSans(sans),
-      before.fen(),
-      repertoire.color,
-      sans[sans.length - 1],
-      stamp
-    );
-
-  rebuildRepertoireMoves(db, repertoire.id);
-  syncRepertoireTotals(repertoire.id);
-  const line = db
-    .prepare("SELECT * FROM lines WHERE id = ?")
-    .get(result.lastInsertRowid);
-  res.status(201).json({
-    line: lineView(line, repertoire),
+  const added = addLineFromSans(db, repertoire, {
+    sans,
+    name: name || "New line",
+    origin: openingId ? "opening" : "manual",
+    sourceRef: opening ? `opening:${opening.id}` : null,
+    openingId: opening ? opening.id : null,
+  });
+  if (added.error) return res.status(added.status || 400).json({ error: added.error });
+  const status = added.created ? 201 : 200;
+  res.status(status).json({
+    line: lineView(added.line, repertoire),
     repertoire: repStats(repertoire),
-    created: true,
+    created: added.created,
+    transposition: added.transposition,
+    transpositionOf: added.transpositionOf,
     lineMoves: db
       .prepare("SELECT * FROM line_moves WHERE line_id = ? ORDER BY ply")
-      .all(line.id)
+      .all(added.line.id)
       .map((m) => ({
         id: m.id,
         ply: m.ply,
@@ -687,93 +2236,22 @@ api.post("/repertoires/:key/moves", requireAuth, (req, res) => {
   const raw = String(req.body?.epd || req.body?.fen || "").trim();
   const epd = raw.split(" ").slice(0, 4).join(" ");
   if (!isEpdLike(epd)) return res.status(400).json({ error: "A valid epd or fen is required" });
-  if (epd.split(" ")[1] === (repertoire.color === "white" ? "b" : "w")) {
-    return res.status(400).json({ error: "It is not your turn at that position" });
-  }
 
-  let sanitized;
-  try {
-    sanitized = new Chess(fenFromEpd(epd));
-  } catch {
-    return res.status(400).json({ error: "That position is illegal" });
-  }
-  const move = findLegalMove(sanitized.fen(), String(req.body?.san || ""));
-  if (!move) {
-    return res.status(400).json({ error: "That move is not legal in this position" });
-  }
-
-  const lines = db.prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id").all(repertoire.id);
-  let best = null;
-  let bestIndex = -1;
-  for (const line of lines) {
-    const sans = lineSans(line);
-    let positions;
-    try {
-      positions = lineEpds(sans);
-    } catch {
-      continue;
-    }
-    const index = positions.indexOf(epd);
-    if (index === -1) continue;
-    if (!best || sans.length > lineSans(best).length) {
-      best = line;
-      bestIndex = index;
-    }
-  }
-
-  if (!best) {
-    if (epd !== epdOf(new Chess().fen())) {
-      return res.status(400).json({
-        error: "That position is not in this repertoire yet; add a line that reaches it first",
-      });
-    }
-    bestIndex = 0;
-  }
-
-  const prefix = best ? lineSans(best).slice(0, bestIndex) : [];
-  const sans = [...prefix, move.san];
-  const joined = sans.join(" ");
-  const duplicate = db
-    .prepare("SELECT * FROM lines WHERE repertoire_id = ? AND moves = ? LIMIT 1")
-    .get(repertoire.id, joined);
-  if (duplicate) {
-    return res.json({
-      line: lineView(duplicate, repertoire),
-      repertoire: repStats(repertoire),
-      created: false,
-    });
-  }
-
-  const before = new Chess();
-  for (const san of sans.slice(0, -1)) before.move(san);
-  const result = db
-    .prepare(
-      `INSERT INTO lines
-        (repertoire_id, opening_id, name, moves, pgn, fen, side, expected_san,
-         learned, mastered, saved, due_at, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, NULL, ?)`
-    )
-    .run(
-      repertoire.id,
-      best?.opening_id ?? null,
-      String(req.body?.name || best?.name || `${repertoire.name} line`).trim(),
-      joined,
-      pgnFromSans(sans),
-      before.fen(),
-      repertoire.color,
-      move.san,
-      now()
-    );
-
-  rebuildRepertoireMoves(db, repertoire.id);
-  syncRepertoireTotals(repertoire.id);
-  const line = db
-    .prepare("SELECT * FROM lines WHERE id = ?")
-    .get(result.lastInsertRowid);
-  res.status(201).json({
-    line: lineView(line, repertoire),
+  const added = addBranchAt(db, repertoire, {
+    epd,
+    san: String(req.body?.san || ""),
+    name: String(req.body?.name || "").trim() || null,
+    origin: String(req.body?.origin || "manual"),
+    autofillStyle: req.body?.style ?? null,
+  });
+  if (added.error) return res.status(added.status || 400).json({ error: added.error });
+  const status = added.created ? 201 : 200;
+  res.status(status).json({
+    line: lineView(added.line, repertoire),
     repertoire: repStats(repertoire),
-    created: true,
+    created: added.created,
+    transposition: added.transposition,
+    transpositionOf: added.transpositionOf,
   });
 });
 
@@ -801,8 +2279,19 @@ api.patch("/lines/:id", requireAuth, (req, res) => {
   }
 
   db.prepare(
-    "UPDATE lines SET learned = ?, mastered = ?, saved = ?, due_at = ? WHERE id = ?"
-  ).run(learned, mastered, saved, dueAt, line.id);
+    "UPDATE lines SET learned = ?, mastered = ?, saved = ?, due_at = ?, chapter_id = ? WHERE id = ?"
+  ).run(
+    learned,
+    mastered,
+    saved,
+    dueAt,
+    req.body?.chapterId === undefined
+      ? line.chapter_id ?? null
+      : req.body.chapterId == null
+        ? null
+        : Number(req.body.chapterId),
+    line.id
+  );
   const fresh = db.prepare("SELECT * FROM lines WHERE id = ?").get(line.id);
   res.json({ line: lineView(fresh) });
 });
@@ -820,11 +2309,52 @@ api.delete("/lines/:id", requireAuth, (req, res) => {
 
 api.get("/openings", requireAuth, (req, res) => {
   const q = String(req.query.q || "").trim();
-  const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20));
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
   const side =
     req.query.side === "white" || req.query.side === "black" ? req.query.side : null;
   const prefix = String(req.query.prefix || "").trim();
+  const fen =
+    req.query.fen != null
+      ? String(req.query.fen)
+      : req.query.epd != null
+        ? `${String(req.query.epd)} 0 1`
+        : null;
   let rows;
+
+  if (fen) {
+    const epd = cleanEpd(fen, req.query.epd);
+    const clauses = ["epd_after = ?"];
+    const values = [epd];
+    if (side) {
+      clauses.push("side = ?");
+      values.push(side);
+    }
+    rows = db
+      .prepare(
+        `SELECT id, eco, name, pgn, sans, fen, epd, epd_after, expected_san, side, family
+         FROM openings WHERE ${clauses.join(" AND ")}
+         ORDER BY LENGTH(sans), name LIMIT ?`
+      )
+      .all(...values, limit);
+    const name = fullNameForEpd(db, epd);
+    return res.json({
+      openings: rows.map((o) => openingOut(o)),
+      positions: [
+        {
+          epd,
+          fen: fenFromEpd(epd),
+          name: name.name,
+          fullName: name.fullName,
+          friendlyName: name.friendlyName,
+          source: name.source,
+          report: reportForEpd(db, epd) ? true : false,
+          annotations: annotationsForPosition(db, epd),
+        },
+      ],
+      query: { fen: fenFromEpd(epd), epd },
+    });
+  }
+
   if (prefix) {
     const like = `${prefix} %`;
     const clauses = ["sans LIKE ?"];
@@ -839,7 +2369,7 @@ api.get("/openings", requireAuth, (req, res) => {
     }
     rows = db
       .prepare(
-        `SELECT id, eco, name, pgn, sans, fen, expected_san, side, family
+        `SELECT id, eco, name, pgn, sans, fen, epd, epd_after, expected_san, side, family
          FROM openings WHERE ${clauses.join(" AND ")}
          ORDER BY eco, name LIMIT ?`
       )
@@ -849,32 +2379,46 @@ api.get("/openings", requireAuth, (req, res) => {
       ? searchOpenings(q, side ? 50 : limit)
           .filter((o) => !side || o.side === side)
           .slice(0, limit)
+          .map((o) => ({
+            ...o,
+            epd: o.epd ?? epdOf(o.fen),
+          }))
       : side
         ? db
             .prepare(
-              "SELECT id, eco, name, pgn, sans, fen, expected_san, side, family FROM openings WHERE side = ? ORDER BY eco, name LIMIT ?"
+              "SELECT id, eco, name, pgn, sans, fen, epd, epd_after, expected_san, side, family FROM openings WHERE side = ? ORDER BY eco, name LIMIT ?"
             )
             .all(side, limit)
         : db
             .prepare(
-              "SELECT id, eco, name, pgn, sans, fen, expected_san, side, family FROM openings ORDER BY eco, name LIMIT ?"
+              "SELECT id, eco, name, pgn, sans, fen, epd, epd_after, expected_san, side, family FROM openings ORDER BY eco, name LIMIT ?"
             )
             .all(limit);
   }
   res.json({
-    openings: rows.map((o) => ({
-      id: o.id,
-      eco: o.eco,
-      name: o.name,
-      pgn: o.pgn,
-      moves: String(o.sans || "").split(" ").filter(Boolean),
-      fen: o.fen,
-      expectedSan: o.expected_san,
-      side: o.side,
-      family: o.family,
-    })),
+    openings: rows.map((o) => openingOut(o)),
+    positions: [],
   });
 });
+
+function openingOut(o) {
+  const finalEpd = o.epd_after ?? o.epd ?? epdOf(o.fen);
+  const name = fullNameForEpd(db, finalEpd);
+  return {
+    id: o.id,
+    eco: o.eco,
+    name: o.name,
+    fullName: name.fullName ?? o.name,
+    friendlyName: name.friendlyName ?? null,
+    epd: finalEpd,
+    pgn: o.pgn,
+    moves: String(o.sans || "").split(" ").filter(Boolean),
+    fen: o.fen,
+    expectedSan: o.expected_san,
+    side: o.side,
+    family: o.family,
+  };
+}
 
 /* ---------------------------------------------------------------- sessions --- */
 
@@ -1946,82 +3490,111 @@ api.post("/practice/attempt", requireAuth, (req, res) => {
 
 /* ------------------------------------------------------------------- model --- */
 
-function gamePlies(game) {
-  const chess = new Chess();
-  chess.loadPgn(game.pgn);
-  return chess.history();
-}
-
-function progressState(game, row) {
-  const plies = gamePlies(game);
-  const total = plies.length;
-  const ply = Math.max(0, Math.min(total, Number(row?.ply || 0)));
-  const completed = Boolean(row?.completed) || (total > 0 && ply >= total);
-  return {
-    ply,
-    total,
-    percent: total ? Math.round((ply / total) * 100) : 0,
-    completed,
-    reviewed: Boolean(row?.reviewed),
-    score: row?.score ?? null,
-    completedAt: row?.completed_at ?? null,
-    reviewedAt: row?.reviewed_at ?? null,
-    updatedAt: row?.updated_at ?? null,
-  };
-}
-
 api.get("/model-games", requireAuth, (req, res) => {
-  const games = db
-    .prepare(
-      `SELECT g.*, p.ply, p.completed, p.reviewed, p.score, p.completed_at,
-              p.reviewed_at, p.updated_at
-       FROM model_games g
-       LEFT JOIN model_progress p ON p.game_id = g.id AND p.user_id = ?
-       ORDER BY g.id`
-    )
-    .all(req.user.id);
+  const settings = db.prepare("SELECT * FROM settings WHERE user_id = ?").get(req.user.id);
+  const requested = String(req.query.source || settings?.model_source || "historical").toLowerCase();
+  let rows = gameRows(db);
+  if (requested === "online") {
+    rows = rows.filter((row) =>
+      String(row.data_source || "").toLowerCase().includes("online")
+    );
+  } else if (requested === "masters") {
+    rows = rows.filter((row) =>
+      String(row.data_source || "").toLowerCase().includes("master")
+    );
+  }
+  const games = rows.map((row) => gameSummary(db, row, req.user.id));
+  const daily = db
+    .prepare("SELECT game_id FROM model_daily_selection WHERE date = ?")
+    .get(new Date().toISOString().slice(0, 10));
   res.json({
-    games: games.map((g) => ({
-      id: g.id,
-      white: g.white,
-      black: g.black,
-      event: g.event,
-      year: g.year,
-      result: g.result,
-      pgn: g.pgn,
-      description: g.description,
-      progress: Number(g.ply || 0),
-      progressState: progressState(g, g),
-    })),
+    games,
+    total: games.length,
+    dailyGameId: daily?.game_id ?? games.find((game) => game.daily)?.id ?? null,
+    source: requested,
+    available: games.length > 0,
+    reason:
+      games.length > 0
+        ? null
+        : requested === "online"
+          ? "No online games are connected in this local-first build."
+          : "No model games match this source.",
+  });
+});
+
+api.get("/model-games/daily", requireAuth, (req, res) => {
+  const result = dailyGame(db, req.user.id, {
+    date: req.query.date,
+    forceNewGame: req.query.forceNewGame === "1" || req.query.force_new_game === "1",
+    random: req.query.random === "1",
+  });
+  res.json(result);
+});
+
+api.post("/model-games/daily", requireAuth, (req, res) => {
+  const body = req.body || {};
+  const result = dailyGame(db, req.user.id, {
+    date: body.date ? String(body.date).slice(0, 10) : undefined,
+    forceNewGame: Boolean(body.forceNewGame ?? body.force_new_game),
+    newGame: Boolean(body.newGame ?? body.new_game),
+    random: Boolean(body.random),
+  });
+  res.json(result);
+});
+
+api.get("/model-games/random", requireAuth, (req, res) => {
+  const game = randomGame(db, req.user.id, { exclude: req.query.exclude });
+  if (!game) return res.status(404).json({ error: "No model games available" });
+  res.json({ game, random: true });
+});
+
+api.get("/model-games/next", requireAuth, (req, res) => {
+  const game = nextGame(db, req.user.id, { after: req.query.after });
+  if (!game) return res.status(404).json({ error: "No model games available" });
+  res.json({ game, next: true });
+});
+
+api.get("/model-games/history", requireAuth, (req, res) => {
+  const payload = modelHistory(db, req.user.id, {
+    groupBy: req.query.groupBy === "day" ? "day" : "week",
+    includeDaily: req.query.includeDaily !== "0",
+  });
+  res.json({
+    ...payload,
+    available: payload.total > 0,
+    source: "captured",
   });
 });
 
 api.get("/model-games/:id", requireAuth, (req, res) => {
-  const game = db.prepare("SELECT * FROM model_games WHERE id = ?").get(Number(req.params.id));
-  if (!game) return res.status(404).json({ error: "Game not found" });
-  const row = db
-    .prepare("SELECT * FROM model_progress WHERE user_id = ? AND game_id = ?")
-    .get(req.user.id, game.id);
+  const row = gameRow(db, Number(req.params.id));
+  if (!row) return res.status(404).json({ error: "Game not found" });
+  const game = gameDetail(db, row, req.user.id);
   res.json({
     game: {
-      id: game.id,
-      white: game.white,
-      black: game.black,
-      event: game.event,
-      year: game.year,
-      result: game.result,
-      pgn: game.pgn,
-      description: game.description,
-      moves: gamePlies(game),
-      progressState: progressState(game, row),
+      ...game,
+      // Old clients expect `moves` to be SAN strings; the detailed move list is
+      // available as `plies` and `moveList`.
+      moves: (game.moves || []).map((move) => move.san),
+      plies: game.moves,
+      moveList: game.moves,
+      evals: game.evalSamples.map((sample) => sample.evalCp),
+      evalsAvailable: game.evalGraph.available,
+      players: game.players,
+      performances: game.performances,
+      eventName: game.eventName,
+      playedAt: game.playedAt,
+      progressState: game.progressState,
     },
   });
 });
 
 api.post("/model-games/:id/progress", requireAuth, (req, res) => {
-  const game = db.prepare("SELECT * FROM model_games WHERE id = ?").get(Number(req.params.id));
-  if (!game) return res.status(404).json({ error: "Game not found" });
-  const total = gamePlies(game).length;
+  const row = gameRow(db, Number(req.params.id));
+  if (!row) return res.status(404).json({ error: "Game not found" });
+  const total = Number(
+    db.prepare("SELECT COUNT(*) AS n FROM model_game_moves WHERE game_id = ?").get(row.id).n
+  );
   const requested = Math.trunc(Number(req.body?.ply) || 0);
   const ply = Math.max(0, Math.min(total, requested));
   if (requested > total) {
@@ -2040,7 +3613,7 @@ api.post("/model-games/:id/progress", requireAuth, (req, res) => {
   const stamp = now();
   const existing = db
     .prepare("SELECT * FROM model_progress WHERE user_id = ? AND game_id = ?")
-    .get(req.user.id, game.id);
+    .get(req.user.id, row.id);
 
   db.prepare(
     `INSERT INTO model_progress
@@ -2056,20 +3629,57 @@ api.post("/model-games/:id/progress", requireAuth, (req, res) => {
        updated_at = excluded.updated_at`
   ).run(
     req.user.id,
-    game.id,
+    row.id,
     ply,
     completed ? 1 : 0,
     reviewed ? 1 : 0,
     score,
     completed ? existing?.completed_at || stamp : null,
-    reviewed && existing && !existing.reviewed ? stamp : reviewed ? existing?.reviewed_at || stamp : null,
+    reviewed
+      ? existing && !existing.reviewed
+        ? stamp
+        : existing?.reviewed_at || stamp
+      : null,
     stamp
   );
 
-  const row = db
-    .prepare("SELECT * FROM model_progress WHERE user_id = ? AND game_id = ?")
-    .get(req.user.id, game.id);
-  res.json({ ok: true, ply, progress: progressState(game, row) });
+  res.json({
+    ok: true,
+    ply,
+    progress: progressFor(db, row.id, req.user.id),
+  });
+});
+
+api.get("/model-games/:id/review", requireAuth, (req, res) => {
+  const row = gameRow(db, Number(req.params.id));
+  if (!row) return res.status(404).json({ error: "Game not found" });
+  const game = gameDetail(db, row, req.user.id);
+  res.json({
+    gameId: row.id,
+    review: game.review,
+    analysis: game.analysis,
+    annotations: game.annotations,
+    annotationsAvailable: game.annotationsAvailable,
+    available: game.analysis.available,
+    engineReviewAvailable: false,
+  });
+});
+
+api.post("/model-games/:id/review", requireAuth, (req, res) => {
+  const row = gameRow(db, Number(req.params.id));
+  if (!row) return res.status(404).json({ error: "Game not found" });
+  const progress = markReviewed(db, req.user.id, row.id, {
+    reviewed: req.body?.reviewed !== false,
+    score: req.body?.score == null ? null : req.body.score,
+  });
+  const game = gameDetail(db, row, req.user.id);
+  res.json({
+    ok: true,
+    progress,
+    review: game.review,
+    analysis: game.analysis,
+    engineReviewAvailable: false,
+  });
 });
 
 /* ---------------------------------------------------------------- settings --- */
@@ -2084,6 +3694,7 @@ api.get("/settings", requireAuth, (req, res) => {
       sound: Boolean(s.sound),
       showHints: Boolean(s.show_hints),
       dailyGoal: s.daily_goal,
+      modelSource: s.model_source || "historical",
     },
   });
 });
@@ -2105,10 +3716,22 @@ api.patch("/settings", requireAuth, (req, res) => {
     body.dailyGoal != null
       ? Math.max(1, Math.min(500, Number(body.dailyGoal)))
       : s.daily_goal;
+  const modelSource = ["historical", "online", "masters"].includes(body.modelSource)
+    ? body.modelSource
+    : s.model_source || "historical";
   db.prepare(
     `UPDATE settings SET board_theme = ?, coordinates = ?, legal_moves = ?,
-       sound = ?, show_hints = ?, daily_goal = ? WHERE user_id = ?`
-  ).run(boardTheme, coordinates, legalMoves, sound, showHints, dailyGoal, req.user.id);
+       sound = ?, show_hints = ?, daily_goal = ?, model_source = ? WHERE user_id = ?`
+  ).run(
+    boardTheme,
+    coordinates,
+    legalMoves,
+    sound,
+    showHints,
+    dailyGoal,
+    modelSource,
+    req.user.id
+  );
   res.json({
     settings: {
       boardTheme,
@@ -2117,6 +3740,7 @@ api.patch("/settings", requireAuth, (req, res) => {
       sound: Boolean(sound),
       showHints: Boolean(showHints),
       dailyGoal,
+      modelSource,
     },
   });
 });

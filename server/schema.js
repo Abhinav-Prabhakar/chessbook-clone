@@ -7,7 +7,8 @@
  * backfilled into the per-position `line_moves` table.
  */
 
-import { deriveLineMoves, lineSans, sanKey } from "./positions.js";
+import { Chess } from "chess.js";
+import { deriveLineMoves, epdOf, lineSans, sanKey } from "./positions.js";
 import { localDay } from "./dates.js";
 import { rebuildRepertoireMoves } from "./repertoire.js";
 
@@ -172,6 +173,341 @@ const MIGRATIONS = [
             )
         WHERE id IN (SELECT DISTINCT line_move_id FROM reviews WHERE line_move_id IS NOT NULL);
       `);
+    },
+  },
+  {
+    version: 2,
+    name: "captured opening data, courses, content and model games",
+    up(db) {
+      // --- provenance + richer repertoire/bookkeeping columns ---
+      addColumn(db, "repertoires", "capture_reference_id", "TEXT");
+      addColumn(db, "repertoires", "source", "TEXT NOT NULL DEFAULT 'manual'");
+      addColumn(db, "repertoires", "slug", "TEXT");
+
+      addColumn(db, "lines", "origin", "TEXT NOT NULL DEFAULT 'legacy'");
+      addColumn(db, "lines", "autofill_style", "TEXT");
+      addColumn(db, "lines", "chapter_id", "INTEGER");
+      addColumn(db, "lines", "epd", "TEXT");
+      addColumn(db, "lines", "source_ref", "TEXT");
+
+      addColumn(db, "openings", "epd", "TEXT");
+      addColumn(db, "openings", "epd_after", "TEXT");
+      addColumn(db, "openings", "source", "TEXT NOT NULL DEFAULT 'lichess-eco'");
+      addColumn(db, "openings", "version", "TEXT");
+      addColumn(db, "settings", "model_source", "TEXT NOT NULL DEFAULT 'historical'");
+
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS data_sources (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          dataset TEXT NOT NULL,
+          version TEXT NOT NULL DEFAULT '1',
+          source TEXT NOT NULL,
+          item_count INTEGER NOT NULL DEFAULT 0,
+          imported_at TEXT NOT NULL,
+          UNIQUE (dataset, version)
+        );
+
+        CREATE TABLE IF NOT EXISTS capture_profile (
+          key TEXT PRIMARY KEY,
+          value TEXT,
+          source TEXT NOT NULL,
+          imported_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS opening_imports (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          source TEXT NOT NULL,
+          version TEXT NOT NULL,
+          rows INTEGER NOT NULL DEFAULT 0,
+          imported_at TEXT NOT NULL,
+          UNIQUE (source, version)
+        );
+
+        CREATE TABLE IF NOT EXISTS opening_names (
+          epd TEXT PRIMARY KEY,
+          full_name TEXT NOT NULL,
+          friendly_name TEXT,
+          source TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_opening_names_name
+          ON opening_names(full_name);
+
+        CREATE TABLE IF NOT EXISTS opening_aliases (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          epd TEXT NOT NULL,
+          full_name TEXT NOT NULL,
+          friendly_name TEXT,
+          target_epd TEXT,
+          kind TEXT NOT NULL DEFAULT 'name',
+          source TEXT NOT NULL,
+          UNIQUE (epd, full_name, kind)
+        );
+        CREATE INDEX IF NOT EXISTS idx_opening_aliases_epd
+          ON opening_aliases(epd);
+
+        CREATE TABLE IF NOT EXISTS position_reports (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          epd TEXT NOT NULL,
+          reference_repertoire_id TEXT,
+          reference_color TEXT,
+          side_to_move TEXT NOT NULL,
+          stockfish_eval INTEGER,
+          stockfish_mate INTEGER,
+          master_white INTEGER,
+          master_draw INTEGER,
+          master_black INTEGER,
+          peer_white INTEGER,
+          peer_draw INTEGER,
+          peer_black INTEGER,
+          plans TEXT NOT NULL DEFAULT '[]',
+          complete INTEGER NOT NULL DEFAULT 1,
+          source TEXT NOT NULL,
+          UNIQUE (epd, reference_repertoire_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_position_reports_epd
+          ON position_reports(epd);
+
+        CREATE TABLE IF NOT EXISTS position_candidates (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          report_id INTEGER NOT NULL REFERENCES position_reports(id) ON DELETE CASCADE,
+          epd TEXT NOT NULL,
+          san TEXT NOT NULL,
+          san_key TEXT NOT NULL,
+          epd_after TEXT,
+          rank INTEGER NOT NULL,
+          probability REAL,
+          incidence REAL,
+          master_white INTEGER,
+          master_draw INTEGER,
+          master_black INTEGER,
+          peer_white INTEGER,
+          peer_draw INTEGER,
+          peer_black INTEGER,
+          stockfish_eval INTEGER,
+          stockfish_mate INTEGER,
+          needed INTEGER,
+          danger REAL,
+          annotation TEXT,
+          similar_position_count INTEGER,
+          similar_position_match_count INTEGER,
+          UNIQUE (report_id, san_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_position_candidates_epd
+          ON position_candidates(epd, rank);
+
+        CREATE TABLE IF NOT EXISTS position_annotations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          epd TEXT NOT NULL,
+          san TEXT,
+          text TEXT NOT NULL,
+          mine INTEGER NOT NULL DEFAULT 0,
+          repertoire_id TEXT,
+          source TEXT NOT NULL,
+          UNIQUE (epd, san, text)
+        );
+        CREATE INDEX IF NOT EXISTS idx_position_annotations_epd
+          ON position_annotations(epd);
+
+        CREATE TABLE IF NOT EXISTS repertoire_characteristics (
+          repertoire_id INTEGER PRIMARY KEY REFERENCES repertoires(id) ON DELETE CASCADE,
+          reference_repertoire_id TEXT,
+          characteristics TEXT NOT NULL DEFAULT '{}',
+          coverage REAL,
+          biggest_miss TEXT,
+          biggest_misses TEXT,
+          gaps TEXT,
+          source TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS repertoire_exclusions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          repertoire_id INTEGER NOT NULL REFERENCES repertoires(id) ON DELETE CASCADE,
+          epd TEXT NOT NULL,
+          san TEXT NOT NULL,
+          san_key TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          UNIQUE (repertoire_id, epd, san_key)
+        );
+
+        CREATE TABLE IF NOT EXISTS repertoire_chapters (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          repertoire_id INTEGER NOT NULL REFERENCES repertoires(id) ON DELETE CASCADE,
+          name TEXT NOT NULL,
+          description TEXT NOT NULL DEFAULT '',
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_chapters_rep
+          ON repertoire_chapters(repertoire_id, sort_order);
+
+        CREATE TABLE IF NOT EXISTS courses (
+          id TEXT PRIMARY KEY,
+          slug TEXT NOT NULL UNIQUE,
+          name TEXT NOT NULL,
+          side TEXT NOT NULL CHECK (side IN ('white', 'black')),
+          author_name TEXT,
+          author_title TEXT,
+          avatar_image TEXT,
+          description TEXT,
+          description_short TEXT,
+          official INTEGER NOT NULL DEFAULT 0,
+          featured INTEGER NOT NULL DEFAULT 0,
+          move_count INTEGER,
+          coverage REAL,
+          elo_ranges TEXT NOT NULL DEFAULT '[]',
+          characteristics TEXT NOT NULL DEFAULT '{}',
+          video_id TEXT,
+          source TEXT NOT NULL,
+          imported_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_courses_side ON courses(side, name);
+
+        CREATE TABLE IF NOT EXISTS course_chapters (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          course_id TEXT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+          name TEXT NOT NULL,
+          description TEXT NOT NULL DEFAULT '',
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          source TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_course_chapters
+          ON course_chapters(course_id, sort_order);
+
+        CREATE TABLE IF NOT EXISTS opening_guides (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          slug TEXT NOT NULL UNIQUE,
+          eco TEXT NOT NULL,
+          name TEXT NOT NULL,
+          side TEXT NOT NULL CHECK (side IN ('white', 'black')),
+          family TEXT NOT NULL,
+          sans TEXT NOT NULL,
+          pgn TEXT NOT NULL,
+          epd TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          source TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_guides_side ON opening_guides(side, sort_order);
+
+        CREATE TABLE IF NOT EXISTS coaches (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          slug TEXT NOT NULL UNIQUE,
+          name TEXT NOT NULL,
+          rating TEXT,
+          headline TEXT,
+          bio TEXT,
+          languages TEXT NOT NULL DEFAULT '[]',
+          price TEXT,
+          platforms TEXT NOT NULL DEFAULT '[]',
+          first_lesson_free INTEGER NOT NULL DEFAULT 0,
+          source TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS blog_posts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          slug TEXT NOT NULL UNIQUE,
+          title TEXT NOT NULL,
+          published_at TEXT NOT NULL,
+          excerpt TEXT NOT NULL,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          source TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS model_game_data (
+          game_id INTEGER PRIMARY KEY REFERENCES model_games(id) ON DELETE CASCADE,
+          external_id TEXT UNIQUE,
+          source TEXT,
+          link TEXT,
+          event_name TEXT,
+          played_at TEXT,
+          captured_at TEXT,
+          year TEXT,
+          player_white TEXT,
+          player_black TEXT,
+          white_elo INTEGER,
+          black_elo INTEGER,
+          white_title TEXT,
+          black_title TEXT,
+          result TEXT,
+          reviewed INTEGER NOT NULL DEFAULT 0,
+          performances TEXT NOT NULL DEFAULT '{}',
+          epds TEXT NOT NULL DEFAULT '[]',
+          evals TEXT NOT NULL DEFAULT '[]',
+          annotations TEXT NOT NULL DEFAULT '{}',
+          is_daily INTEGER NOT NULL DEFAULT 0,
+          daily_date TEXT,
+          source_file TEXT,
+          imported_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS model_game_moves (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          game_id INTEGER NOT NULL REFERENCES model_games(id) ON DELETE CASCADE,
+          ply INTEGER NOT NULL,
+          san TEXT NOT NULL,
+          epd_before TEXT,
+          epd_after TEXT,
+          eval_before INTEGER,
+          eval_after INTEGER,
+          UNIQUE (game_id, ply)
+        );
+        CREATE INDEX IF NOT EXISTS idx_model_game_moves
+          ON model_game_moves(game_id, ply);
+
+        CREATE TABLE IF NOT EXISTS model_game_annotations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          game_id INTEGER NOT NULL REFERENCES model_games(id) ON DELETE CASCADE,
+          ply INTEGER,
+          san TEXT,
+          text TEXT NOT NULL,
+          source TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS model_daily_selection (
+          date TEXT PRIMARY KEY,
+          game_id INTEGER NOT NULL REFERENCES model_games(id) ON DELETE CASCADE,
+          force_new INTEGER NOT NULL DEFAULT 0,
+          selected_at TEXT NOT NULL
+        );
+      `);
+
+      // --- backfill derived columns on existing installs ---
+      const lines = db.prepare("SELECT * FROM lines").all();
+      const updateLine = db.prepare("UPDATE lines SET epd = ?, origin = COALESCE(origin, 'legacy') WHERE id = ?");
+      for (const line of lines) {
+        try {
+          const sans = lineSans(line);
+          const chess = new Chess();
+          for (const san of sans) chess.move(san);
+          updateLine.run(epdOf(chess.fen()), line.id);
+        } catch {
+          // invalid lines are reported by /api/integrity
+        }
+      }
+
+      const openings = db.prepare("SELECT id, fen, sans FROM openings").all();
+      const updateOpening = db.prepare(
+        "UPDATE openings SET epd = ?, epd_after = ?, source = COALESCE(source, 'lichess-eco'), version = COALESCE(version, 'legacy') WHERE id = ?"
+      );
+      for (const opening of openings) {
+        let epdAfter = null;
+        try {
+          const chess = new Chess();
+          for (const san of String(opening.sans || "").split(" ").filter(Boolean)) {
+            chess.move(san);
+          }
+          epdAfter = epdOf(chess.fen());
+        } catch {
+          // integrity reports malformed rows
+        }
+        updateOpening.run(epdOf(opening.fen), epdAfter, opening.id);
+      }
+
+      db.exec("CREATE INDEX IF NOT EXISTS idx_openings_epd ON openings(epd);");
+      db.exec("CREATE INDEX IF NOT EXISTS idx_openings_epd_after ON openings(epd_after);");
+      db.exec("CREATE INDEX IF NOT EXISTS idx_lines_epd ON lines(repertoire_id, epd);");
     },
   },
 ];

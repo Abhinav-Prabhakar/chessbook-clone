@@ -18,6 +18,14 @@ export function createApp() {
     next();
   });
   app.use(express.json({ limit: "512kb" }));
+  // PGN imports may arrive as a raw `text/plain` / `application/x-chess-pgn`
+  // body (a pasted or uploaded file), not JSON.
+  app.use(
+    express.text({
+      type: ["text/plain", "application/x-chess-pgn", "application/pgn"],
+      limit: "2mb",
+    })
+  );
 
   app.use("/api", api);
 
@@ -53,6 +61,13 @@ export function createApp() {
 
   app.use((err, _req, res, _next) => {
     console.error(err);
+    const status = Number(err?.status || err?.statusCode || 500);
+    if (status >= 400 && status < 500) {
+      return res.status(status).json({
+        error: err.type === "entity.parse.failed" ? "Invalid request body" : err.message,
+        code: err.type || "bad_request",
+      });
+    }
     res.status(500).json({ error: "Something went wrong" });
   });
 

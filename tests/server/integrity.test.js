@@ -108,7 +108,7 @@ after(() => {
 });
 
 test("an existing database is upgraded in place and lines are backfilled", () => {
-  assert.equal(db.prepare("PRAGMA user_version").get().user_version, 1);
+  assert.equal(db.prepare("PRAGMA user_version").get().user_version, 2);
 
   const moves = db.prepare("SELECT * FROM line_moves ORDER BY ply").all();
   assert.equal(moves.length, 3);

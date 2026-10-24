@@ -1,0 +1,129 @@
+{
+ "generatedAt": "2026-10-24T05:04:50.377Z",
+ "_provenance": {
+  "coaches": "recon/live6/04-coaches.json",
+  "blog": "recon/live6/05-blog.json"
+ },
+ "coaches": [
+  {
+   "slug": "blunder-man",
+   "name": "Blunder Man",
+   "rating": "2180 Chess.com Rapid",
+   "headline": "2180 Chess.com Rapid",
+   "bio": "I look at my students’ games to see where they are going wrong and what they need to work on. I then focus my lessons on those specific areas, so the coaching is based on the student’s actual needs rather than following the same approach for everyone.",
+   "languages": [
+    "English"
+   ],
+   "price": "$50/hour",
+   "platforms": [
+    "Chess.com"
+   ],
+   "firstLessonFree": false,
+   "source": "recon/live6/04-coaches.json"
+  },
+  {
+   "slug": "daniel-pivonka",
+   "name": "Daniel Pivonka",
+   "rating": "2100 Lichess Rapid",
+   "headline": "2100 Lichess Rapid",
+   "bio": "I focus on personalized, engaging chess lessons tailored to each student’s level, from beginners to intermediates. My approach blends strategic play analysis, puzzle-solving, and game reviews to sharpen key skills like openings, tactics, and endgames.",
+   "languages": [],
+   "price": "$40/hour",
+   "platforms": [],
+   "firstLessonFree": true,
+   "source": "recon/live6/04-coaches.json"
+  },
+  {
+   "slug": "vasyl",
+   "name": "Vasyl",
+   "rating": "2002 Chess.com Rapid 30+0",
+   "headline": "2002 Chess.com Rapid 30+0",
+   "bio": "Im a very affordable coach for those who want to reach 2000 elo ASAP, i dont charge money till you see first 50+ elo, then its 4$ a hour + you can message me whenever you want.",
+   "languages": [
+    "English",
+    "Russian",
+    "Ukrainian"
+   ],
+   "price": "4$/hour after +50 elo",
+   "platforms": [
+    "Chess.com"
+   ],
+   "firstLessonFree": false,
+   "source": "recon/live6/04-coaches.json"
+  }
+ ],
+ "blog": [
+  {
+   "slug": "spending-10-months-building-the-most-human-like-chess-bot",
+   "title": "Spending 10 months building the most human-like chess bot",
+   "publishedAt": "2026-10-19",
+   "excerpt": "Chessbook-1 predicts human moves as well as the best published models, and it also knows how strong to play at every rating, how long a human would think, how time trouble changes things, and who is winning.",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 0
+  },
+  {
+   "slug": "improving-in-chess-is-hard-i-built-the-worlds-most-human-like-chess-ai-to-help-me",
+   "title": "Improving in chess is hard. I built the world's most human-like chess AI to help me.",
+   "publishedAt": "2025-10-31",
+   "excerpt": "Getting better at chess is _really hard_. My theory is that it's at least partially because of the feedback lag. Imagine learning to play the violin, but you",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 1
+  },
+  {
+   "slug": "an-honest-review-of-my-last-year-building-chessbook",
+   "title": "An honest review of my last year building Chessbook",
+   "publishedAt": "2025-02-26",
+   "excerpt": "Last year, I quit my job to work full-time on a chess app I created. It’s my first time working full-time on a project of my own, and it’s been both terrifyin",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 2
+  },
+  {
+   "slug": "processing-6-billion-chess-games-in-less-than-2-hours",
+   "title": "Processing 6 Billion Chess Games in Less Than 2 Hours",
+   "publishedAt": "2024-03-26",
+   "excerpt": "I run a chess site, https://chessbook.com. We ingest a _ton_ of games, nearly 6 billion, to power our various statistics. Our current database has about 900 m",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 3
+  },
+  {
+   "slug": "compressing-chess-moves-even-further-to-3-7-bits-per-move",
+   "title": "Compressing Chess Moves Even Further, To 3.7 Bits Per Move",
+   "publishedAt": "2024-03-14",
+   "excerpt": "I wrote [a post](/posts/compressing-chess-moves) yesterday about how to compress chess moves. I was pretty happy with my hand-rolled compression scheme, which",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 4
+  },
+  {
+   "slug": "compressing-chess-moves-for-fun-and-profit",
+   "title": "Compressing Chess Moves for Fun and Profit",
+   "publishedAt": "2024-03-13",
+   "excerpt": "UPDATE: I've written a [new post](/posts/compressing-chess-moves-even-further) with a new technique which is about 2.5x more efficient than this approach",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 5
+  },
+  {
+   "slug": "which-openings-lead-to-the-shortest-games-what-about-the-longest-games",
+   "title": "Which openings lead to the shortest games? What about the longest games?",
+   "publishedAt": "2023-06-28",
+   "excerpt": "Average game length by opening, from 100 million Lichess games between 1200 and 1800: the first moves that don't matter, the gambits that end in miniatures, and the closed openings that drag on.",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 6
+  },
+  {
+   "slug": "how-some-common-material-imbalances-affect-your-win-rate",
+   "title": "How some common material imbalances affect your win-rate",
+   "publishedAt": "2023-06-11",
+   "excerpt": "How much more likely are you to win after winning the exchange? What about two minors for a rook? What about two rooks for a queen? Data from 100 million Lichess games, by rating.",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 7
+  },
+  {
+   "slug": "generating-chess-puzzles-fast-with-rust-and-stockfish",
+   "title": "Generating Chess Puzzles Fast with Rust and Stockfish",
+   "publishedAt": "2022-01-15",
+   "excerpt": "Generally, chess puzzles will present you with a position and ask you to find the best move. There's only one, and all other moves are losing. These are great",
+   "source": "recon/live6/05-blog.json",
+   "sortOrder": 8
+  }
+ ]
+}
