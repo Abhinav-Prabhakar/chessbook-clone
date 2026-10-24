@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useId } from "react";
+import { Link, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import type { Repertoire } from "../types";
 
@@ -15,21 +16,45 @@ export function TopBar() {
     <header className="cb-topbar">
       <Logo />
       <div className="cb-top-actions">
-        <span className="cb-plan-pill">PRO</span>
         <Link to="/settings" className="cb-top-link">
-          Account
+          Settings
         </Link>
       </div>
     </header>
   );
 }
 
+/**
+ * Inline shimmer placeholder. Production never blocks the whole viewport with a
+ * spinner: it paints the page shell (clipped board + sheet on mobile) and lets
+ * the rows resolve in place. The exported API stays compatible with the old
+ * full-screen `Splash` so pages can keep calling `<Splash label="…" />`.
+ */
+export function SkeletonRows({ rows = 4, className = "" }: { rows?: number; className?: string }) {
+  return (
+    <div className={`cb-skeleton-rows ${className}`} aria-hidden>
+      {Array.from({ length: rows }, (_, index) => (
+        <div className="cb-skeleton-row" key={index} />
+      ))}
+    </div>
+  );
+}
+
 export function Splash({ label = "Loading your repertoire…" }: { label?: string }) {
   return (
-    <div className="cb-splash" role="status" aria-live="polite">
-      <Logo />
-      <div className="cb-spinner" />
-      <p>{label}</p>
+    <div className="cb-skeleton-page" role="status" aria-live="polite" aria-busy="true">
+      <span className="cb-sr-only">{label}</span>
+      <div className="cb-skeleton-board-clip" aria-hidden>
+        <div className="cb-skeleton-board" />
+      </div>
+      <div className="cb-skeleton-panel" aria-hidden>
+        <div className="cb-skeleton-line w-30" />
+        <div className="cb-skeleton-line title" />
+        <div className="cb-skeleton-line w-50" />
+        <SkeletonRows rows={5} />
+        <div className="cb-skeleton-line w-70" />
+        <SkeletonRows rows={3} />
+      </div>
     </div>
   );
 }
@@ -47,10 +72,13 @@ export function Sidebar({
   backLabel?: string;
   className?: string;
 }) {
+  const { pathname } = useLocation();
   return (
     <aside className={`cb-sidebar ${className}`}>
       {settings && (
-        <div className="cb-sidebar-settings">
+        <div
+          className={`cb-sidebar-settings ${pathname === "/settings" ? "is-current" : ""}`}
+        >
           <Link to="/settings" className="cb-settings-link">
             Settings <i className="fa fa-gear" aria-hidden />
           </Link>
@@ -82,7 +110,12 @@ export function BoardHeader({
         <img src="/chessbook-mark.svg" alt="" />
       </Link>
       {items.map((item, index) => (
-        <span className="cb-board-crumb" key={`${item.label}-${index}`}>
+        <span
+          className={`cb-board-crumb${
+            /% complete$/i.test(item.label) ? " cb-board-crumb-status" : ""
+          }`}
+          key={`${item.label}-${index}`}
+        >
           <i className="fa fa-angle-right cb-board-sep" aria-hidden />
           {item.to ? (
             <Link to={item.to} className="cb-board-crumb-link">
@@ -94,6 +127,75 @@ export function BoardHeader({
         </span>
       ))}
     </nav>
+  );
+}
+
+export function BoardArrows({
+  arrows = [],
+  orientation = "white",
+  className = "",
+}: {
+  arrows?: { from: string; to: string; color?: string; width?: number }[];
+  orientation?: "white" | "black";
+  className?: string;
+}) {
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  if (arrows.length === 0) return null;
+  const point = (square: string) => {
+    const file = "abcdefgh".indexOf(square[0]);
+    const rank = Number(square[1]);
+    const x = orientation === "white" ? file : 7 - file;
+    const y = orientation === "white" ? 8 - rank : rank - 1;
+    return { x: x + 0.5, y: y + 0.5 };
+  };
+  return (
+    <svg
+      className={`cb-board-arrows ${className}`}
+      viewBox="0 0 8 8"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <defs>
+        {arrows.map((arrow, index) => (
+          <marker
+            key={`head-${index}`}
+            id={`cb-arrow-head-${uid}-${index}`}
+            markerWidth="3"
+            markerHeight="3"
+            refX="2.4"
+            refY="1.5"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M0,0 L3,1.5 L0,3 Z" fill={arrow.color ?? "var(--cb-green)"} />
+          </marker>
+        ))}
+      </defs>
+      {arrows.map((arrow, index) => {
+        const from = point(arrow.from);
+        const to = point(arrow.to);
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const inset = 0.24;
+        const endX = to.x - (dx / length) * inset;
+        const endY = to.y - (dy / length) * inset;
+        return (
+          <line
+            key={`${arrow.from}-${arrow.to}-${index}`}
+            x1={from.x}
+            y1={from.y}
+            x2={endX}
+            y2={endY}
+            stroke={arrow.color ?? "var(--cb-green)"}
+            strokeWidth={arrow.width ?? 0.16}
+            strokeLinecap="round"
+            opacity="0.85"
+            markerEnd={`url(#cb-arrow-head-${uid}-${index})`}
+          />
+        );
+      })}
+    </svg>
   );
 }
 
@@ -133,6 +235,7 @@ export function Row({
   className = "",
   testId,
   disabled,
+  chevron = false,
 }: {
   title: ReactNode;
   meta?: ReactNode;
@@ -145,12 +248,14 @@ export function Row({
   className?: string;
   testId?: string;
   disabled?: boolean;
+  chevron?: boolean;
 }) {
   const classes = [
     "cb-row",
     large ? "large" : "",
     ghost ? "ghost" : "",
     focus ? "focus" : "",
+    chevron ? "cb-row-has-chevron" : "",
     className,
   ]
     .filter(Boolean)
@@ -161,7 +266,12 @@ export function Row({
         <span className="cb-row-title">{title}</span>
         {meta && <span className="cb-row-meta">{meta}</span>}
       </span>
-      {right && <span className="cb-row-right">{right}</span>}
+      {(right || chevron) && (
+        <span className="cb-row-right">
+          {right}
+          {chevron && <i className="fa fa-angle-right cb-row-chevron" aria-hidden />}
+        </span>
+      )}
     </>
   );
   if (to) {
@@ -181,6 +291,82 @@ export function Row({
     >
       {content}
     </button>
+  );
+}
+
+/**
+ * Settings-row affordance shared by the settings surface: the current value is
+ * shown on the right and the row advertises that it opens a list of choices.
+ */
+export function SettingRow({
+  title,
+  value,
+  onClick,
+  to,
+  testId,
+  disabled,
+}: {
+  title: ReactNode;
+  value: ReactNode;
+  onClick?: () => void;
+  to?: string;
+  testId?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <Row
+      className="cb-settings-row"
+      title={title}
+      right={<span className="cb-setting-value">{value}</span>}
+      onClick={onClick}
+      to={to}
+      testId={testId}
+      disabled={disabled}
+      chevron
+    />
+  );
+}
+
+export function OptionSheet({
+  title,
+  options,
+  value,
+  onSelect,
+  onClose,
+}: {
+  title: string;
+  options: { value: string; label: string; hint?: string }[];
+  value: string;
+  onSelect: (value: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Modal title={title} onClose={onClose}>
+      <div className="cb-option-list" role="listbox" aria-label={title}>
+        {options.map((option) => {
+          const active = option.value === value;
+          return (
+            <button
+              type="button"
+              key={option.value}
+              role="option"
+              aria-selected={active}
+              className={`cb-option ${active ? "active" : ""}`}
+              onClick={() => {
+                onSelect(option.value);
+                onClose();
+              }}
+            >
+              <span className="cb-option-copy">
+                <strong>{option.label}</strong>
+                {option.hint && <span>{option.hint}</span>}
+              </span>
+              {active && <i className="fa fa-check cb-option-check" aria-hidden />}
+            </button>
+          );
+        })}
+      </div>
+    </Modal>
   );
 }
 
@@ -299,14 +485,18 @@ export function Stat({
 
 export function Modal({
   title,
+  subtitle,
   children,
   onClose,
   footer,
+  className = "",
 }: {
   title: string;
+  subtitle?: ReactNode;
   children: ReactNode;
   onClose: () => void;
   footer?: ReactNode;
+  className?: string;
 }) {
   return (
     <div
@@ -318,9 +508,12 @@ export function Modal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="cb-modal">
+      <div className={`cb-modal ${className}`}>
         <div className="cb-modal-head">
-          <h2>{title}</h2>
+          <div className="cb-modal-heading">
+            <h2>{title}</h2>
+            {subtitle && <div className="cb-modal-subtitle">{subtitle}</div>}
+          </div>
           <button type="button" className="cb-icon-btn" onClick={onClose} aria-label="Close">
             <i className="fa fa-xmark" aria-hidden />
           </button>

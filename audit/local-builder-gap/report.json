@@ -1,0 +1,1001 @@
+{
+  "checks": [
+    {
+      "name": "builder renders the title",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "builder breadcrumb carries completion",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "builder lists the full start candidate list (not one saved line)",
+      "ok": true,
+      "detail": "20 rows"
+    },
+    {
+      "name": "start candidate stats show captured masters/eval/peers",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "builder opens the exact ?path position",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Black-after-1.e4 order is c5,e5,e6,c6,d5",
+      "ok": true,
+      "detail": "1… c5 | 1… e5 | 1… e6 | 1… c6 | 1… d5"
+    },
+    {
+      "name": "masters shows 43% (captured 42.7)",
+      "ok": true,
+      "detail": "43%1.8M games"
+    },
+    {
+      "name": "eval shows +0.45 (captured 45cp)",
+      "ok": true,
+      "detail": "+0.45"
+    },
+    {
+      "name": "peer results are labelled percentages",
+      "ok": true,
+      "detail": "4946 / 49% / 5% / 46%"
+    },
+    {
+      "name": "no alphabetical ECO junk on screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "?line= opens the quizzed position (practice 'View in build mode' contract)",
+      "ok": true,
+      "detail": "line 17: e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6"
+    },
+    {
+      "name": "?line= shows the resolved prefix, not the start position",
+      "ok": true,
+      "detail": "1. e4  c5 2. Nf3  d6 3. d4  cxd4 4. Nxd4  Nf6 5. Nc3"
+    },
+    {
+      "name": "?path=&line= from a root practice task opens the start position, not the line's end",
+      "ok": true,
+      "detail": "Start position"
+    },
+    {
+      "name": "add-alternative is inline and prefix-scoped (no database modal)",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "builder exposes Build from here / Practice from here",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Plans opens a real panel and a model-game destination",
+      "ok": true,
+      "detail": "no plans captured"
+    },
+    {
+      "name": "gap heading uses the server's move/side",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "gap breadcrumb shows completion",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "gap shows Expected in / coverage context",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "gap rows show captured descriptions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "gap removed clone-only 'Repertoire health' sidebar",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "gap removed clone-only 'More' sidebar",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "gap keeps one build action",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Show more paginates",
+      "ok": true,
+      "detail": "8 → 16"
+    },
+    {
+      "name": "Build from here carries the exact gap position",
+      "ok": true,
+      "detail": "http://localhost:5173/build/black?epd=rnbqkbnr%2Fpppppppp%2F8%2F8%2F4P3%2F8%2FPPPP1PPP%2FRNBQKBNR%20b%20KQkq%20-"
+    },
+    {
+      "name": "Practice this line opens a line-scoped session",
+      "ok": true,
+      "detail": "http://localhost:5173/practice/black?mode=line&line=17&epd=rnbqkbnr%2Fpppppppp%2F8%2F8%2F4P3%2F8%2FPPPP1PPP%2FRNBQKBNR%20b%20KQkq%20-"
+    },
+    {
+      "name": "position note saves and renders",
+      "ok": true,
+      "detail": "Verification note 1792821529912"
+    },
+    {
+      "name": "exclude move is reversible and visible",
+      "ok": true,
+      "detail": "c5"
+    },
+    {
+      "name": "re-enable restores the move",
+      "ok": true,
+      "detail": "c5"
+    },
+    {
+      "name": "autofill this gap posts the exact epd and a style, not the global flag flip",
+      "ok": true,
+      "detail": "POST /api/repertoires/black/autofill {\"epd\":\"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -\",\"style\":\"expected\",\"maxMoves\":1}"
+    },
+    {
+      "name": "autofill shows an undo path",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Go to the next gap in this line advances or reports none",
+      "ok": true,
+      "detail": "http://localhost:5173/gap/black?epd=rnbqkbnr%2Fpp1ppppp%2F8%2F2p5%2F4P3%2F5N2%2FPPPP1PPP%2FRNBQKB1R%20b%20KQkq%20-"
+    }
+  ],
+  "candidates": {
+    "start": [
+      {
+        "move": "1. e4",
+        "name": "King's Pawn Game · B00",
+        "copy": "King's Pawn Game · B00\"Best by test\" according to Bobby Fisher.Expected in 1 in 2 games · In your repertoire",
+        "mastery": "48%4.2M games",
+        "eval": "+0.25",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. d4",
+        "name": "Queen's Pawn Game · A40",
+        "copy": "Queen's Pawn Game · A40The Queen's Pawn opening is more usually more positional in nature, White intends to develop the pieces while having a share of the center.Expected in 1 in 3 games · In your repertoire",
+        "mastery": "34%3.0M games",
+        "eval": "+0.31",
+        "peer": "5045",
+        "peerLine": "50% / 6% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. c4",
+        "name": "English Opening · A10",
+        "copy": "English Opening · A10Advancing the c-pawn, aiming to develop the queenside knight with a very flexible position. Expected in 1 in 20 games · In your repertoire",
+        "mastery": "6.7%586k games",
+        "eval": "+0.18",
+        "peer": "5044",
+        "peerLine": "50% / 6% / 44%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. Nf3",
+        "name": "Zukertort Opening · A04",
+        "copy": "Zukertort Opening · A04A flexible first move that can transpose to many different lines.Expected in 1 in 20 games · Preview only",
+        "mastery": "9%791k games",
+        "eval": "+0.36",
+        "peer": "5143",
+        "peerLine": "51% / 6% / 43%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. f4",
+        "name": "Bird Opening · A02",
+        "copy": "Bird Opening · A02No description available for this move in the capture.Expected in 1 in 77 games · Preview only",
+        "mastery": "0.5%48k games",
+        "eval": "-0.33",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. b3",
+        "name": "Nimzo-Larsen Attack · A01",
+        "copy": "Nimzo-Larsen Attack · A01Expected in 1 in 81 games · Preview only",
+        "mastery": "0.7%59k games",
+        "eval": "-0.13",
+        "peer": "4945",
+        "peerLine": "49% / 6% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. g3",
+        "name": "Hungarian Opening · A00",
+        "copy": "Hungarian Opening · A00No description available for this move in the capture.Expected in 1 in 107 games · Preview only",
+        "mastery": "0.7%57k games",
+        "eval": "+0.22",
+        "peer": "4946",
+        "peerLine": "49% / 6% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. e3",
+        "name": "Van't Kruijs Opening · A00",
+        "copy": "Van't Kruijs Opening · A00Intending to play d4 and have a very safe and solid position. Expected in 1 in 128 games · Preview only",
+        "mastery": "0.1%7k games",
+        "eval": "+0.14",
+        "peer": "4748",
+        "peerLine": "47% / 5% / 48%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. Nc3",
+        "name": "Van Geet Opening · A00",
+        "copy": "Van Geet Opening · A00No description available for this move in the capture.Expected in 1 in 178 games · Preview only",
+        "mastery": "0.2%20k games",
+        "eval": "-0.05",
+        "peer": "5144",
+        "peerLine": "51% / 5% / 44%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. d3",
+        "name": "Mieses Opening · A00",
+        "copy": "Mieses Opening · A00No description available for this move in the capture.Expected in 1 in 217 games · Preview only",
+        "mastery": "0.1%5k games",
+        "eval": "-0.10",
+        "peer": "4847",
+        "peerLine": "48% / 5% / 47%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. b4",
+        "name": "Polish Opening · A00",
+        "copy": "Polish Opening · A00No description available for this move in the capture.Expected in 1 in 227 games · Preview only",
+        "mastery": "0.2%17k games",
+        "eval": "-0.42",
+        "peer": "5044",
+        "peerLine": "50% / 6% / 44%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. g4",
+        "name": "Grob Opening · A00",
+        "copy": "Grob Opening · A00No description available for this move in the capture.Expected in 1 in 403 games · Preview only",
+        "mastery": "0%4k games",
+        "eval": "-1.26",
+        "peer": "4947",
+        "peerLine": "49% / 4% / 47%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. c3",
+        "name": "Saragossa Opening · A00",
+        "copy": "Saragossa Opening · A00No description available for this move in the capture.Expected in 1 in 531 games · Preview only",
+        "mastery": "0%2k games",
+        "eval": "+0.21",
+        "peer": "4846",
+        "peerLine": "48% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. a3",
+        "name": "Anderssen's Opening · A00",
+        "copy": "Anderssen's Opening · A00No description available for this move in the capture.Expected in 1 in 1343 games · Preview only",
+        "mastery": "0.1%6k games",
+        "eval": "+0.04",
+        "peer": "4945",
+        "peerLine": "49% / 6% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. f3",
+        "name": "Barnes Opening · A00",
+        "copy": "Barnes Opening · A00No description available for this move in the capture.Expected in 1 in 1300 games · Preview only",
+        "mastery": "0%434 games",
+        "eval": "-0.68",
+        "peer": "4550",
+        "peerLine": "45% / 5% / 50%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. h4",
+        "name": "Kádas Opening · A00",
+        "copy": "Kádas Opening · A00No description available for this move in the capture.Expected in 1 in 2283 games · Preview only",
+        "mastery": "0%1k games",
+        "eval": "-0.49",
+        "peer": "4848",
+        "peerLine": "48% / 5% / 48%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. a4",
+        "name": "Ware Opening · A00",
+        "copy": "Ware Opening · A00No description available for this move in the capture.Expected in 1 in 2746 games · Preview only",
+        "mastery": "0%409 games",
+        "eval": "-0.21",
+        "peer": "4749",
+        "peerLine": "47% / 4% / 49%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. h3",
+        "name": "Clemenz Opening · A00",
+        "copy": "Clemenz Opening · A00No description available for this move in the capture.Expected in 1 in 3096 games · Preview only",
+        "mastery": "0%864 games",
+        "eval": "-0.14",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. Nh3",
+        "name": "Amar Opening · A00",
+        "copy": "Amar Opening · A00No description available for this move in the capture.Expected in 1 in 4444 games · Preview only",
+        "mastery": "0%440 games",
+        "eval": "-0.58",
+        "peer": "5045",
+        "peerLine": "50% / 5% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1. Na3",
+        "name": "Sodium Attack · A00",
+        "copy": "Sodium Attack · A00No description available for this move in the capture.Expected in 1 in 6584 games · Preview only",
+        "mastery": "0%172 games",
+        "eval": "-0.70",
+        "peer": "5144",
+        "peerLine": "51% / 5% / 44%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill"
+        ]
+      }
+    ],
+    "afterE4": [
+      {
+        "move": "1… c5",
+        "name": "Sicilian Defense · B20",
+        "copy": "Sicilian Defense · B20A counter-attacking opening. The asymmetry generally leads to sharp games.Expected in 1 in 3 games · In your repertoire",
+        "mastery": "43%1.8M games",
+        "eval": "+0.45",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… e5",
+        "name": "King's Pawn Game · C20",
+        "copy": "King's Pawn Game · C20Black grabs an equal share of the center and scope to develop some pieces.Expected in 1 in 4 games · In your repertoire",
+        "mastery": "21%890k games",
+        "eval": "+0.27",
+        "peer": "5045",
+        "peerLine": "50% / 5% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… e6",
+        "name": "French Defense · C00",
+        "copy": "French Defense · C00Intending a d7-d5 advance to contest the center.Expected in 1 in 8 games · In your repertoire",
+        "mastery": "13%548k games",
+        "eval": "+0.35",
+        "peer": "4846",
+        "peerLine": "48% / 6% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… c6",
+        "name": "Caro-Kann Defense · B10",
+        "copy": "Caro-Kann Defense · B10Preparing d5Expected in 1 in 9 games · In your repertoire",
+        "mastery": "8.7%365k games",
+        "eval": "+0.37",
+        "peer": "4846",
+        "peerLine": "48% / 6% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… d5",
+        "name": "Scandinavian Defense · B01",
+        "copy": "Scandinavian Defense · B01Immediately breaking in the center and forcing White to make a decision. Expected in 1 in 13 games · In your repertoire",
+        "mastery": "3.5%147k games",
+        "eval": "+0.78",
+        "peer": "4847",
+        "peerLine": "48% / 6% / 47%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… d6",
+        "name": "Pirc Defense · B00",
+        "copy": "Pirc Defense · B00Instead of contesting the center immediately, Black intends to attack it indirectly in \"hypermodern\" fashion.Expected in 1 in 19 games · Not saved yet",
+        "mastery": "4.4%185k games",
+        "eval": "+0.59",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… g6",
+        "name": "Modern Defense · B06",
+        "copy": "Modern Defense · B06Fianchettoing the bishop where it will be very powerful on the long diagonal. Expected in 1 in 33 games · Not saved yet",
+        "mastery": "3.1%129k games",
+        "eval": "+0.67",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… Nf6",
+        "name": "Alekhine Defense · B02",
+        "copy": "Alekhine Defense · B02Provoking 2. e5 in the hope that White's centre will eventually be overextended.Expected in 1 in 35 games · Not saved yet",
+        "mastery": "2.1%87k games",
+        "eval": "+0.66",
+        "peer": "4748",
+        "peerLine": "47% / 6% / 48%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… Nc6",
+        "name": "Nimzowitsch Defense · B00",
+        "copy": "Nimzowitsch Defense · B00Developing the knight, aiming to gain space in the center with e5 or d5 next. Expected in 1 in 56 games · Not saved yet",
+        "mastery": "0.7%31k games",
+        "eval": "+0.66",
+        "peer": "4748",
+        "peerLine": "47% / 5% / 48%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… b6",
+        "name": "Owen Defense · B00",
+        "copy": "Owen Defense · B00Intending to place the light-squared bishop on the long diagonal where it pressures White's center and kingside. Expected in 1 in 80 games · Not saved yet",
+        "mastery": "0.3%14k games",
+        "eval": "+0.87",
+        "peer": "5145",
+        "peerLine": "51% / 5% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… a6",
+        "name": "St. George Defense · B00",
+        "copy": "St. George Defense · B00No description available for this move in the capture.Expected in 1 in 481 games · Not saved yet",
+        "mastery": "0.1%3k games",
+        "eval": "+0.67",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… f5",
+        "name": "Duras Gambit · B00",
+        "copy": "Duras Gambit · B00No description available for this move in the capture.Expected in 1 in 780 games · Not saved yet",
+        "mastery": "0%184 games",
+        "eval": "+1.62",
+        "peer": "5244",
+        "peerLine": "52% / 4% / 44%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… g5",
+        "name": "Borg Defense · B00",
+        "copy": "Borg Defense · B00No description available for this move in the capture.Expected in 1 in 1357 games · Not saved yet",
+        "mastery": "0%837 games",
+        "eval": "+1.76",
+        "peer": "5145",
+        "peerLine": "51% / 4% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… f6",
+        "name": "Barnes Defense · B00",
+        "copy": "Barnes Defense · B00No description available for this move in the capture.Expected in 1 in 1853 games · Not saved yet",
+        "mastery": "0%147 games",
+        "eval": "+1.35",
+        "peer": "5442",
+        "peerLine": "54% / 4% / 42%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… a5",
+        "name": "Ware Defense · B00",
+        "copy": "Ware Defense · B00No description available for this move in the capture.Expected in 1 in 2103 games · Not saved yet",
+        "mastery": "0%139 games",
+        "eval": "+0.90",
+        "peer": "5243",
+        "peerLine": "52% / 4% / 43%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… h5",
+        "name": "Goldsmith Defense · B00",
+        "copy": "Goldsmith Defense · B00No description available for this move in the capture.Expected in 1 in 2829 games · Not saved yet",
+        "mastery": "0%179 games",
+        "eval": "+1.11",
+        "peer": "5145",
+        "peerLine": "51% / 4% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… h6",
+        "name": "Carr Defense · B00",
+        "copy": "Carr Defense · B00No description available for this move in the capture.Expected in 1 in 3962 games · Not saved yet",
+        "mastery": "0%160 games",
+        "eval": "+0.78",
+        "peer": "5244",
+        "peerLine": "52% / 5% / 44%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… b5",
+        "name": "Unnamed move",
+        "copy": "Unnamed moveNo description available for this move in the capture.Expected in 1 in 7226 games · Not saved yet",
+        "mastery": "0%91 games",
+        "eval": "+1.59",
+        "peer": "5442",
+        "peerLine": "54% / 4% / 42%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… Nh6",
+        "name": "Hippopotamus Defense · B00",
+        "copy": "Hippopotamus Defense · B00No description available for this move in the capture.Expected in 1 in 9285 games · Not saved yet",
+        "mastery": "0%102 games",
+        "eval": "+1.11",
+        "peer": "4847",
+        "peerLine": "48% / 4% / 47%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… Na6",
+        "name": "Lemming Defense · B00",
+        "copy": "Lemming Defense · B00No description available for this move in the capture.Expected in 1 in 6814 games · Not saved yet",
+        "mastery": "0%116 games",
+        "eval": "+1.04",
+        "peer": "4848",
+        "peerLine": "48% / 5% / 48%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      }
+    ]
+  },
+  "gap": {
+    "first": [
+      {
+        "move": "1… c5",
+        "name": "Sicilian Defense · B20",
+        "copy": "Sicilian Defense · B20A counter-attacking opening. The asymmetry generally leads to sharp games.Expected in 1 in 3 games · Completion: in your repertoire",
+        "mastery": "43%1.8M games",
+        "eval": "+0.45",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… e5",
+        "name": "King's Pawn Game · C20",
+        "copy": "King's Pawn Game · C20Black grabs an equal share of the center and scope to develop some pieces.Expected in 1 in 4 games · Completion: in your repertoire",
+        "mastery": "21%890k games",
+        "eval": "+0.27",
+        "peer": "5045",
+        "peerLine": "50% / 5% / 45%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… e6",
+        "name": "French Defense · C00",
+        "copy": "French Defense · C00Intending a d7-d5 advance to contest the center.Expected in 1 in 8 games · Completion: in your repertoire",
+        "mastery": "13%548k games",
+        "eval": "+0.35",
+        "peer": "4846",
+        "peerLine": "48% / 6% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… c6",
+        "name": "Caro-Kann Defense · B10",
+        "copy": "Caro-Kann Defense · B10Preparing d5Expected in 1 in 9 games · Completion: in your repertoire",
+        "mastery": "8.7%365k games",
+        "eval": "+0.37",
+        "peer": "4846",
+        "peerLine": "48% / 6% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… d5",
+        "name": "Scandinavian Defense · B01",
+        "copy": "Scandinavian Defense · B01Immediately breaking in the center and forcing White to make a decision. Expected in 1 in 13 games · Completion: in your repertoire",
+        "mastery": "3.5%147k games",
+        "eval": "+0.78",
+        "peer": "4847",
+        "peerLine": "48% / 6% / 47%",
+        "actions": [
+          "Add a note to explain this move",
+          "Remove branch",
+          "Exclude from autofill"
+        ]
+      },
+      {
+        "move": "1… d6",
+        "name": "Pirc Defense · B00",
+        "copy": "Pirc Defense · B00Instead of contesting the center immediately, Black intends to attack it indirectly in \"hypermodern\" fashion.Expected in 1 in 19 games · Completion: not saved",
+        "mastery": "4.4%185k games",
+        "eval": "+0.59",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… g6",
+        "name": "Modern Defense · B06",
+        "copy": "Modern Defense · B06Fianchettoing the bishop where it will be very powerful on the long diagonal. Expected in 1 in 33 games · Completion: not saved",
+        "mastery": "3.1%129k games",
+        "eval": "+0.67",
+        "peer": "4946",
+        "peerLine": "49% / 5% / 46%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      },
+      {
+        "move": "1… Nf6",
+        "name": "Alekhine Defense · B02",
+        "copy": "Alekhine Defense · B02Provoking 2. e5 in the hope that White's centre will eventually be overextended.Expected in 1 in 35 games · Completion: not saved",
+        "mastery": "2.1%87k games",
+        "eval": "+0.66",
+        "peer": "4748",
+        "peerLine": "47% / 6% / 48%",
+        "actions": [
+          "Add a note to explain this move",
+          "Exclude from autofill",
+          "Add to repertoire"
+        ]
+      }
+    ],
+    "afterShowMore": 16
+  },
+  "screenshots": [
+    "audit/local-builder-gap/01-build-start.png",
+    "audit/local-builder-gap/02-build-after-e4.png",
+    "audit/local-builder-gap/03-build-line-param.png",
+    "audit/local-builder-gap/04-build-inline-alternative.png",
+    "audit/local-builder-gap/04b-build-plans.png",
+    "audit/local-builder-gap/05-gap.png",
+    "audit/local-builder-gap/06-gap-note.png",
+    "audit/local-builder-gap/07-gap-excluded.png",
+    "audit/local-builder-gap/08-gap-autofill.png"
+  ],
+  "autofill": [
+    {
+      "method": "POST",
+      "url": "/api/repertoires/black/autofill",
+      "status": 200,
+      "post": "{\"epd\":\"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -\",\"style\":\"expected\",\"maxMoves\":1}",
+      "json": {
+        "filled": 1,
+        "considered": 20,
+        "inserted": [
+          {
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+            "san": "d6",
+            "name": "Pirc Defense",
+            "lineId": 31,
+            "created": true,
+            "transpositionOf": null,
+            "rank": 6,
+            "style": "expected",
+            "styleScore": 0.050788
+          }
+        ],
+        "skipped": [
+          {
+            "san": "g6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "Nf6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "Nc6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "b6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "a6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "f5",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "g5",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "f6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "a5",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "h5",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "h6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "b5",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "Nh6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          },
+          {
+            "san": "Na6",
+            "reason": "not-selected",
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -"
+          }
+        ],
+        "style": "expected",
+        "styles": [
+          "expected",
+          "aggressive",
+          "solid",
+          "learnable",
+          "sharp",
+          "all"
+        ],
+        "styleSource": "heuristic-from-captured-fields",
+        "dryRun": false,
+        "targetEpd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+        "allFromHere": false,
+        "positions": [
+          {
+            "epd": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq -",
+            "inserted": 1,
+            "considered": 20,
+            "skipped": 14
+          }
+        ],
+        "repertoire": {
+          "id": 2,
+          "color": "black",
+          "name": "Black openings",
+          "description": "Answer 1.e4 and 1.d4 with a plan.",
+          "slug": "black-openings",
+          "captureReferenceId": "67eef914-3413-4581-aa14-d08873b3b64b",
+          "totalLines": 15,
+          "createdAt": "2026-10-24T05:58:28.596Z",
+          "lineCount": 15,
+          "moveCount": 67,
+          "positionCount": 56,
+          "learned": 0,
+          "mastered": 0,
+          "learnedPositions": 0,
+          "masteredPositions": 0,
+          "saved": 15,
+          "due": 0,
+          "duePositions": 0,
+          "fresh": 67,
+          "completion": 0,
+          "mastery": 0,
+          "moveCompletion": 0,
+          "moveMastery": 0,
+          "characteristics": {
+            "available": true,
+            "effectiveness": 0.10097350180149078,
+            "soundness": 0.9900000095367432,
+            "learnability": null,
+            "avgCpLoss": 0,
+            "expectedResults": 0.4815073609352112,
+            "sharpness": 0,
+            "eval": 0.33000001311302185,
+            "pathConcessionCp": 0,
+            "source": "recon/live4/network.json#3",
+            "referenceRepertoireId": "67eef914-3413-4581-aa14-d08873b3b64b"
+          },
+          "coverage": 0,
+          "coveragePercent": 0,
+          "coverageSource": "recon/live4/network.json#3",
+          "chapterCount": 0
+        }
+      }
+    }
+  ]
+}

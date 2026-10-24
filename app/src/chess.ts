@@ -44,3 +44,29 @@ export function legalSan(fen: string, from: string, to: string) {
     return null;
   }
 }
+
+/** Resolve a SAN to its squares (used for hints and last-move highlights). */
+export function findMove(fen: string, san: string) {
+  try {
+    const chess = new Chess(fen);
+    const move = chess.move(san);
+    return {
+      from: move.from as string,
+      to: move.to as string,
+      san: move.san as string,
+      promotion: move.promotion as string | undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Side to move, or null when the FEN cannot be loaded. */
+export function sideToMove(fen: string): "white" | "black" | null {
+  try {
+    const chess = new Chess(fen);
+    return chess.turn() === "w" ? "white" : "black";
+  } catch {
+    return null;
+  }
+}
