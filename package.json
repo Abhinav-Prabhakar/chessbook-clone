@@ -1,7 +1,7 @@
 {
   "name": "chessbook",
   "version": "1.0.0",
-  "description": "Chessbook — full-stack opening repertoire trainer (React + Express + SQLite)",
+  "description": "Chessbook \u2014 build, learn and practice your chess opening repertoire (React + Express + SQLite)",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -16,8 +16,11 @@
     "preview": "vite preview --config app/vite.config.ts",
     "db:reset": "node server/reset.js",
     "serve:static": "python3 -m http.server 4173",
-    "test": "node --test tests",
-    "test:e2e": "npm run build && node audit/e2e/main-flow.mjs"
+    "test": "node --test --test-concurrency=1 tests/",
+    "test:e2e": "node tests/e2e/practice-flow.mjs",
+    "data:lichess": "node server/tools/fetch-lichess-games.mjs && node --max-old-space-size=5000 server/tools/build-explorer.mjs --dataset=lichess --in=$HOME/.cache/chessbook-data/lichess-2026-09.txt",
+    "data:masters": "node server/tools/fetch-master-games.mjs && node --max-old-space-size=5000 server/tools/build-explorer.mjs --dataset=masters --in=$HOME/.cache/chessbook-data/masters.txt --min=5 --depth=24",
+    "data:puzzles": "node server/tools/fetch-puzzles.mjs"
   },
   "keywords": [],
   "author": "",

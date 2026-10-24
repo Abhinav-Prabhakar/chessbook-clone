@@ -8,7 +8,7 @@ export default defineConfig({
   root,
   plugins: [react()],
   server: {
-    port: 5173,
+    port: 5180,
     strictPort: true,
     proxy: {
       "/api": "http://localhost:8787",
@@ -21,5 +21,7 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     sourcemap: false,
+    // One bundle on purpose: pages load instantly when you navigate.
+    chunkSizeWarningLimit: 900,
   },
 });

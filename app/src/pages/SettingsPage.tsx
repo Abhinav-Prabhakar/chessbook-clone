@@ -1,913 +1,323 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { api } from "../api";
-import type { Repertoire } from "../types";
-import { Board } from "../components/Board";
-import { BoardHeader, Modal, Row, Sidebar, Splash } from "../components/ui";
-import { useToast } from "../components/Toast";
-import { useProfile } from "../profile";
-import {
-  ANIMATION_OPTIONS,
-  BOARD_THEMES,
-  COVERAGE_OPTIONS,
-  DAILY_GOAL_OPTIONS,
-  DEFAULT_CLIENT_PREFS,
-  PAUSE_OPTIONS,
-  PLATFORMS,
-  PIECE_SETS,
-  RECOMMENDED_SIZE_OPTIONS,
-  SOUND_LABELS,
-  TIME_CONTROLS,
-  getClientPrefs,
-  haptic,
-  migrateLocalPrefs,
-  notificationsSupported,
-  pieceSetLabel,
-  previewSound,
-  requestNotificationPermission,
-  resetClientPrefs,
-  saveClientPrefs,
-  type AnimationSpeed,
-  type ClientPrefs,
-  type Platform,
-  type PracticeMode,
-  type RecommendedMovesSize,
-  type ReviewStyle,
-  type ServerSettings,
-  type SoundName,
-  type TimeControl,
-} from "../prefs";
+import { Crumbs, useBoard } from "../board/stage";
+import { replay } from "../chess";
+import { useSettings } from "../settings";
+import type { Settings } from "../types";
+import { forgetAll } from "../useApi";
+import { Back, Button, Icon, Modal, PageHead, Row, Section, useToast } from "../ui";
 
-type SheetKey =
-  | "rating"
-  | "coverage"
-  | "practice"
-  | "review"
-  | "goal"
-  | "pause"
-  | "notifications"
-  | "appearance"
-  | "pieces"
-  | "animation"
-  | "sound"
-  | "recsize"
-  | "modelSource"
-  | null;
+const SAMPLE = replay(["e4", "c5", "Nf3", "d6", "d4", "cxd4", "Nxd4", "Nf6", "Nc3"]);
 
-const PRACTICE_OPTIONS: { value: PracticeMode; label: string; detail: string }[] = [
-  {
-    value: "individual",
-    label: "Individual moves",
-    detail: "Ask each saved position on its own; the opponent's reply is auto-played.",
-  },
-  {
-    value: "whole-lines",
-    label: "Whole lines",
-    detail: "Walk a complete line from the first move to the last saved move.",
-  },
+const SYSTEMS: { id: Settings["ratingSystem"]; label: string }[] = [
+  { id: "chesscom", label: "Chess.com" },
+  { id: "lichess", label: "Lichess" },
+  { id: "fide", label: "FIDE" },
 ];
 
-const REVIEW_OPTIONS: { value: ReviewStyle; label: string; detail: string }[] = [
-  {
-    value: "cards",
-    label: "Cards",
-    detail:
-      "One position at a time, with its FSRS difficulty, expected-wrong chance and last grade.",
-  },
-  {
-    value: "complete-once",
-    label: "Complete lines (once per session)",
-    detail: "Finish each line once, then move to the next line.",
-  },
-  {
-    value: "complete-every",
-    label: "Complete lines (every time)",
-    detail: "Replay the whole line whenever any move in it is due.",
-  },
-  {
-    value: "entire-line",
-    label: "Entire line",
-    detail: "Show every move in the line and review it end to end.",
-  },
+const THEMES: { id: Settings["boardTheme"]; label: string; colors: [string, string] }[] = [
+  { id: "green", label: "Green", colors: ["#6aa169", "#3f835c"] },
+  { id: "blue", label: "Blue", colors: ["#8fb3cf", "#577a96"] },
+  { id: "brown", label: "Brown", colors: ["#d9b48c", "#a77852"] },
+  { id: "gray", label: "Gray", colors: ["#b9bec4", "#7c858d"] },
+  { id: "purple", label: "Purple", colors: ["#a99bc7", "#7465a0"] },
 ];
 
-const MODEL_SOURCES: { value: "historical" | "masters" | "online"; label: string; detail: string }[] =
-  [
-    {
-      value: "historical",
-      label: "Historical and master games",
-      detail: "The captured historical game collection on this device.",
-    },
-    {
-      value: "masters",
-      label: "Master games only",
-      detail: "Filter the local collection to master-level games.",
-    },
-    {
-      value: "online",
-      label: "Online games",
-      detail: "No online account exists in this build — this shows an explicit empty state.",
-    },
-  ];
+const PIECES = [
+  { id: "chessbook_monochrome", label: "Chessbook" },
+  { id: "cburnett", label: "Classic" },
+  { id: "merida", label: "Merida" },
+  { id: "chessnut", label: "Chessnut" },
+  { id: "shapes", label: "Shapes" },
+];
+
+type Sheet = null | "rating" | "coverage" | "daily" | "new" | "speed" | "theme" | "pieces" | "animation" | "reset";
 
 export function SettingsPage() {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const { settings, saveSettings, refresh, loading } = useProfile();
-  const [prefs, setPrefs] = useState(() => getClientPrefs());
-  const [sheet, setSheet] = useState<SheetKey>(null);
-  const [repertoires, setRepertoires] = useState<Repertoire[]>([]);
-  const [rating, setRating] = useState(prefs.rating);
+  const { settings, update, band } = useSettings();
+  const toast = useToast();
+  const [sheet, setSheet] = useState<Sheet>(null);
+  useBoard({ fen: SAMPLE.fen, lastMove: SAMPLE.lastMove, orientation: "white", peek: false });
 
-  useEffect(() => {
-    setPrefs(getClientPrefs());
-    // One-time migration of the old localStorage preferences into SQLite.
-    void migrateLocalPrefs(api).then((next) => {
-      if (next) {
-        setPrefs(getClientPrefs());
-        setRating(getClientPrefs().rating);
-      }
-    });
-    api
-      .get<{ repertoires: Repertoire[] }>("/repertoires")
-      .then((r) => setRepertoires(r.repertoires))
-      .catch(() => setRepertoires([]));
-  }, []);
-
-  const save = useCallback(
-    async (patch: Partial<ServerSettings>) => {
-      try {
-        return await saveSettings(patch);
-      } catch (e: any) {
-        toast(e.message, "bad");
-        return null;
-      }
-    },
-    [saveSettings, toast]
-  );
-
-  /**
-   * Server-backed preference update (D197). The synchronous mirror is updated
-   * optimistically so the switch/sheet responds immediately; the SQLite PATCH
-   * is the write that survives a reload.
-   */
-  const updatePrefs = useCallback(
-    (patch: Partial<ClientPrefs>) => {
-      setPrefs(saveClientPrefs(patch));
-      void save(patch as Partial<ServerSettings>).then((next) => {
-        if (next) setPrefs(getClientPrefs());
-      });
-    },
-    [save]
-  );
-
-  if (!settings) {
-    if (loading) return <Splash label="Loading settings…" />;
-    return (
-      <div className="cb-splash">
-        <p>Settings could not be loaded from the local database.</p>
-        <button type="button" className="cb-btn" onClick={() => location.reload()}>
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  const toggle = async (key: keyof ServerSettings, value: boolean) => {
-    haptic();
-    await save({ [key]: value } as Partial<ServerSettings>);
-  };
-
-  const openRating = () => {
-    setRating(getClientPrefs().rating);
-    setSheet("rating");
-  };
-
-  const commitRating = () => {
-    const value = Math.max(400, Math.min(3000, Math.round(Number(rating.value) || 1800)));
-    setRating({ ...rating, value });
-    haptic(20);
-    void save({ ratingSystem: rating.system, timeControl: rating.timeControl, singleElo: value }).then(
-      (next) => {
-        if (next) {
-          setPrefs(getClientPrefs());
-          setSheet(null);
-          toast("Rating saved to this profile", "ok");
-        }
-      }
-    );
-  };
-
-  const choosePieceSet = (id: string) => {
-    haptic();
-    void save({ pieceSet: id }).then((next) => {
-      if (!next) return;
-      setPrefs(getClientPrefs());
-      setSheet(null);
-      toast(`${pieceSetLabel(next.pieceSet)} selected`, "ok");
-    });
-  };
-
-  const enableNotifications = async () => {
-    if (!notificationsSupported()) {
-      toast("This browser does not support notifications", "bad");
-      return;
-    }
-    const permission = await requestNotificationPermission();
-    if (permission === "granted") toast("Browser notifications enabled", "ok");
-    else if (permission === "denied") toast("Notifications are blocked in the browser", "bad");
-    else toast("Notification permission was not granted", "info");
-  };
-
-  const resetLearning = async () => {
-    if (!repertoires.length) {
-      toast("No repertoires to reset", "info");
-      return;
-    }
-    if (!window.confirm("Reset all learning progress? Saved moves and notes are kept.")) return;
+  const save = async (patch: Partial<Settings>) => {
     try {
-      for (const repertoire of repertoires) {
-        await api.post(`/repertoires/${repertoire.id}/reset`);
-      }
-      await refresh();
-      toast("Learning progress reset", "ok");
-    } catch (e: any) {
-      toast(e.message, "bad");
+      await update(patch);
+      forgetAll();
+    } catch (e) {
+      toast((e as Error).message, "error");
     }
   };
-
-  const resetPreferences = () => {
-    if (!window.confirm("Reset rating, coverage, review, board, sound and notification preferences?"))
-      return;
-    resetClientPrefs();
-    const defaults = DEFAULT_CLIENT_PREFS;
-    void save({
-      ratingSystem: defaults.rating.system,
-      timeControl: defaults.rating.timeControl,
-      singleElo: defaults.rating.value,
-      coverageGoal: defaults.coverageGoal,
-      practiceMode: defaults.practiceMode,
-      reviewStyle: defaults.reviewStyle,
-      pauseAfterMove: defaults.pauseAfterMove,
-      pauseOnFail: defaults.pauseOnFail,
-      pauseOnLowScore: defaults.pauseOnLowScore,
-      pauseWhenNote: defaults.pauseWhenNote,
-      animation: defaults.animation,
-      haptics: defaults.haptics,
-      soundVolume: defaults.soundVolume,
-      soundEffects: defaults.soundEffects as Record<string, boolean>,
-      recommendedMovesSize: defaults.recommendedMovesSize,
-      notifications: defaults.notifications as unknown as Record<string, boolean>,
-    }).then((next) => {
-      if (next) {
-        setPrefs(getClientPrefs());
-        setRating(getClientPrefs().rating);
-        toast("Preferences reset", "ok");
-      }
-    });
-  };
-
-  const animationLabel =
-    ANIMATION_OPTIONS.find((option) => option.value === prefs.animation)?.label ?? "Normal";
-  const recSizeLabel =
-    RECOMMENDED_SIZE_OPTIONS.find((option) => option.value === prefs.recommendedMovesSize)?.label ??
-    "Comfortable";
-  const pauseLabel =
-    PAUSE_OPTIONS.find((option) => option.value === prefs.pauseAfterMove)?.label ?? "Never";
-  const practiceLabel =
-    PRACTICE_OPTIONS.find((option) => option.value === prefs.practiceMode)?.label ??
-    "Individual moves";
-  const reviewLabel =
-    REVIEW_OPTIONS.find((option) => option.value === prefs.reviewStyle)?.label ?? "Cards";
-  const modelLabel =
-    MODEL_SOURCES.find((option) => option.value === (settings.modelSource ?? "historical"))?.label ??
-    "Historical and master games";
-  const notificationsOn = Object.values(prefs.notifications).filter(Boolean).length;
-  const soundLabel = settings.sound ? `On · ${prefs.soundVolume}%` : "Off";
-  const themeLabel =
-    BOARD_THEMES.find((theme) => theme.value === settings.boardTheme)?.label ?? "Chessbook";
-  const pieceSetLabelText = pieceSetLabel(settings.pieceSet);
+  const close = () => setSheet(null);
+  const system = SYSTEMS.find((s) => s.id === settings.ratingSystem)?.label ?? "";
+  const speedLabel = { 0: "Instant", 250: "Fast", 450: "Normal", 800: "Slow" }[settings.autoplayDelay] ?? "Normal";
 
   return (
-    <div className="cb-app">
-      <main className="cb-main">
-        <section className="cb-board-col">
-          <BoardHeader items={[{ label: "Settings" }]} />
-          <Board
-            fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-            theme={settings.boardTheme}
-            coordinates={settings.coordinates}
-            showLegalMoves={settings.legalMoves}
-            pieceSet={settings.pieceSet}
+    <>
+      <Crumbs items={[{ label: "Settings" }]} />
+      <Back to="/" />
+      <PageHead title="Settings" />
+
+      <Section title="Your level">
+        <div className="rows">
+          <Row
+            title="Your rating"
+            meta={band ? `Move statistics come from players rated ${band} on Lichess` : undefined}
+            right={<span className="value">{settings.rating} {system}</span>}
+            onClick={() => setSheet("rating")}
+            chevron
           />
-        </section>
-
-        <Sidebar backTo="/" backLabel="Back">
-          <div className="cb-page-head">
-            <h1 className="cb-page-title">Settings</h1>
-            <p className="cb-page-sub">
-              Stored in the local database or on this device — there is no account or subscription.
-            </p>
-          </div>
-
-          <div className="cb-settings-list">
-            <SettingRow label="Your rating" value={ratingValueLabel(prefs.rating)} onClick={openRating} />
-            <SettingRow
-              label="Cover positions seen in"
-              value={`1 in ${prefs.coverageGoal} games`}
-              onClick={() => setSheet("coverage")}
-            />
-            <SettingRow label="Model games source" value={modelLabel} onClick={() => setSheet("modelSource")} />
-          </div>
-
-          <div className="cb-settings-section">
-            <div className="cb-settings-head">Review settings</div>
-            <div className="cb-settings-list">
-              <SettingRow label="Practice" value={practiceLabel} onClick={() => setSheet("practice")} />
-              <SettingRow label="Review style" value={reviewLabel} onClick={() => setSheet("review")} />
-              <SettingRow
-                label="Daily practice goal"
-                value={`${settings.dailyGoal} moves`}
-                onClick={() => setSheet("goal")}
-              />
-              <SettingRow
-                label="Review history"
-                value="All reviews"
-                onClick={() => navigate(`/history/${repertoires[0]?.id ?? "white"}`)}
-              />
-              <SettingRow
-                label="Pause after playing a move"
-                value={pauseLabel}
-                onClick={() => setSheet("pause")}
-              />
-              <SwitchRow
-                title="Pause on fail"
-                detail="Hold the position after a wrong move"
-                checked={prefs.pauseOnFail}
-                onChange={(next) => updatePrefs({ pauseOnFail: next })}
-              />
-              <SwitchRow
-                title="Pause when there's a note"
-                detail="Stop before a position that has a saved note"
-                checked={prefs.pauseWhenNote}
-                onChange={(next) => updatePrefs({ pauseWhenNote: next })}
-              />
-              <SwitchRow
-                title="Pause on low score"
-                detail="Stop when the session accuracy drops"
-                checked={prefs.pauseOnLowScore}
-                onChange={(next) => updatePrefs({ pauseOnLowScore: next })}
-              />
-            </div>
-          </div>
-
-          <div className="cb-settings-section">
-            <div className="cb-settings-head">Notifications</div>
-            <div className="cb-settings-list">
-              <SettingRow
-                label="Practice and streak reminders"
-                value={`${notificationsOn} of 4 on`}
-                onClick={() => setSheet("notifications")}
-              />
-            </div>
-          </div>
-
-          <div className="cb-settings-section">
-            <div className="cb-settings-head">Board settings</div>
-            <div className="cb-settings-list">
-              <SettingRow label="Appearance" value={themeLabel} onClick={() => setSheet("appearance")} />
-              <SettingRow label="Piece set" value={pieceSetLabelText} onClick={() => setSheet("pieces")} />
-              <SettingRow label="Piece animation" value={animationLabel} onClick={() => setSheet("animation")} />
-              <SettingRow label="Sound effects" value={soundLabel} onClick={() => setSheet("sound")} />
-              <SwitchRow
-                title="Haptics"
-                detail="Vibrate on actions when the device supports it"
-                checked={prefs.haptics}
-                onChange={(next) => {
-                  updatePrefs({ haptics: next });
-                  if (next) haptic(24);
-                }}
-              />
-              <SettingRow
-                label="Recommended moves size"
-                value={recSizeLabel}
-                onClick={() => setSheet("recsize")}
-              />
-            </div>
-          </div>
-
-          <div className="cb-settings-section">
-            <div className="cb-settings-head">Games and data</div>
-            <div className="cb-settings-list">
-              <SettingRow
-                label="Import a PGN file"
-                value="Local file"
-                onClick={() => navigate("/add?tab=import")}
-              />
-              <SettingRow label="Reset all learning" value="" onClick={resetLearning} />
-              <SettingRow label="Reset preferences" value="" onClick={resetPreferences} />
-            </div>
-          </div>
-        </Sidebar>
-      </main>
-
-      {sheet === "rating" && (
-        <Sheet
-          title="Your rating"
-          onClose={() => setSheet(null)}
-          footer={
-            <>
-              <button type="button" className="cb-btn" onClick={() => setSheet(null)}>
-                Cancel
-              </button>
-              <button type="button" className="cb-btn primary" onClick={commitRating}>
-                Save rating
-              </button>
-            </>
-          }
-        >
-          <p className="cb-inline-note">
-            Used for the rating band shown next to opening statistics. Opening data was captured
-            for the 1800–2000 Chess.com band; other bands are not synthesised.
-          </p>
-          <div className="cb-add-label">Platform</div>
-          <div className="cb-settings-list">
-            {PLATFORMS.map((platform) => (
-              <ChoiceRow
-                key={platform}
-                label={platform}
-                active={rating.system === platform}
-                onClick={() => setRating({ ...rating, system: platform as Platform })}
-              />
-            ))}
-          </div>
-          <div className="cb-add-label">Time control</div>
-          <div className="cb-settings-list">
-            {TIME_CONTROLS.map((control) => (
-              <ChoiceRow
-                key={control}
-                label={control}
-                active={rating.timeControl === control}
-                onClick={() => setRating({ ...rating, timeControl: control as TimeControl })}
-              />
-            ))}
-          </div>
-          <div className="cb-add-label">Rating</div>
-          <input
-            className="cb-input"
-            type="number"
-            min={400}
-            max={3000}
-            step={25}
-            value={rating.value}
-            onChange={(e) => setRating({ ...rating, value: Number(e.target.value) })}
+          <Row
+            title="Coverage goal"
+            meta="How rare a line can be before you stop preparing for it"
+            right={<span className="value">1 in {settings.coverageGoal} games</span>}
+            onClick={() => setSheet("coverage")}
+            chevron
           />
-          <div className="cb-range-labels" style={{ marginTop: 8 }}>
-            <span>Band</span>
-            <strong>
-              {bandFor(rating.value)} {rating.system}
-            </strong>
-          </div>
-        </Sheet>
-      )}
+        </div>
+      </Section>
 
+      <Section title="Practice">
+        <div className="rows">
+          <Row title="Daily goal" right={<span className="value">{settings.dailyGoal} moves</span>} onClick={() => setSheet("daily")} chevron />
+          <Row title="New moves per session" right={<span className="value">{settings.newPerSession}</span>} onClick={() => setSheet("new")} chevron />
+          <ToggleRow
+            title="Practice whole lines"
+            meta="Ask every one of your moves in a line, not only the ones that are due"
+            value={settings.wholeLines}
+            onChange={(v) => save({ wholeLines: v })}
+          />
+          <Row title="Opponent move speed" right={<span className="value">{speedLabel}</span>} onClick={() => setSheet("speed")} chevron />
+        </div>
+      </Section>
+
+      <Section title="Board">
+        <div className="rows">
+          <Row
+            title="Board colors"
+            right={
+              <span className="value">
+                <Swatch colors={THEMES.find((t) => t.id === settings.boardTheme)?.colors ?? THEMES[0].colors} />
+                {THEMES.find((t) => t.id === settings.boardTheme)?.label}
+              </span>
+            }
+            onClick={() => setSheet("theme")}
+            chevron
+          />
+          <Row
+            title="Pieces"
+            right={<span className="value">{PIECES.find((p) => p.id === settings.pieceSet)?.label}</span>}
+            onClick={() => setSheet("pieces")}
+            chevron
+          />
+          <Row
+            title="Piece animation"
+            right={<span className="value">{settings.animation[0].toUpperCase() + settings.animation.slice(1)}</span>}
+            onClick={() => setSheet("animation")}
+            chevron
+          />
+          <ToggleRow title="Coordinates" value={settings.coordinates} onChange={(v) => save({ coordinates: v })} />
+          <ToggleRow title="Show legal moves" value={settings.legalMoves} onChange={(v) => save({ legalMoves: v })} />
+          <ToggleRow title="Sounds" value={settings.sound} onChange={(v) => save({ sound: v })} />
+        </div>
+      </Section>
+
+      <Section title="Data">
+        <div className="rows plain">
+          <Row variant="plain" title="Where the statistics come from" to="/about" chevron />
+          <Row variant="plain" className="danger" title="Reset practice progress" meta="Keeps your repertoires, forgets what you've learned" onClick={() => setSheet("reset")} />
+        </div>
+      </Section>
+
+      {sheet === "rating" && <RatingSheet onClose={close} onSave={save} settings={settings} />}
       {sheet === "coverage" && (
-        <Sheet title="Cover positions seen in" onClose={() => setSheet(null)}>
-          <p className="cb-inline-note">
-            Moves rarer than 1 in {prefs.coverageGoal} games are candidates for trimming. The same
-            goal feeds “Trim moves past your goal” in a repertoire.
-          </p>
-          <div className="cb-settings-list">
-            {COVERAGE_OPTIONS.map((option) => (
-              <ChoiceRow
-                key={option}
-                label={`1 in ${option} games`}
-                detail={
-                  option <= 50
-                    ? "Trims only very rare sidelines"
-                    : option >= 500
-                      ? "Keeps only common moves; aggressive trim"
-                      : "Balanced breadth"
-                }
-                active={prefs.coverageGoal === option}
-                onClick={() => {
-                  haptic();
-                  updatePrefs({ coverageGoal: option });
-                }}
-              />
-            ))}
-          </div>
-        </Sheet>
+        <Options
+          title="Coverage goal"
+          intro="Chessbook asks you to prepare for every line that comes up at least this often at your level. A higher number means a bigger repertoire."
+          value={settings.coverageGoal}
+          options={[20, 50, 100, 200, 500].map((n) => ({ value: n, label: `1 in ${n} games`, meta: n <= 50 ? "Just the main lines" : n >= 500 ? "Very thorough" : undefined }))}
+          onPick={(v) => (save({ coverageGoal: v }), close())}
+          onClose={close}
+        />
       )}
-
-      {sheet === "practice" && (
-        <Sheet title="Practice mode" onClose={() => setSheet(null)}>
-          <div className="cb-settings-list">
-            {PRACTICE_OPTIONS.map((option) => (
-              <ChoiceRow
-                key={option.value}
-                label={option.label}
-                detail={option.detail}
-                active={prefs.practiceMode === option.value}
-                onClick={() => {
-                  haptic();
-                  updatePrefs({ practiceMode: option.value });
-                }}
-              />
-            ))}
-          </div>
-        </Sheet>
+      {sheet === "daily" && (
+        <Options
+          title="Daily goal"
+          value={settings.dailyGoal}
+          options={[10, 20, 30, 50, 100].map((n) => ({ value: n, label: `${n} moves a day` }))}
+          onPick={(v) => (save({ dailyGoal: v }), close())}
+          onClose={close}
+        />
       )}
-
-      {sheet === "review" && (
-        <Sheet title="Review style" onClose={() => setSheet(null)}>
-          <div className="cb-settings-list">
-            {REVIEW_OPTIONS.map((option) => (
-              <ChoiceRow
-                key={option.value}
-                label={option.label}
-                detail={option.detail}
-                active={prefs.reviewStyle === option.value}
-                onClick={() => {
-                  haptic();
-                  updatePrefs({ reviewStyle: option.value });
-                }}
-              />
-            ))}
-          </div>
-        </Sheet>
+      {sheet === "new" && (
+        <Options
+          title="New moves per session"
+          intro="New moves are taught with an arrow, then asked again from memory at the end of the session."
+          value={settings.newPerSession}
+          options={[5, 10, 20, 50].map((n) => ({ value: n, label: `${n} new moves` }))}
+          onPick={(v) => (save({ newPerSession: v }), close())}
+          onClose={close}
+        />
       )}
-
-      {sheet === "goal" && (
-        <Sheet title="Daily practice goal" onClose={() => setSheet(null)}>
-          <p className="cb-inline-note">
-            Counts reviewed moves today. The dashboard progress bar and streak reminder use this
-            value.
-          </p>
-          <div className="cb-radio-row">
-            {DAILY_GOAL_OPTIONS.map((goal) => (
-              <button
-                type="button"
-                key={goal}
-                className={`cb-radio ${settings.dailyGoal === goal ? "active" : ""}`}
-                onClick={() => void save({ dailyGoal: goal })}
-              >
-                {goal}
-              </button>
-            ))}
-          </div>
-          <div className="cb-range-labels" style={{ marginTop: 10 }}>
-            <span>Current goal</span>
-            <strong>{settings.dailyGoal} moves</strong>
-          </div>
-        </Sheet>
+      {sheet === "speed" && (
+        <Options
+          title="Opponent move speed"
+          value={settings.autoplayDelay}
+          options={[
+            { value: 0, label: "Instant" },
+            { value: 250, label: "Fast" },
+            { value: 450, label: "Normal" },
+            { value: 800, label: "Slow" },
+          ]}
+          onPick={(v) => (save({ autoplayDelay: v }), close())}
+          onClose={close}
+        />
       )}
-
-      {sheet === "pause" && (
-        <Sheet title="Pause after playing a move" onClose={() => setSheet(null)}>
-          <div className="cb-settings-list">
-            {PAUSE_OPTIONS.map((option) => (
-              <ChoiceRow
-                key={option.value}
-                label={option.label}
-                active={prefs.pauseAfterMove === option.value}
-                onClick={() => {
-                  haptic();
-                  updatePrefs({ pauseAfterMove: option.value });
-                }}
-              />
-            ))}
-          </div>
-        </Sheet>
-      )}
-
-      {sheet === "notifications" && (
-        <Sheet title="Notifications" onClose={() => setSheet(null)}>
-          <p className="cb-inline-note">
-            Local-first build: reminders use the browser notification API on this device. No email,
-            no server, no account.
-          </p>
-          <SwitchRow
-            title="Daily practice reminder"
-            detail="Notify once a day when the practice goal is not met"
-            checked={prefs.notifications.dailyPractice}
-            onChange={(next) => updatePrefs({ notifications: { ...prefs.notifications, dailyPractice: next } })}
-          />
-          <SwitchRow
-            title="Streak reminder"
-            detail="Notify when a day with a live streak has no reviews"
-            checked={prefs.notifications.streak}
-            onChange={(next) => updatePrefs({ notifications: { ...prefs.notifications, streak: next } })}
-          />
-          <SwitchRow
-            title="New model game"
-            detail="Notify about the daily model game"
-            checked={prefs.notifications.modelGame}
-            onChange={(next) => updatePrefs({ notifications: { ...prefs.notifications, modelGame: next } })}
-          />
-          <SwitchRow
-            title="Mistake review"
-            detail="Notify when a saved move becomes due again"
-            checked={prefs.notifications.mistakes}
-            onChange={(next) => updatePrefs({ notifications: { ...prefs.notifications, mistakes: next } })}
-          />
-          <div style={{ marginTop: 14 }}>
-            {!notificationsSupported() ? (
-              <p className="cb-inline-note">
-                This browser does not expose notifications. The switches are stored and will apply
-                when supported.
-              </p>
-            ) : Notification.permission === "granted" ? (
-              <p className="cb-inline-note">
-                <i className="fa fa-check" aria-hidden /> Browser permission granted
-              </p>
-            ) : (
-              <button type="button" className="cb-btn" onClick={() => void enableNotifications()}>
-                {Notification.permission === "denied"
-                  ? "Permission blocked — check browser settings"
-                  : "Allow browser notifications"}
-              </button>
-            )}
-          </div>
-        </Sheet>
-      )}
-
-      {sheet === "appearance" && (
-        <Sheet title="Board appearance" onClose={() => setSheet(null)}>
-          <div className="cb-theme-grid">
-            {BOARD_THEMES.map((theme) => (
-              <button
-                type="button"
-                key={theme.value}
-                className={`cb-theme ${settings.boardTheme === theme.value ? "active" : ""}`}
-                onClick={() => {
-                  haptic();
-                  void save({ boardTheme: theme.value });
-                }}
-              >
-                <span
-                  className={`cb-theme-preview ${
-                    theme.value === "green" ? "" : theme.value
-                  }`}
-                >
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </span>
-                {theme.label}
-              </button>
-            ))}
-          </div>
-        </Sheet>
-      )}
-
-      {sheet === "pieces" && (
-        <Sheet title="Piece set" onClose={() => setSheet(null)}>
-          <p className="cb-inline-note">
-            Open-source sets bundled from the Lichess piece collection. The choice is saved to this
-            local profile and applies to every board.
-          </p>
-          <div className="cb-piece-set-grid" data-testid="piece-set-grid">
-            {PIECE_SETS.map((set) => {
-              const active = settings.pieceSet === set.id;
-              return (
-                <button
-                  type="button"
-                  key={set.id}
-                  className={`cb-piece-set ${active ? "active" : ""}`}
-                  aria-pressed={active}
-                  data-testid={`piece-set-${set.id}`}
-                  title={`${set.name} — ${set.attribution} (${set.license})`}
-                  onClick={() => choosePieceSet(set.id)}
-                >
-                  <span className={`cb-piece-set-preview ${set.id}`} aria-hidden>
-                    {["wK", "wN", "wP"].map((piece, index) => (
-                      <span key={piece} className={index % 2 === 0 ? "light" : "dark"}>
-                        <img src={`/pieces/${set.id}/${piece}.svg`} alt="" loading="lazy" />
-                      </span>
-                    ))}
-                  </span>
-                  <span className="cb-piece-set-name">
-                    {set.label ?? set.name}
-                    {active && <i className="fa fa-check" aria-hidden />}
-                  </span>
-                  <span className="cb-piece-set-license">
-                    {set.attribution} · {set.license}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </Sheet>
-      )}
-
       {sheet === "animation" && (
-        <Sheet title="Piece animation" onClose={() => setSheet(null)}>
-          <div className="cb-settings-list">
-            {ANIMATION_OPTIONS.map((option) => (
-              <ChoiceRow
-                key={option.value}
-                label={option.label}
-                active={prefs.animation === option.value}
-                onClick={() => {
-                  haptic();
-                  updatePrefs({ animation: option.value as AnimationSpeed });
-                }}
-              />
-            ))}
-          </div>
-        </Sheet>
+        <Options
+          title="Piece animation"
+          value={settings.animation}
+          options={(["off", "fast", "normal", "slow"] as const).map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) }))}
+          onPick={(v) => (save({ animation: v }), close())}
+          onClose={close}
+        />
       )}
-
-      {sheet === "sound" && (
-        <Sheet title="Sound effects" onClose={() => setSheet(null)}>
-          <SwitchRow
-            title="Sound effects"
-            detail="Move, capture, check and feedback sounds"
-            checked={settings.sound}
-            onChange={(next) => void toggle("sound", next)}
-          />
-          <div className="cb-add-label">Volume</div>
-          <input
-            className="cb-range"
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={prefs.soundVolume}
-            onChange={(e) => {
-              const value = Number(e.target.value);
-              updatePrefs({ soundVolume: value });
-            }}
-            onMouseUp={() => previewSound("move")}
-            aria-label="Sound volume"
-          />
-          <div className="cb-range-labels">
-            <span>Quiet</span>
-            <strong>{prefs.soundVolume}%</strong>
-            <span>Loud</span>
-          </div>
-          <div className="cb-settings-list" style={{ marginTop: 12 }}>
-            {SOUND_LABELS.map((sound) => (
-              <SwitchRow
-                key={sound.name}
-                title={sound.label}
-                detail={`Preview at ${prefs.soundVolume}%`}
-                checked={prefs.soundEffects[sound.name]}
-                onChange={(next) => {
-                  updatePrefs({ soundEffects: { ...prefs.soundEffects, [sound.name]: next } });
-                  if (next) previewSound(sound.name as SoundName);
-                }}
-              />
-            ))}
-          </div>
-        </Sheet>
+      {sheet === "theme" && (
+        <Options
+          title="Board colors"
+          value={settings.boardTheme}
+          options={THEMES.map((t) => ({ value: t.id, label: t.label, icon: <Swatch colors={t.colors} /> }))}
+          onPick={(v) => save({ boardTheme: v })}
+          onClose={close}
+        />
       )}
-
-      {sheet === "recsize" && (
-        <Sheet title="Recommended moves size" onClose={() => setSheet(null)}>
-          <p className="cb-inline-note">
-            Controls the density of the move recommendation list in the builder, gap finder and add
-            flow.
-          </p>
-          <div className="cb-settings-list">
-            {RECOMMENDED_SIZE_OPTIONS.map((option) => (
-              <ChoiceRow
-                key={option.value}
-                label={option.label}
-                active={prefs.recommendedMovesSize === option.value}
-                onClick={() => {
-                  haptic();
-                  updatePrefs({ recommendedMovesSize: option.value as RecommendedMovesSize });
-                }}
-              />
-            ))}
-          </div>
-        </Sheet>
+      {sheet === "pieces" && (
+        <Options
+          title="Pieces"
+          value={settings.pieceSet}
+          options={PIECES.map((p) => ({
+            value: p.id,
+            label: p.label,
+            icon: (
+              <span className="piece-preview">
+                {["wN", "bQ"].map((k) => (
+                  <img key={k} src={`/pieces/${p.id}/${k}.svg`} alt="" />
+                ))}
+              </span>
+            ),
+          }))}
+          onPick={(v) => save({ pieceSet: v })}
+          onClose={close}
+        />
       )}
-
-      {sheet === "modelSource" && (
-        <Sheet title="Model games source" onClose={() => setSheet(null)}>
-          <div className="cb-settings-list">
-            {MODEL_SOURCES.map((option) => (
-              <ChoiceRow
-                key={option.value}
-                label={option.label}
-                detail={option.detail}
-                active={(settings.modelSource ?? "historical") === option.value}
-                onClick={() => void save({ modelSource: option.value })}
-              />
-            ))}
+      {sheet === "reset" && (
+        <Modal title="Reset practice progress?" onClose={close}>
+          <p className="modal-text">Every move goes back to "new" and your review history is cleared. Your repertoires stay as they are.</p>
+          <div className="modal-actions">
+            <Button variant="secondary" onClick={close}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                await api.post("/reset", { what: "progress" });
+                forgetAll();
+                close();
+                toast("Practice progress reset");
+              }}
+            >
+              Reset
+            </Button>
           </div>
-        </Sheet>
+        </Modal>
       )}
-    </div>
+    </>
   );
 }
 
-/* ------------------------------------------------------------------ pieces --- */
-
-function bandFor(value: number) {
-  const low = Math.max(400, Math.floor(value / 200) * 200);
-  return `${low}–${low + 200}`;
+function Swatch({ colors }: { colors: [string, string] }) {
+  return (
+    <span className="swatch" aria-hidden>
+      <span style={{ background: colors[0] }} />
+      <span style={{ background: colors[1] }} />
+    </span>
+  );
 }
 
-function ratingValueLabel(rating: { system: Platform; timeControl: TimeControl; value: number }) {
-  return `${rating.value} · ${rating.system} ${rating.timeControl}`;
-}
-
-function SettingRow({
-  label,
-  value,
-  onClick,
-}: {
-  label: string;
-  value: React.ReactNode;
-  onClick: () => void;
-}) {
+function ToggleRow({ title, meta, value, onChange }: { title: string; meta?: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <Row
-      title={label}
-      right={value ? <span className="cb-setting-value">{value}</span> : undefined}
-      onClick={onClick}
-      className="cb-settings-row"
-      chevron
-    />
-  );
-}
-
-function ChoiceRow({
-  label,
-  detail,
-  active,
-  onClick,
-}: {
-  label: string;
-  detail?: string;
-  active?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <Row
-      title={label}
-      meta={detail}
-      className={`cb-settings-row ${active ? "selected" : ""}`}
-      right={active ? <i className="fa fa-check" aria-hidden /> : undefined}
-      onClick={onClick}
-    />
-  );
-}
-
-function SwitchRow({
-  title,
-  detail,
-  checked,
-  onChange,
-}: {
-  title: string;
-  detail?: string;
-  checked: boolean;
-  onChange: (next: boolean) => void;
-}) {
-  return (
-    <label className="cb-switch-row">
-      <span className="cb-switch-label">
-        <strong>{title}</strong>
-        {detail && <span>{detail}</span>}
-      </span>
-      <span className="cb-switch">
-        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-        <span className="cb-switch-track" />
-      </span>
-    </label>
-  );
-}
-
-function Sheet({
-  title,
-  onClose,
-  children,
-  footer,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-}) {
-  return (
-    <Modal
       title={title}
-      onClose={onClose}
-      footer={
-        footer ?? (
-          <button type="button" className="cb-btn" onClick={onClose}>
-            Done
+      meta={meta}
+      onClick={() => onChange(!value)}
+      right={<span className={`toggle${value ? " on" : ""}`} role="switch" aria-checked={value} />}
+    />
+  );
+}
+
+function Options<T extends string | number>({
+  title,
+  intro,
+  value,
+  options,
+  onPick,
+  onClose,
+}: {
+  title: string;
+  intro?: string;
+  value: T;
+  options: { value: T; label: string; meta?: string; icon?: React.ReactNode }[];
+  onPick: (v: T) => void;
+  onClose: () => void;
+}) {
+  return (
+    <Modal title={title} onClose={onClose}>
+      {intro && <p className="modal-text">{intro}</p>}
+      <div className="options">
+        {options.map((o) => (
+          <button key={String(o.value)} type="button" className={`option${o.value === value ? " selected" : ""}`} onClick={() => onPick(o.value)}>
+            {o.icon}
+            <span className="option-label">
+              {o.label}
+              {o.meta && <span className="option-meta">{o.meta}</span>}
+            </span>
+            {o.value === value && <Icon name="check" />}
           </button>
-        )
-      }
-    >
-      {children}
+        ))}
+      </div>
+    </Modal>
+  );
+}
+
+function RatingSheet({ settings, onSave, onClose }: { settings: Settings; onSave: (p: Partial<Settings>) => Promise<void>; onClose: () => void }) {
+  const [system, setSystem] = useState(settings.ratingSystem);
+  const [rating, setRating] = useState(String(settings.rating));
+  const valid = Number(rating) >= 400 && Number(rating) <= 3200;
+  return (
+    <Modal title="Your rating" onClose={onClose}>
+      <p className="modal-text">Used to show the moves your opponents actually play, and how often each line comes up.</p>
+      <div className="segmented">
+        {SYSTEMS.map((s) => (
+          <button key={s.id} type="button" className={system === s.id ? "selected" : ""} onClick={() => setSystem(s.id)}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <input className="input" inputMode="numeric" value={rating} onChange={(e) => setRating(e.target.value.replace(/\D/g, ""))} aria-label="Rating" />
+      {!valid && <p className="form-error">Enter a rating between 400 and 3200.</p>}
+      <div className="modal-actions">
+        <Button variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          disabled={!valid}
+          onClick={async () => {
+            await onSave({ ratingSystem: system, rating: Number(rating) });
+            onClose();
+          }}
+        >
+          Save
+        </Button>
+      </div>
     </Modal>
   );
 }

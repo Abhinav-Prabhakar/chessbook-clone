@@ -1,470 +1,172 @@
 export type Color = "white" | "black";
 
-export interface UserProfile {
-  ratingSystem: string;
-  timeControl: string;
-  singleElo: number;
-  eloRange: string;
-  coverageGoal: number;
-  pieceSet?: string;
-}
-
-export interface User {
-  id: number;
-  email: string;
-  name: string;
-  ratingSystem?: string;
-  singleElo?: number;
-  eloRange?: string;
-  coverageGoal?: number;
-  profile?: UserProfile;
-  preferences?: Settings;
-}
-
-export interface Repertoire {
-  id: number;
-  color: Color;
-  name: string;
-  description: string;
-  totalLines: number;
-  lineCount: number;
-  learned: number;
-  mastered: number;
-  saved: number;
-  due: number;
-  completion: number;
-  mastery: number;
-  createdAt: string;
-  slug?: string | null;
-  /* Move-level counts from the per-position training engine. */
-  moveCount?: number;
-  positionCount?: number;
-  duePositions?: number;
-  fresh?: number;
-  learnedPositions?: number;
-  masteredPositions?: number;
-  moveCompletion?: number;
-  moveMastery?: number;
-  chapterCount?: number;
-  characteristics?: {
-    available: boolean;
-    effectiveness?: number | null;
-    soundness?: number | null;
-    learnability?: number | null;
-    avgCpLoss?: number | null;
-    expectedResults?: number | null;
-    sharpness?: number | null;
-    [key: string]: unknown;
-  };
-  coverage?: number | null;
-}
-
-export interface Line {
-  id: number;
-  openingId: number | null;
-  name: string;
-  moves: string[];
-  pgn: string;
-  fen: string;
-  side: Color;
-  expectedSan: string;
-  learned: boolean;
-  mastered: number;
-  saved: boolean;
-  dueAt: string | null;
-  due: boolean;
-  wrong?: number;
-  /* Per-position view fields returned by /learn and /practice tasks. */
-  ply?: number | null;
-  epd?: string | null;
-  alternatives?: string[];
-}
-
-export interface TaskStats {
-  due: number;
-  saved: number;
-  mastered: number;
-  streak: number;
-}
-
-export interface DashboardData {
-  user: User;
-  repertoires: Repertoire[];
-  tasks: TaskStats;
-  modelGame: {
-    id: number;
-    white: string;
-    black: string;
-    event: string;
-    year: string;
-    result: string;
-  } | null;
-  connected: boolean;
-}
-
-export type BoardTheme =
-  | "green"
-  | "blue"
-  | "brown"
-  | "lichess-green"
-  | "chesscom-green";
-export type ReviewStyle = "cards" | "complete-once" | "complete-every" | "entire-line";
-export type PracticeModePreference = "individual" | "whole-lines";
-export type AnimationSpeed = "off" | "fast" | "normal";
-export type RecommendedMovesSize = "compact" | "comfortable" | "large";
-
-/** One bundled piece set (mirrors `PIECE_SETS` in server/settings.js). */
-export interface PieceSetMeta {
-  id: string;
-  name: string;
-  label?: string;
-  available: boolean;
-  source: string;
-  attribution: string;
-  license: string;
-}
-
-export interface ReviewHistoryRow {
-  id: number;
-  epd: string;
-  ply: number;
-  san: string;
-  playedSan: string;
-  side: Color;
-  correct: boolean;
-  grade: number | null;
-  mode: string;
-  daily: string | null;
-  sessionId: string | null;
-  submissionId: string | null;
-  lineId: number | null;
-  lineName: string | null;
-  createdAt: string;
-}
-
-export interface HistoryMistake {
-  epd: string;
-  fen: string;
-  ply: number;
-  side: Color;
-  expectedSan: string;
-  acceptableSans: string[];
-  lineId: number;
-  lineName: string;
-  alternatives: TaskAlternative[];
-}
-
 export interface Settings {
-  boardTheme: BoardTheme;
+  rating: number;
+  ratingSystem: "lichess" | "chesscom" | "fide";
+  coverageGoal: number;
+  boardTheme: "green" | "blue" | "brown" | "gray" | "purple";
+  pieceSet: string;
   coordinates: boolean;
   legalMoves: boolean;
   sound: boolean;
-  showHints: boolean;
+  animation: "off" | "fast" | "normal" | "slow";
   dailyGoal: number;
-  modelSource?: "historical" | "masters" | "online";
-  /* D135/D197: rating, coverage and review preferences live on the server. */
-  ratingSystem?: string;
-  timeControl?: string;
-  singleElo?: number;
-  eloRange?: string;
-  coverageGoal?: number;
-  practiceMode?: PracticeModePreference;
-  reviewStyle?: ReviewStyle;
-  pauseAfterMove?: 0 | 1 | 2;
-  pauseOnFail?: boolean;
-  pauseOnLowScore?: boolean;
-  pauseWhenNote?: boolean;
-  animation?: AnimationSpeed;
-  haptics?: boolean;
-  pieceSet?: string;
-  soundVolume?: number;
-  soundEffects?: Record<string, boolean>;
-  recommendedMovesSize?: RecommendedMovesSize;
-  notifications?: Record<string, boolean>;
+  newPerSession: number;
+  wholeLines: boolean;
+  autoplayDelay: number;
+  onboarded: boolean;
+  modelSide: string;
 }
 
 export interface Opening {
-  id: number;
   eco: string;
   name: string;
-  pgn: string;
-  moves: string[];
+}
+
+export interface Gap {
+  path: string[];
+  expectedIn: number | null;
+  lastMove: string | null;
+  ply: number;
+  label: string;
+  opening: Opening | null;
+}
+
+export interface RepertoireSummary {
+  id: number;
+  name: string;
+  color: Color;
+  completion: number;
+  stats: {
+    saved: number;
+    mine: number;
+    fresh: number;
+    due: number;
+    learned: number;
+    mastered: number;
+    masteredPercent: number;
+  };
+  due: number;
+  fresh: number;
+  difficult: number;
+  scheduled: number;
+  nextDue: string | null;
+  biggestGap: Gap | null;
+  gapCount: number;
+  started: boolean;
+}
+
+export interface Daily {
+  today: string;
+  reviewed: number;
+  correct: number;
+  goal: number;
+  streak: number;
+  bestStreak: number;
+  practicedToday: boolean;
+}
+
+export interface Candidate {
+  san: string;
+  uci: string;
+  from: string;
+  to: string;
+  name: string | null;
+  masters: { share: number; games: number } | null;
+  peers: { share: number; games: number; white: number; draw: number; black: number } | null;
+  note: string | null;
+  ownNote: boolean;
+  saved: boolean;
+  expectedIn: number | null;
+  coverage?: number | null;
+  rare?: boolean;
+}
+
+export interface PositionMove {
+  san: string;
+  from: string;
+  to: string;
   fen: string;
-  expectedSan: string;
+}
+
+export interface EngineEval {
+  depth: number;
+  eval: number | null;
+  mate: number | null;
+  best: string | null;
+  moves: { san: string; eval: number | null; mate: number | null; pv: string[] }[];
+}
+
+export interface PositionView {
+  repertoire: { id: number; name: string; color: Color };
+  path: string[];
+  fen: string;
+  epd: string;
+  turn: Color;
+  mine: boolean;
+  ply: number;
+  moves: PositionMove[];
+  lastMove: { from: string; to: string } | null;
+  opening: Opening | null;
+  onRepertoire: boolean;
+  reach: number;
+  expectedIn: number | null;
+  belowGoal: boolean;
+  coverageGoal: number;
+  saved: { san: string; mine: boolean; note: string | null; reps: number; source: string }[];
+  mySaved: string[];
+  candidates: Candidate[];
+  positionNote: string | null;
+  eval: EngineEval | null;
+  data: { masters: number; peers: number; band: string };
+  gameOver: boolean;
+}
+
+export interface PracticePly {
+  san: string;
+  uci: string;
+  from: string;
+  to: string;
+  fen: string;
   side: Color;
-  family: string;
+  ask: boolean;
+  moveId: number | null;
+  fresh: boolean;
+  note: string | null;
+  alternatives: string[];
+}
+
+export interface PracticeLine {
+  sans: string[];
+  plies: PracticePly[];
+  start: number;
+  opening: Opening | null;
+  color: Color;
+}
+
+export interface PracticeSession {
+  repertoireId: number;
+  color: Color;
+  mode: string;
+  lines: PracticeLine[];
+  total: number;
 }
 
 export interface ModelGame {
   id: number;
   white: string;
   black: string;
-  event: string;
-  year: string;
+  whiteElo: number | null;
+  blackElo: number | null;
+  event: string | null;
+  year: number | null;
   result: string;
-  pgn: string;
-  description: string;
-  progress: number;
-}
-
-export interface PracticeNext {
-  line: Line | null;
-  stats: Repertoire;
-  remaining: number;
-  complete: boolean;
-}
-
-export interface AttemptResult {
-  correct: boolean;
-  expectedSan: string;
-  playedSan: string;
-  line: Line;
-  next: PracticeNext;
-  stats: Repertoire;
-}
-
-/* ------------------------------------------------ per-position training --- */
-
-export interface Note {
-  id: number;
-  epd: string;
-  san: string | null;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TaskMove {
-  ply: number;
-  moveNumber: number;
-  san: string;
-  uci?: string;
-  from: string;
-  to: string;
-  fen: string;
-  after: string;
-  epd?: string;
+  eco: string | null;
+  sans: string[];
+  moves: { san: string; from: string; to: string; uci: string; fen: string }[];
+  opening: Opening | null;
+  repertoire: { id: number; name: string; color: Color } | null;
   side: Color;
-}
-
-export interface TaskAlternative {
-  san: string;
-  sanKey: string;
-  lineMoveId: number;
-  lineId: number;
-  lineName: string;
-  epd: string;
-  ply: number;
-  dueAt: string | null;
-  due: boolean;
-  stability: number;
-  difficulty: number;
-  lapses: number;
-  reps: number;
-  state: string;
-  learned: boolean;
-  kept: boolean;
-  note?: Note | null;
-}
-
-export interface CardState {
-  difficulty: number;
-  expectedWrong: number;
-  expectedWrongPercent: number;
-  recall: number | null;
-  grade: number | null;
-  lastCorrect: boolean | null;
-  lastReview: string | null;
-  dueAt: string | null;
-  intervalDays: number | null;
-  reps: number;
-  lapses: number;
-  wrongCount: number;
-  state: string;
-  reviewed: boolean;
-  mastered: boolean;
-}
-
-export interface CommonMoveInfo {
-  epd: string;
-  via: {
-    epd: string;
-    san: string;
-    incidence: number;
-    oneIn: number;
-    source: string | null;
-  };
-}
-
-export interface Refutation {
-  available: boolean;
-  playedSan?: string;
-  san?: string;
-  uci?: string;
-  from?: string;
-  to?: string;
-  fen?: string;
-  epd?: string;
-  line?: string[];
-  evalPawns?: number | null;
-  mate?: boolean;
-  depth?: number;
-  engine?: string;
-  source?: string;
-  explanation?: string;
-  check?: boolean;
-  mateAvailable?: boolean;
-  damagePawns?: number | null;
-  expectedEvalPawns?: number | null;
-  reason?: string;
-}
-
-export interface PracticeTask {
-  epd: string;
-  fen: string;
-  ply: number;
-  moveNumber: number;
-  side: Color;
-  expectedSan: string;
-  acceptableSans: string[];
-  alternatives: TaskAlternative[];
-  lineId: number;
-  lineName: string;
-  lineMoveId: number;
-  fullMoves: string[];
-  prefix: TaskMove[];
-  autoReply: TaskMove | null;
-  card?: CardState;
-  common?: CommonMoveInfo | null;
-  plans?: { from?: string; to?: string; text?: string; san?: string }[];
-  planArrows?: { from: string; to: string; label?: string | null }[];
-  note: Note | null;
-  noteText: string | null;
-  moveNote: Note | null;
-  dueAt: string | null;
-  due: boolean;
-  kept: boolean;
-  review: {
-    stability: number;
-    difficulty: number;
-    lapses: number;
-    reps: number;
-    state: string;
-    lastReview: string | null;
-    wrongCount: number;
-  };
-}
-
-export type PracticeMode =
-  | "due"
-  | "all"
-  | "weak"
-  | "early"
-  | "specific"
-  | "line"
-  | "common";
-
-export interface PracticeSession {
-  id: string;
-  repertoireId: number;
-  mode: PracticeMode;
-  status: "active" | "paused" | "complete";
-  total: number;
-  remaining: number;
-  answered: number;
-  correct: number;
-  wrong: number;
-  skipped: number;
-  cursor: number;
-  complete: boolean;
-  style?: ReviewStyle;
-  practiceMode?: PracticeModePreference;
-  replays?: number;
-  createdAt: string;
-  updatedAt: string;
-  completedAt: string | null;
-}
-
-export interface StreakSummary {
-  current: number;
-  highest: number;
-  lastStreakDate: string | null;
-  today: string;
-}
-
-export interface DailySummary {
-  date: string;
-  reviews: number;
-  correct: number;
-  wrong: number;
-  goal: number;
-  goalMet: boolean;
-  remaining: number;
-  streak: StreakSummary;
-}
-
-export interface SessionPayload {
-  session: PracticeSession;
-  task: PracticeTask | null;
-  autoReply: TaskMove | null;
-  repertoire: Repertoire;
-  resumed?: boolean;
-  skipped?: string | false;
-  kept?: string | null;
-  keptSan?: string;
-  commonMoves?: CommonMoveInfo[];
-  commonSource?: string;
-}
-
-export interface AttemptResponse {
-  correct: boolean;
-  idempotent?: boolean;
-  expectedSan: string;
-  playedSan: string;
-  acceptableSans: string[];
-  alternatives: TaskAlternative[];
-  position: {
-    epd: string;
-    fen: string;
-    ply: number;
-    moveNumber: number;
-    side: Color;
-    lineId: number;
-    lineName: string;
-  };
-  grade: number | null;
-  scheduled: {
-    stability: number;
-    difficulty: number;
-    lapses: number;
-    reps: number;
-    state: string;
-    intervalDays: number;
-    dueAt: string;
-    lastReview: string;
-  } | null;
-  lapse: {
-    difficulty: number;
-    lapses: number;
-    lastReview: string;
-    lastCorrect: number;
-  } | null;
-  retry: boolean;
-  autoReply: TaskMove | null;
-  remaining: number;
-  complete: boolean;
-  refutation?: Refutation | null;
-  card?: CardState | null;
-  replay?: { replays: number } | null;
-  next: {
-    task: PracticeTask | null;
-    autoReply: TaskMove | null;
-    remaining: number;
-    complete: boolean;
-  };
-  session: PracticeSession;
-  stats: Repertoire;
-  daily: DailySummary;
-  reviewId: number;
-  submissionId: string;
+  follows: number;
+  progress: { ply: number; correct: number; wrong: number; completed: boolean; daily: string | null } | null;
 }

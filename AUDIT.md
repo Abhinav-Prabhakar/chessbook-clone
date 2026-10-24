@@ -1,3 +1,5 @@
+> **Note (24 Oct 2026):** this audit describes the previous version of the app. Its core was rebuilt afterwards; see `STATUS.md` for the current state.
+
 # Chessbook clone — full divergence audit
 
 **Audited:** 23 Oct 2026

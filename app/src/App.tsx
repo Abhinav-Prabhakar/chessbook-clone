@@ -1,209 +1,121 @@
-import { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Link,
-  Navigate,
-  Outlet,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom";
-import { ProfileProvider, useProfile } from "./profile";
-import { ToastProvider } from "./components/Toast";
-import { OfflineBanner } from "./components/OfflineBanner";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Splash } from "./components/ui";
+import { Component } from "react";
+import type { ReactNode } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
+import { SettingsProvider } from "./settings";
+import { StageProvider } from "./board/stage";
+import { AppShell } from "./shell/AppShell";
+import { ToastProvider } from "./ui";
 import { Dashboard } from "./pages/Dashboard";
 import { RepertoirePage } from "./pages/RepertoirePage";
 import { BuildPage } from "./pages/BuildPage";
-import { GapPage } from "./pages/GapPage";
 import { LearnPage } from "./pages/LearnPage";
 import { PracticePage } from "./pages/PracticePage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { AddPage } from "./pages/AddPage";
-import { ModelPage } from "./pages/ModelPage";
+import { NewRepertoirePage } from "./pages/NewRepertoirePage";
+import { ModelGamesPage, ModelGamePage } from "./pages/ModelGamesPage";
+import { PuzzlesPage } from "./pages/PuzzlesPage";
+import { TrainingGamesPage } from "./pages/TrainingGamesPage";
+import { OpeningsPage, OpeningGuidePage } from "./pages/OpeningsPage";
+import { HistoryPage } from "./pages/HistoryPage";
+import { AboutPage } from "./pages/AboutPage";
 import { LandingPage } from "./pages/LandingPage";
 import { LegalPage } from "./pages/LegalPage";
-import { TrainingGamesPage } from "./pages/TrainingGamesPage";
-import { BlunderPuzzlesPage } from "./pages/BlunderPuzzlesPage";
-import { IntuitionBuilderPage } from "./pages/IntuitionBuilderPage";
 import { VisualizationPage } from "./pages/VisualizationPage";
-import { VisionPage } from "./pages/VisionPage";
-import { OpeningsPage } from "./pages/OpeningsPage";
-import { OpeningGuidePage } from "./pages/OpeningGuidePage";
-import { CoachesPage } from "./pages/CoachesPage";
-import { CoachPage } from "./pages/CoachPage";
-import { CoachApplyPage } from "./pages/CoachApplyPage";
-import { CoachReviewPage } from "./pages/CoachReviewPage";
-import { BlogPage } from "./pages/BlogPage";
-import { BlogPostPage } from "./pages/BlogPostPage";
-import { RepertoiresPage } from "./pages/RepertoiresPage";
-import { WelcomePage } from "./pages/WelcomePage";
-import { HelpPage } from "./pages/HelpPage";
-import { HistoryPage } from "./pages/HistoryPage";
 
-const PLAY_STORE = "https://play.google.com/store/apps/details?id=com.chessbook.android";
-const APP_STORE = "https://apps.apple.com/us/app/chessbook/id6466343415";
-
-/**
- * Keep the browser's restoration behaviour useful with client-side routing:
- * hash links (used by the deep help anchors) scroll to their section once the
- * target has rendered; plain navigations start at the top.
- */
-function ScrollToTop() {
-  const { pathname, hash } = useLocation();
-  useEffect(() => {
-    if (hash) {
-      const id = decodeURIComponent(hash.slice(1));
-      const frame = window.requestAnimationFrame(() => {
-        document.getElementById(id)?.scrollIntoView({ block: "start" });
-      });
-      return () => window.cancelAnimationFrame(frame);
-    }
-    window.scrollTo(0, 0);
-  }, [pathname, hash]);
-  return null;
-}
-
-function LocalProfile() {
-  const { user, loading } = useProfile();
-  if (loading) return <Splash />;
-  if (!user) {
-    return (
-      <div className="cb-splash">
-        <p>Your local profile could not be opened.</p>
-        <button type="button" className="cb-btn" onClick={() => location.reload()}>
-          Try again
-        </button>
-      </div>
-    );
-  }
-  return <Outlet />;
-}
-
-function HomeRoute() {
-  const { loading } = useProfile();
-  if (loading) return <Splash />;
-  let entered = false;
+function entered() {
   try {
-    entered = localStorage.getItem("cb_entered") === "1";
+    return localStorage.getItem("cb_entered") === "1";
   } catch {
-    // A blocked storage API still lets the trainer run for this visit.
+    return true;
   }
-  if (!entered) return <LandingPage />;
+}
+
+function Home() {
+  if (!entered()) return <Navigate to="/welcome" replace />;
   return <Dashboard />;
 }
 
-/**
- * Production `/qr` is a redirect to the Play Store listing (audit D133).
- *
- * The local build keeps the same route but renders a small honest landing page
- * with the real listing links instead of navigating off-site automatically:
- * the app must remain usable offline, and an automatic third-party redirect
- * would break the local-first promise (and the mobile back stack).
- */
-function QrRoute() {
-  useEffect(() => {
-    document.title = "Chessbook on your phone · Chessbook";
-    return () => {
-      document.title = "Chessbook";
-    };
-  }, []);
-  return (
-    <div className="cb-splash" style={{ maxWidth: 460, margin: "0 auto", textAlign: "center" }}>
-      <h1 style={{ fontSize: 24, lineHeight: "32px", margin: "0 0 8px" }}>
-        Chessbook on your phone
-      </h1>
-      <p style={{ margin: "0 0 20px", color: "var(--cb-text-2)", fontSize: 13 }}>
-        This route mirrors the production QR destination. The public mobile apps are published by
-        Chessbook; this local build runs in your browser.
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <a className="cb-btn primary" href={PLAY_STORE} target="_blank" rel="noreferrer">
-          Open the Google Play listing
-        </a>
-        <a className="cb-btn" href={APP_STORE} target="_blank" rel="noreferrer">
-          Open the App Store listing
-        </a>
-        <Link className="cb-btn ghost" to="/">
-          Back to Chessbook
-        </Link>
-      </div>
-    </div>
-  );
+class PageBoundary extends Component<{ children: ReactNode; resetKey: string }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidUpdate(prev: { resetKey: string }) {
+    if (prev.resetKey !== this.props.resetKey && this.state.error) this.setState({ error: null });
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="error-note">
+          <span>This screen hit a problem: {this.state.error.message}</span>
+          <button type="button" className="link-button" onClick={() => this.setState({ error: null })}>
+            Try again
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
-/**
- * A render error in one screen must not blank the whole app (audit D210).
- * The boundary is keyed by pathname, so navigating away (including the
- * fallback's dashboard link) clears the error automatically.
- */
-function RoutedPages() {
+function Guarded({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
-  return (
-    <ErrorBoundary key={pathname}>
-      <Routes>
-        <Route path="/" element={<HomeRoute />} />
-        <Route path="/legal/:kind" element={<LegalPage />} />
-        <Route path="/legal" element={<Navigate to="/legal/privacy" replace />} />
-        <Route path="/qr" element={<QrRoute />} />
+  return <PageBoundary resetKey={pathname}>{children}</PageBoundary>;
+}
 
-        <Route element={<LocalProfile />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/repertoire/:key" element={<RepertoirePage />} />
-          <Route path="/build/:key" element={<BuildPage />} />
-          <Route path="/gap/:key" element={<GapPage />} />
-          <Route path="/learn/:key" element={<LearnPage />} />
-          <Route path="/practice/:key" element={<PracticePage />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/history/:key" element={<HistoryPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/add" element={<AddPage />} />
-          <Route path="/model" element={<ModelPage />} />
-          <Route path="/model/:id" element={<ModelPage />} />
-
-          <Route path="/training-games" element={<TrainingGamesPage />} />
-          <Route path="/blunder-puzzles" element={<BlunderPuzzlesPage />} />
-          <Route path="/intuition-builder" element={<IntuitionBuilderPage />} />
-          <Route path="/visualization" element={<VisualizationPage />} />
-          <Route path="/vision" element={<VisionPage />} />
-
-          <Route path="/openings" element={<OpeningsPage />} />
-          <Route path="/openings/:slug" element={<OpeningGuidePage />} />
-          <Route path="/coaches" element={<CoachesPage />} />
-          <Route path="/coaches/apply" element={<CoachApplyPage />} />
-          <Route path="/coaches/review" element={<CoachReviewPage />} />
-          <Route path="/coaches/:slug" element={<CoachPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/blog/:slug" element={<BlogPostPage />} />
-          <Route path="/repertoires" element={<RepertoiresPage />} />
-          {/* One dynamic pattern serves both production slugs (/repertoires/white-openings)
-              and local keys (/repertoires/1, /repertoires/black); RepertoiresPage resolves
-              either shape and redirects to /repertoire/:id. Registering a second
-              /repertoires/:key route would make the matched param ambiguous. */}
-          <Route path="/repertoires/:slug" element={<RepertoiresPage />} />
-          <Route path="/welcome" element={<WelcomePage />} />
-          <Route path="/help" element={<HelpPage />} />
-        </Route>
-
-        {/* Production redirects unknown routes home instead of rendering a 404
-            card (audit D170). Keep that behaviour. */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </ErrorBoundary>
-  );
+/** Old URLs from the previous version keep working. */
+function Legacy({ to }: { to: (params: Record<string, string | undefined>) => string }) {
+  const params = useParams();
+  const { search } = useLocation();
+  return <Navigate to={`${to(params)}${search}`} replace />;
 }
 
 export default function App() {
+  const g = (node: ReactNode) => <Guarded>{node}</Guarded>;
   return (
-    <Router>
-      <ProfileProvider>
+    <BrowserRouter>
+      <SettingsProvider>
         <ToastProvider>
-          <ScrollToTop />
-          <OfflineBanner />
-          <RoutedPages />
+          <StageProvider>
+            <Routes>
+              <Route path="/welcome" element={<LandingPage />} />
+              <Route path="/legal/:kind" element={<LegalPage />} />
+              <Route element={<AppShell />}>
+                <Route index element={g(<Home />)} />
+                <Route path="dashboard" element={<Navigate to="/" replace />} />
+                <Route path="repertoires" element={<Navigate to="/" replace />} />
+                <Route path="repertoires/new" element={g(<NewRepertoirePage />)} />
+                <Route path="repertoires/:id" element={g(<RepertoirePage />)} />
+                <Route path="repertoires/:id/build" element={g(<BuildPage />)} />
+                <Route path="repertoires/:id/learn" element={g(<LearnPage />)} />
+                <Route path="repertoires/:id/practice" element={g(<PracticePage />)} />
+                <Route path="settings" element={g(<SettingsPage />)} />
+                <Route path="model-games" element={g(<ModelGamesPage />)} />
+                <Route path="model-games/:gameId" element={g(<ModelGamePage />)} />
+                <Route path="puzzles" element={g(<PuzzlesPage />)} />
+                <Route path="training-games" element={g(<TrainingGamesPage />)} />
+                <Route path="training-games/:gameId" element={g(<TrainingGamesPage />)} />
+                <Route path="visualization" element={g(<VisualizationPage />)} />
+                <Route path="openings" element={g(<OpeningsPage />)} />
+                <Route path="openings/:slug" element={g(<OpeningGuidePage />)} />
+                <Route path="history" element={g(<HistoryPage />)} />
+                <Route path="about" element={g(<AboutPage />)} />
+                <Route path="help" element={<Navigate to="/about" replace />} />
+
+                <Route path="repertoire/:id" element={<Legacy to={(p) => `/repertoires/${p.id}`} />} />
+                <Route path="build/:id" element={<Legacy to={(p) => `/repertoires/${p.id}/build`} />} />
+                <Route path="gap/:id" element={<Legacy to={(p) => `/repertoires/${p.id}`} />} />
+                <Route path="learn/:id" element={<Legacy to={(p) => `/repertoires/${p.id}/learn`} />} />
+                <Route path="practice/:id" element={<Legacy to={(p) => `/repertoires/${p.id}/practice`} />} />
+                <Route path="model" element={<Navigate to="/model-games" replace />} />
+                <Route path="blunder-puzzles" element={<Navigate to="/puzzles" replace />} />
+                <Route path="add" element={<Navigate to="/repertoires/new" replace />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </StageProvider>
         </ToastProvider>
-      </ProfileProvider>
-    </Router>
+      </SettingsProvider>
+    </BrowserRouter>
   );
 }

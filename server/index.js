@@ -2,95 +2,72 @@ import express from "express";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { api } from "./api.js";
-import { playApi } from "./play.js";
-import { databasePath } from "./db.js";
+import { databasePath } from "./core/db.js";
+import { importAll, importMasterGamesInBackground } from "./core/data-import.js";
+import { seedIfEmpty } from "./core/seed.js";
+import { api } from "./core/api.js";
+import { content } from "./core/content.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, "..");
+const here = dirname(fileURLToPath(import.meta.url));
+const root = join(here, "..");
 const dist = join(root, "app", "dist");
 
+let booted = false;
+export function boot() {
+  if (booted) return;
+  importAll();
+  seedIfEmpty();
+  if (process.env.CHESSBOOK_SKIP_DATA !== "1" && process.env.NODE_ENV !== "test") importMasterGamesInBackground();
+  booted = true;
+}
+
 export function createApp() {
+  boot();
   const app = express();
   app.disable("x-powered-by");
-  app.use((req, res, next) => {
+  app.use((_req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     next();
   });
-  app.use(express.json({ limit: "512kb" }));
-  // PGN imports may arrive as a raw `text/plain` / `application/x-chess-pgn`
-  // body (a pasted or uploaded file), not JSON.
-  app.use(
-    express.text({
-      type: ["text/plain", "application/x-chess-pgn", "application/pgn"],
-      limit: "2mb",
-    })
-  );
+  app.use(express.json({ limit: "1mb" }));
+  app.use(express.text({ type: ["text/plain", "application/x-chess-pgn"], limit: "4mb" }));
 
+  app.use("/api/content", content);
   app.use("/api", api);
-  app.use("/api/play", playApi);
-  // Unknown API paths must fail as JSON, never as the SPA shell or Express HTML.
-  app.use("/api", (_req, res) => res.status(404).json({ error: "Not found" }));
 
   app.use("/_build", express.static(join(root, "_build")));
   app.use("/homepage_imgs", express.static(join(root, "homepage_imgs")));
-  app.use("/pieces", express.static(join(root, "pieces")));
+  app.use("/pieces", express.static(join(root, "pieces"), { maxAge: "7d" }));
 
   if (existsSync(dist)) {
-    app.get("/manifest.webmanifest", (_req, res) => {
-      res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
-      res.sendFile(join(dist, "manifest.webmanifest"));
-    });
     app.get("/sw.js", (_req, res) => {
       res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Service-Worker-Allowed", "/");
       res.sendFile(join(dist, "sw.js"));
     });
     app.use(express.static(dist, { index: false }));
     app.use((req, res, next) => {
-      if (req.method !== "GET" || req.path.startsWith("/api/")) return next();
+      if (req.method !== "GET") return next();
       res.sendFile(join(dist, "index.html"));
-    });
-  } else {
-    app.get("/", (_req, res) => {
-      res.type("html").send(
-        `<html><body style="font:16px system-ui;background:#131516;color:#eee;padding:40px">
-          <h1>Chessbook API is running</h1>
-          <p>Start the React dev server with <code>npm run dev:app</code>.</p>
-        </body></html>`
-      );
     });
   }
 
   app.use((err, _req, res, _next) => {
-    console.error(err);
     const status = Number(err?.status || err?.statusCode || 500);
-    if (status >= 400 && status < 500) {
-      return res.status(status).json({
-        error: err.type === "entity.parse.failed" ? "Invalid request body" : err.message,
-        code: err.type || "bad_request",
-      });
-    }
-    res.status(500).json({ error: "Something went wrong" });
+    if (status >= 500) console.error(err);
+    res.status(status).json({ error: status >= 500 ? "Something went wrong" : err.message });
   });
-
   return app;
 }
 
 export function startServer(port = Number(process.env.PORT || 8787)) {
   const app = createApp();
-  const server = app.listen(port, () => {
+  return app.listen(port, () => {
     console.log(`[server] http://localhost:${port}`);
     console.log(`[server] database ${databasePath}`);
   });
-  return server;
 }
 
-const isMain =
-  process.argv[1] &&
-  import.meta.url === pathToFileURL(process.argv[1]).href;
-
-if (isMain) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   startServer();
 }
