@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { api } from "./api";
@@ -68,6 +69,8 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [streak, setStreak] = useState<StreakInfo | null>(null);
   const [prefs, setPrefs] = useState<ClientPrefs>(() => getClientPrefs());
   const [loading, setLoading] = useState(true);
+  /** StrictMode mounts this provider twice in development; share one refresh. */
+  const refreshing = useRef<Promise<void> | null>(null);
 
   const hydratePreferences = useCallback(async () => {
     try {
@@ -83,23 +86,32 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refresh = useCallback(async () => {
-    const offset = tzOffset();
-    try {
-      const data = await api.get<{ user: User | null }>(`/me?tzOffset=${offset}`);
-      if (data.user) await hydratePreferences();
-      setUser(data.user ?? null);
-    } catch {
-      setUser(null);
-    }
-    try {
-      const response = await api.get<{ daily: DailyInfo }>(`/practice/daily?tzOffset=${offset}`);
-      setDaily(response.daily);
-      setStreak(response.daily.streak);
-    } catch {
-      setDaily(null);
-      setStreak(null);
-    }
-    setLoading(false);
+    // React StrictMode runs mount effects twice. The second call reuses the
+    // in-flight hydration instead of issuing a second `/me` + `/settings` pair.
+    if (refreshing.current) return refreshing.current;
+    const task = (async () => {
+      const offset = tzOffset();
+      try {
+        const data = await api.get<{ user: User | null }>(`/me?tzOffset=${offset}`);
+        if (data.user) await hydratePreferences();
+        setUser(data.user ?? null);
+      } catch {
+        setUser(null);
+      }
+      try {
+        const response = await api.get<{ daily: DailyInfo }>(`/practice/daily?tzOffset=${offset}`);
+        setDaily(response.daily);
+        setStreak(response.daily.streak);
+      } catch {
+        setDaily(null);
+        setStreak(null);
+      }
+      setLoading(false);
+    })();
+    refreshing.current = task.finally(() => {
+      refreshing.current = null;
+    });
+    return refreshing.current;
   }, [hydratePreferences]);
 
   const saveSettings = useCallback(async (patch: Partial<ServerSettings>) => {

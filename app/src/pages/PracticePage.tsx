@@ -251,6 +251,21 @@ export function PracticePage() {
       });
   }, []);
 
+  /**
+   * Keep the session in the URL so a reload (or an offline reconnect) resumes
+   * the exact position instead of creating a fresh queue (audit checklist:
+   * "Reloading mid-session resumes at the same position").
+   */
+  const rememberSession = useCallback((id: string) => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("session", id);
+      window.history.replaceState({}, "", url);
+    } catch {
+      // Cosmetic only; the in-memory session stays authoritative.
+    }
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -319,17 +334,34 @@ export function PracticePage() {
 
       setConfig(nextConfig);
       applyPayload(payload, { created: payload.resumed === false });
+      if (payload.session?.id) rememberSession(payload.session.id);
       refreshDaily();
     } catch (e: any) {
       setError(e?.message || "The practice session could not be opened.");
     } finally {
       setLoading(false);
     }
-  }, [applyPayload, key, params, refreshDaily, requestedLineIds, reviewStyle, practiceMode, settings?.coverageGoal]);
+  }, [applyPayload, key, params, rememberSession, refreshDaily, requestedLineIds, reviewStyle, practiceMode, settings?.coverageGoal]);
 
   useEffect(() => {
     load();
   }, [key, search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A queued offline attempt is replayed by the global queue when the local API
+  // returns. Pull the authoritative session so the board reflects the replay.
+  useEffect(() => {
+    const onFlushed = () => {
+      if (!session?.id || session.status !== "active") return;
+      api
+        .get<SessionPayload>(`/practice/sessions/${session.id}/current`)
+        .then((payload) => applyPayload(payload))
+        .catch(() => {
+          // Keep the board; the global banner still reports the queue state.
+        });
+    };
+    window.addEventListener("cb:offline-flushed", onFlushed);
+    return () => window.removeEventListener("cb:offline-flushed", onFlushed);
+  }, [session?.id, session?.status, applyPayload]);
 
   useEffect(
     () => () => {
@@ -614,7 +646,7 @@ export function PracticePage() {
       refreshDaily();
       try {
         const url = new URL(window.location.href);
-        url.searchParams.delete("session");
+        url.searchParams.set("session", payload.session.id);
         url.searchParams.set("mode", effectiveMode);
         url.searchParams.delete("line");
         url.searchParams.delete("lines");
@@ -651,6 +683,9 @@ export function PracticePage() {
   const analyzeHref = `https://lichess.org/analysis/standard/${encodeURIComponent(
     (task?.fen ?? baseFen).split(" ")[0]
   )}?color=${color}`;
+  const trainingGameHref = task
+    ? `/training-games?fen=${encodeURIComponent(task.fen)}&color=${color}&from=practice`
+    : `/training-games?color=${color}&from=practice`;
 
   return (
     <div className="cb-app">
@@ -1055,6 +1090,16 @@ export function PracticePage() {
                   }}
                   disabled={!task}
                 />
+                <Row
+                  title="Play a training game from here"
+                  meta={
+                    task
+                      ? "Start a game against the local bot from this exact position"
+                      : "Start a game against the local bot"
+                  }
+                  to={trainingGameHref}
+                />
+                <Row title="How practice works" to="/help#practice" />
                 <Row title="Exit practice" onClick={exitPractice} />
               </div>
 

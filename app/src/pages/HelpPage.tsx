@@ -38,6 +38,56 @@ const QUICK_LINKS: { title: string; detail: string; to: string }[] = [
   },
 ];
 
+/**
+ * Deep-anchor targets for the play screens and the builder/practice rows
+ * (audit D169). Each id is rendered on the link itself so `/help#training-games`
+ * (and the shared PlayLayout) lands on the matching card, not the page top.
+ */
+const DRILL_LINKS: { id: string; title: string; detail: string; to: string }[] = [
+  {
+    id: "training-games",
+    title: "Training games",
+    detail: "Play the deterministic local bot from any studied position.",
+    to: "/training-games",
+  },
+  {
+    id: "blunder-puzzles",
+    title: "Blunder puzzles",
+    detail: "Find the best move in captured model-game eval swings.",
+    to: "/blunder-puzzles",
+  },
+  {
+    id: "intuition-builder",
+    title: "Intuition builder",
+    detail: "Choose moves from captured positions and see the real play rates.",
+    to: "/intuition-builder",
+  },
+  {
+    id: "visualization",
+    title: "Visualization",
+    detail: "Watch hidden moves, then reconstruct them or answer position questions.",
+    to: "/visualization",
+  },
+  {
+    id: "vision",
+    title: "Vision",
+    detail: "Spot hanging pieces, undefended pawns, checks and king-zone squares.",
+    to: "/vision",
+  },
+  {
+    id: "practice",
+    title: "Practice",
+    detail: "The move-by-move review loop, scheduling, hints, skips and resume.",
+    to: "/learn/white",
+  },
+  {
+    id: "builder",
+    title: "Repertoire builder",
+    detail: "Captured candidates, notes, autofill, branch remove/disable and PGN import.",
+    to: "/build/white",
+  },
+];
+
 const FAQ: { question: string; answer: React.ReactNode }[] = [
   {
     question: "Where is my data stored?",
@@ -106,13 +156,15 @@ function HelpLink({
   title,
   detail,
   to,
+  id,
 }: {
   title: string;
   detail: string;
   to: string;
+  id?: string;
 }) {
   return (
-    <Link className="cb-cs-guide" to={to}>
+    <Link className="cb-cs-guide" to={to} id={id}>
       <span className="cb-cs-guide-main">
         <span className="cb-cs-guide-name">{title}</span>
         <span className="cb-cs-guide-moves">{detail}</span>
@@ -125,13 +177,15 @@ function HelpLink({
 export function HelpPage() {
   return (
     <ContentLayout crumbs={[{ label: "Help" }]} narrow>
-      <h1 className="cb-cs-title">Help</h1>
+      <h1 className="cb-cs-title" id="top">
+        Help
+      </h1>
       <p className="cb-cs-lede">
         Short answers and links for the local Chessbook trainer. Everything here resolves to a
         working local screen or the public Chessbook wiki — there are no placeholder routes.
       </p>
 
-      <h2 className="cb-cs-section-title" style={{ marginTop: 8 }}>
+      <h2 className="cb-cs-section-title" id="start-here" style={{ marginTop: 8 }}>
         Start here
       </h2>
       <div className="cb-cs-grid">
@@ -140,7 +194,18 @@ export function HelpPage() {
         ))}
       </div>
 
-      <h2 className="cb-cs-section-title">Guides and reference</h2>
+      <h2 className="cb-cs-section-title" id="drills">
+        Play drills and training
+      </h2>
+      <div className="cb-cs-grid">
+        {DRILL_LINKS.map((entry) => (
+          <HelpLink key={entry.id} {...entry} />
+        ))}
+      </div>
+
+      <h2 className="cb-cs-section-title" id="guides">
+        Guides and reference
+      </h2>
       <div className="cb-cs-grid">
         <a className="cb-cs-guide" href={WIKI} target="_blank" rel="noreferrer">
           <span className="cb-cs-guide-main">
@@ -165,20 +230,15 @@ export function HelpPage() {
           detail="Captured posts on the engine, data and building Chessbook."
           to="/blog"
         />
-        <a
-          className="cb-cs-guide"
-          href="https://play.google.com/store/apps/details?id=com.chessbook.android"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <Link className="cb-cs-guide" to="/qr" id="mobile-apps">
           <span className="cb-cs-guide-main">
             <span className="cb-cs-guide-name">Chessbook on Google Play</span>
             <span className="cb-cs-guide-moves">
-              The real public Android listing that the production /qr route opens.
+              The public Android listing behind the production /qr route.
             </span>
           </span>
-          <i className="fa fa-up-right-from-square cb-row-chevron" aria-hidden />
-        </a>
+          <i className="fa fa-angle-right cb-row-chevron" aria-hidden />
+        </Link>
         <Link className="cb-cs-guide" to="/legal/fulfillment">
           <span className="cb-cs-guide-main">
             <span className="cb-cs-guide-name">Fulfillment and privacy</span>
@@ -190,7 +250,9 @@ export function HelpPage() {
         </Link>
       </div>
 
-      <h2 className="cb-cs-section-title">Frequently asked</h2>
+      <h2 className="cb-cs-section-title" id="faq">
+        Frequently asked
+      </h2>
       <div className="cb-cs-faq">
         {FAQ.map((entry) => (
           <details key={entry.question}>
@@ -200,7 +262,7 @@ export function HelpPage() {
         ))}
       </div>
 
-      <div className="cb-cs-callout">
+      <div className="cb-cs-callout" id="still-stuck">
         <div>
           <h2>Still stuck?</h2>
           <p>

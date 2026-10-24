@@ -13,7 +13,6 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  plan: string;
   ratingSystem?: string;
   singleElo?: number;
   eloRange?: string;

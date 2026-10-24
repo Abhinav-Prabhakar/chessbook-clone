@@ -37,7 +37,6 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
-    plan TEXT NOT NULL DEFAULT 'pro',
     created_at TEXT NOT NULL
   );
 
@@ -249,8 +248,8 @@ function pgnFromMoves(sans) {
  */
 export const SEED_LINES = {
   white: [
-    ["Sicilian Defense: Najdorf Variation", "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 h3"],
     ["Sicilian Defense: Open", "e4 c5 Nf3 Nc6 d4 cxd4 Nxd4"],
+    ["Sicilian Defense: Najdorf Variation", "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 h3"],
     ["Sicilian Defense: Kan Variation", "e4 c5 Nf3 e6 d4 cxd4 Nxd4 a6 c4"],
     ["Sicilian Defense: Closed", "e4 c5 Nc3 Nc6 g3 g6 Bg2 Bg7 d3"],
     ["Italian Game: Classical Variation", "e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4"],
@@ -342,8 +341,8 @@ export function seed() {
 
   const userId = Number(
     db
-      .prepare("INSERT INTO users (email, name, plan, created_at) VALUES (?, ?, ?, ?)")
-      .run("local@chessbook.local", "Alex", "pro", iso()).lastInsertRowid
+      .prepare("INSERT INTO users (email, name, created_at) VALUES (?, ?, ?)")
+      .run("local@chessbook.local", "Alex", iso()).lastInsertRowid
   );
 
   db.prepare(

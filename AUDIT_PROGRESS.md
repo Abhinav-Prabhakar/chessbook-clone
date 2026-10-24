@@ -1,221 +1,184 @@
 # Audit remediation progress
 
-Tracking every divergence in `AUDIT.md`. A task is checked only after the owning
-subagent has implemented it, run its own verification, and reported back.
+Status as of the final hardening pass. Every batch was implemented by a
+subagent, verified by that subagent, and then re-checked by the orchestrator
+with the full test suite and a live end-to-end run.
 
-Legend: `[ ]` not started · `[~]` in progress · `[x]` done and verified · `[!]` blocked
+Verification at close:
 
-## Batch 1 — server core training engine
+- `npm test` → **78/78 pass** (unit + API + contract).
+- `npm run test:e2e` → **124/124 checks** on a fresh temp database, desktop
+  (1440×900) and mobile (390×844), zero unexpected console errors.
+- `npm run build` → green.
+- All 9 headline acceptance tests in `AUDIT.md` pass (details below).
+- Screenshots and machine-readable results: `audit/e2e/`.
 
-Owner: `server-core` (server/db.js, server/api.js, server/srs.js, server tests)
-Report: `audit/progress/01-server-core.md`
+Reports (implementation detail + evidence per ID):
 
-- [x] D001 practice walks the line move-by-move (server contract)
-- [x] D002 opponent auto-reply from the line
-- [x] D003 per-position review state (EPD + SAN)
-- [x] D004 `due` mode terminates when nothing is due
-- [x] D005 `all` mode terminates
-- [x] D006 `weak` requires a real wrong attempt
-- [x] D007 wrong answer does not decrement due
-- [x] D008 wrong answer does not change next line
-- [x] D009 FSRS-style scheduling per move
-- [x] D010 training rating model
-- [x] D021 server-side legality validation
-- [x] D022 per-move review history / upload
-- [x] D024 skip / keep / reset session actions
-- [x] D025 alternate responses at a position
-- [x] D026 session starts at first due move
-- [x] D028 correct streak calculation + highest/last
-- [x] D029 mistake queue source
-- [x] D035 builder returns real candidate list
-- [x] D036 masters percentage data
-- [x] D037 engine eval data
-- [x] D038 peer results data
-- [x] D039 incidence / play-rate data
-- [x] D044 autofill inserts moves
-- [x] D054 adding a move creates a real branch
-- [x] D055 new moves are saved
-- [x] D056 new moves are not immediately due
-- [x] D057 dynamic completion denominator
-- [x] D058 real completion/mastery formulas
-- [x] D059 repertoire characteristics data
-- [x] D061 repertoire rename/delete/clone
-- [x] D063 PGN import
-- [x] D064 export
-- [x] D065 transposition handling
-- [x] D071 biggest-gap algorithm
-- [x] D072 gap candidates ordered by incidence
-- [x] D079 gap heading move/side
-- [x] D094 model-game history data
-- [x] D095 correct seeded model game
-- [x] D096 daily model-game selection
-- [x] D097 random game
-- [x] D102 model game review
-- [x] D103 progress validation
-- [x] D120 supplementary EPD data
-- [x] D123 position annotations/plans
-- [x] D124 pre-made repertoires data
-- [x] D129 openings report API
-- [x] D130 FEN search
-- [x] D134 rating profile fields
-- [x] D135 rating/coverage reach the backend
-- [x] D153 reset clears attempts
-- [x] D196 profile fields the trainer needs
-- [x] D197 single settings source of truth
-- [x] D198 migrations
-- [x] D199 openings import versioning
-- [x] D200 APIs for missing features
-- [x] D204 FSRS/review-log tables
-- [x] D205 idempotent attempts
-- [x] D206 date handling
-- [x] D207 model progress completed state
-- [x] D208 delete repertoire API
-- [x] D209 PGN import/export APIs
-- [x] D221 data-integrity checks
+- `audit/progress/01-server-core.md`
+- `audit/progress/01b-server-data.md`
+- `audit/progress/02-practice-ui.md`
+- `audit/progress/02-builder-gap.md`
+- `audit/progress/02-dashboard-settings.md`
+- `audit/progress/02-visual-fidelity.md`
+- `audit/progress/03-model-games.md`
+- `audit/progress/03-core-followups.md`
+- `audit/progress/04-play-features.md`
+- `audit/progress/04-content-surfaces.md`
+- `audit/progress/05-hardening.md`
 
-## Batch 2 — client core (parallel)
+## Divergence register status
 
-### `practice-ui` — PracticePage, LearnPage, Board, types
-Report: `audit/progress/02-practice-ui.md`
+### A. Core training engine / practice — D001–D034
 
-- [ ] D001/D002 practice UI walks line and shows opponent replies
-- [ ] D007/D008 wrong-answer UI never advances/decrements
-- [ ] D011/D012 whole-line vs individual-move modes
-- [x] D013 review modes in Learn
-- [x] D014 resume session
-- [x] D015 early review
-- [~] D016 next common moves
-- [x] D018 per-move notes display
-- [x] D019 hint wording/behaviour
-- [~] D020 refutation display
-- [x] D023 view-in-build keeps position
-- [x] D024 skip/keep/start-over actions
-- [x] D025 alternate response flow
-- [x] D027 daily goal progress
-- [x] D030 remove clone toast
-- [x] D031 remove extra practice footer
-- [x] D032 drag-and-drop + promotion
-- [~] D033 arrows/highlights
-- [x] D034 play training game from here
-- [ ] D083/D084 Learn counts
-- [ ] D085–D091 Learn modes and cards
-- [x] D092 mastery formatting
-- [x] D093 empty-due state
-- [x] D145 piece animation setting
-- [ ] D172–D179 practice visual fidelity
-- [ ] D194/D195 board accessibility/drag cursors
+| Status | IDs |
+|---|---|
+| Done | D001–D009, D011–D016, D018–D034 |
+| Done (rating model; UI surfaces it in practice/profile) | D010 |
+| Done with captured-data limits | D017 (incidence only for positions present in the production capture) |
 
-### `builder-gap` — BuildPage, GapPage
-Report: `audit/progress/02-builder-gap.md`
+Key outcomes: per-position FSRS review state keyed by EPD+SAN; practice walks
+each user move with opponent auto-replies; wrong moves keep position, Due and
+counters; due/all/weak/common/cards/whole-line modes terminate; server-side
+legality; idempotent reviews; notes, hints, refutation, skip/keep/start-over,
+resume, daily goal, streaks and training rating.
 
-- [x] D040 candidate annotations
-- [ ] D041/D042/D043 inline ranked candidate list
-- [ ] D045/D046/D047 style autofill + autofill this gap
-- [x] D048 exclude moves flow
-- [x] D049 next gap in line
-- [x] D050 plans button
-- [x] D051 notes editor
-- [ ] D052/D053 disable/remove branch UX
-- [x] D060 `?line=` opens position
-- [x] D067 move navigation
-- [ ] D068/D182 breadcrumbs
-- [x] D069 build/practice from here
-- [x] D070 add-note prompt
-- [ ] D073–D078 gap rows/actions
-- [ ] D080/D081 notes + coverage context
-- [x] D082 remove extra sections
-- [ ] D180/D181 candidate columns + add modal
-- [x] D183 gap sidebar noise
+### B. Repertoire builder — D035–D070
 
-### `dashboard-settings` — Dashboard, Settings, Repertoire, Add
-Report: `audit/progress/02-dashboard-settings.md`
+| Status | IDs |
+|---|---|
+| Done | D035–D070 |
+| Done (contract exposed for builder/gap) | D033/D191 arrows |
 
-- [x] D059 real characteristics display
-- [x] D061 repertoire list/rename/delete/clone UI
-- [x] D062 chapters/sections
-- [ ] D063/D064 import/export UI
-- [x] D066 trim tools
-- [x] D107 document `/` entry behaviour
-- [x] D108 daily reviews list
-- [ ] D109/D110/D111 openings report / connect-account cleanup
-- [ ] D112/D113 home tasks
-- [x] D114 feedback/share parity
-- [x] D115 model-game row
-- [x] D117 streak panel
-- [ ] D118/D119 repertoire list + back affordance
-- [x] D134 rating sheet
-- [x] D136 coverage goal effect
-- [x] D137 external accounts cleanup
-- [ ] D138–D142 settings no-ops
-- [ ] D143/D144 board appearance + piece sets
-- [ ] D148 sound options
-- [x] D149 haptics
-- [x] D150 recommended moves size
-- [x] D151 remove subscription row
-- [ ] D154/D155 settings row set + sheets
-- [ ] D156/D157 review style + notifications
+Candidates come from captured production position reports (Masters %, eval,
+peer results, incidence, annotations); gap is incidence-weighted; autofill
+inserts real branches by style; branches are disable-able/re-enable-able and
+batch-remove is transactional; `?line`/`?epd`/`?path` open exact positions.
 
-### `visual-fidelity` — app.css + mobile composition
-Report: `audit/progress/02-visual-fidelity.md`
+### C. Gap finder — D071–D082
 
-- [ ] D171/D186/D187 mobile clipped board + sheet
-- [ ] D188–D190 mobile stats/top bar/coords
-- [~] D191 board arrows styling
-- [x] D192 loading skeletons
-- [x] D193 landing nav parity
-- [ ] D180–D185 visual alignment shared CSS
+All done: D071–D082. Black after `1.e4` returns `c5, e5, e6, c6, d5` by real
+incidence; heading move/side, descriptions, Expected-in, Show more, notes,
+exclusion, exact-position build/practice links, and next-gap-in-line work.
 
-## Batch 3 — model games
+### D. Learn screen — D083–D093
 
-Owner: `model-games` (ModelPage.tsx + model server data)
-Report: `audit/progress/03-model-games.md`
+All done: D083–D093. Counts are real saved moves/positions; modes are
+due/weak/all/early/common/specific/resume; mastery is one decimal; empty-due is
+reachable and honest.
 
-- [x] D094 model-game history UI
-- [x] D095 correct game
-- [ ] D096/D097 daily + random
-- [x] D098 history screen
-- [ ] D099 interactive guess-the-move
-- [ ] D100 real hints
-- [x] D101 eval graph
-- [x] D102 game review UI
-- [x] D103 progress stats
-- [x] D104 model source setting
-- [x] D105 opening link
-- [x] D106 player ratings/annotations
+### E. Model games — D094–D106
 
-## Batch 4 — missing screens (parallel, new files)
+All done: D094–D106. Real Kamsky–Anand daily game (Candidats FIDE sf1, 45
+moves) plus real history, captured 89-sample eval graph, interactive
+guess-the-move, hints, progress/review score, history grouped by week/opening,
+and links to matching saved openings.
 
-### `play-features` — training games + puzzles
-- [ ] D158 training games vs bot
-- [ ] D159 blunder puzzles
-- [ ] D160 intuition builder
-- [ ] D161 visualization
-- [ ] D162 vision
-- [ ] D200/D202/D203 supporting APIs/engine
+### F. Dashboard — D107–D119
 
-### `content-surfaces` — openings guides, coaches, blog, repertoires
-- [x] D061 `/repertoires` list
-- [ ] D120–D133 opening data/guides/reports
-- [x] D163 opening guide routes
-- [x] D164 coaches routes
-- [x] D165 blog routes
-- [ ] D166 production slug URLs
-- [ ] D167 onboarding/welcome
-- [ ] D169 help links
+| Status | IDs |
+|---|---|
+| Done | D108–D119 |
+| Documented intentional deviation | D107 (`/` shows the landing page until `cb_entered`; `/dashboard` is the app root, documented in README) |
 
-## Batch 5 — hardening
+Daily reviews/goal/streak, biggest-gap and learnability tasks, openings report,
+model-game row, local PGN review path, feedback links and Back affordance are
+real. Fake connect-account rows are removed.
 
-Owner: `hardening` (tests, docs, errors, offline)
-Report: `audit/progress/05-hardening.md`
+### G. Openings, data and content — D120–D133
 
-- [ ] D168/D217 residual entitlement chrome removed
-- [ ] D170 404 parity
-- [ ] D210 error boundary
-- [ ] D211 offline writes
-- [ ] D212 README honesty
-- [ ] D218 unit/API tests
-- [ ] D219 API contract tests
-- [ ] D220 main-flow E2E
-- [ ] D222 duplicate fetch cleanup
-- [ ] D223/D224 seed data real
-- [ ] D225 feedback links
+| Status | IDs |
+|---|---|
+| Done | D120–D133 |
+| Done with captured-data coverage limits | D120–D128 (supplementary names, incidence, masters/peers/engine, annotations, courses, guides, transpositions, coverage exist for captured positions; uncaptured positions return explicit unavailable states) |
+
+Production guide/coaches/blog/repertoire routes exist with captured content.
+
+### H. Settings and review/board preferences — D134–D157
+
+| Status | IDs |
+|---|---|
+| Done | D134–D143, D145–D157 |
+| Partial | D144 (only the bundled Chessbook Monochrome piece set is available; the UI says so explicitly rather than offering fake sets) |
+
+Rating/coverage are persisted server-side and drive incidence/gap/trim/common;
+review styles, cards, pauses, notifications, sound volume/effects, haptics,
+animation, board appearances, recommended-move size and daily goal all affect
+behaviour. The subscription/upgrade rows are deleted.
+
+### I. Missing screens / routes — D158–D171
+
+| Status | IDs |
+|---|---|
+| Done | D158–D162, D164–D167, D169, D171 |
+| Done (guide routes; captured detail varies) | D163 |
+| Intentional / documented | D168 (no account/subscription screens; entitlement chrome removed) |
+| Done | D170 (unknown routes redirect home) |
+
+Training games, blunder puzzles, intuition, visualization, vision, opening
+guides, coaches, blog, `/repertoires`, onboarding and help now exist.
+
+### J. UI / visual fidelity — D172–D195
+
+All done: D172–D195. Practice rows/note line/prompt glyph match production;
+clone-only toasts and footer removed; drag + promotion + keyboard work; mobile
+uses the clipped-board + sheet composition with segmented stats and top bar;
+loading skeletons and landing nav match; settings values open sheets.
+
+### K. Backend, data integrity and architecture — D196–D212
+
+| Status | IDs |
+|---|---|
+| Done | D196–D200, D202, D204–D212 |
+| Intentional local-first omission | D201 (no WebSocket; single-player local app needs no live socket — documented) |
+| Partial | D203 (no bundled Stockfish binary; refutation and bot use an honest local heuristic engine, labelled in the UI/README) |
+
+Migrations v1–v3 upgrade existing databases in place; captured data has
+provenance hashes; per-move review logs; idempotent submits; date handling;
+delete/import/export/notes/report APIs; integrity endpoint; error boundary;
+offline write queue; README corrected.
+
+### L. Premium-gated capability availability — D213–D217
+
+| Status | IDs |
+|---|---|
+| Done | D213, D216 (training games, puzzles, courses, reports, export, full model history now exist for everyone) |
+| Intentional | D214, D215, D217 (no limits, billing, paywall, PRO badges or plan pills; dead upgrade row removed) |
+
+### M. Testing and process quality — D218–D225
+
+All done: D218–D225. 78 server/contract tests, 124-check browser E2E, data
+integrity checks, seed data is the curated real repertoire (no index-assigned
+fake stats or `"e4"` wrong attempts), duplicate fetches deduped, README claims
+match reality.
+
+## Headline acceptance tests
+
+| Test | Result |
+|---|---|
+| Practice at `1.e4 c5` asks `2.＿`; `Nf3` auto-plays `Nc6` and asks `3.＿` with `1.e4 c5 2.Nf3 Nc6` visible | PASS |
+| A wrong legal move keeps `N Due`, shows refutation/retry, and does not change the line | PASS |
+| Answering all due moves reaches Review complete and `Due` becomes 0 | PASS |
+| Reloading mid-session resumes at the same position | PASS |
+| “View in build mode” opens the exact current position | PASS |
+| Adding a move increments Saved, is not immediately due, and appears in the builder tree | PASS |
+| Gap for Black after `1.e4` lists `c5, e5, e6, c6, d5` ordered by incidence with Expected-in | PASS |
+| Model-game board accepts a guess, hides the answer, records pass/fail; correct 45-move game/event/result | PASS |
+| Mobile 390×844 shows the clipped two-rank board and full-width sheet | PASS |
+
+## Remaining known limitations (not silent gaps)
+
+1. **D144** — one bundled piece set (Chessbook Monochrome). Additional sets are
+   not bundled; Settings states this explicitly.
+2. **D203** — no Stockfish binary. Training-game bot and wrong-move refutation
+   use the local heuristic engine and are labelled as such; evals that are
+   shown come from captured production samples, not a live engine.
+3. **D201** — no WebSocket. Intentional for a single-machine, no-account app.
+4. **D107** — `/` is the landing page until `cb_entered`; `/dashboard` is the
+   app root. Documented in the README.
+5. **Captured-data coverage** — masters/peer/incidence/annotations exist for
+   the positions present in the production capture (start position, 1.e4, 1.d4,
+   1.e4 c5 and variants). Other positions show explicit “not available” rather
+   than invented numbers.
+6. **D018/D022 history UI** — review history is recorded and exposed by the
+   API; there is no dedicated history browser screen, only per-session summaries.

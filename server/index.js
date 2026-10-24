@@ -30,6 +30,8 @@ export function createApp() {
 
   app.use("/api", api);
   app.use("/api/play", playApi);
+  // Unknown API paths must fail as JSON, never as the SPA shell or Express HTML.
+  app.use("/api", (_req, res) => res.status(404).json({ error: "Not found" }));
 
   app.use("/_build", express.static(join(root, "_build")));
   app.use("/homepage_imgs", express.static(join(root, "homepage_imgs")));

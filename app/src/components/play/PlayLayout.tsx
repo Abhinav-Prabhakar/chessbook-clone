@@ -61,11 +61,11 @@ export function PlayLayout({
           </nav>
           {children}
           <p style={{ margin: "22px 18px 0", fontSize: 11, color: "var(--cb-text-3)" }}>
-            <Link to="/help" className="cb-link">
+            <Link to={`/help#${help}`} className="cb-link">
               <i className="fa fa-circle-question" aria-hidden /> How this drill works
             </Link>
             <span style={{ margin: "0 6px" }}>·</span>
-            <Link to="/help" className="cb-link">
+            <Link to="/help#drills" className="cb-link">
               All help
             </Link>
           </p>

@@ -58,10 +58,10 @@ test("all mode walks the line move by move and auto-plays the opponent", async (
   });
   assert.equal(second.correct, true);
   assert.equal(second.next.task.expectedSan, "d4");
-  assert.equal(second.next.autoReply.san, "d6");
+  assert.equal(second.next.autoReply.san, "Nc6");
   assert.deepEqual(
     second.next.task.prefix.map((move) => move.san),
-    ["e4", "c5", "Nf3", "d6"]
+    ["e4", "c5", "Nf3", "Nc6"]
   );
 });
 

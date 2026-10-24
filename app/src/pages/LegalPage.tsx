@@ -6,34 +6,36 @@ type Kind = "privacy" | "fulfillment" | "terms";
 const content: Record<Kind, { title: string; updated: string; body: React.ReactNode }> = {
   privacy: {
     title: "Privacy Policy",
-    updated: "Last updated: September 28, 2023",
+    updated: "Local build policy · October 2026",
     body: (
       <>
         <p>
-          This Privacy Policy describes how Chessbook collects, uses, and protects the information
-          you provide when you use our service. By using Chessbook, you agree to the practices
-          described here.
+          This Privacy Policy describes what this local-first Chessbook build stores and what it
+          never sends anywhere. The hosted Chessbook service has its own policy; this page covers
+          the clone in this repository.
         </p>
         <h2>Interpretation and definitions</h2>
         <p>
-          <strong>Account</strong> means the unique account created for you to access our service.
+          <strong>Account</strong> means a remote login. This build does not create one.
+          <br />
+          <strong>Local profile</strong> means the single profile stored in the SQLite database on
+          this machine.
           <br />
           <strong>Personal Data</strong> means information that relates to an identified or
-          identifiable individual.
-          <br />
-          <strong>Service</strong> means the Chessbook website and applications.
+          identifiable individual. No personal data leaves this device.
         </p>
-        <h2>Information we collect</h2>
+        <h2>Information we store locally</h2>
         <ul>
-          <li>Local profile: the display name you choose in Settings.</li>
-          <li>Training data: repertoires, lines, attempts, and mastery progress.</li>
-          <li>Connected accounts: your public username on Lichess or Chess.com, if you connect one.</li>
+          <li>Local profile: the display name stored in Settings.</li>
+          <li>Training data: repertoires, lines, attempts, reviews, and mastery progress.</li>
+          <li>Imported files: PGNs you paste or upload, kept only in the local database.</li>
+          <li>Browser preferences: board theme, sound, and similar display choices.</li>
         </ul>
-        <h2>How we use your information</h2>
+        <h2>How the information is used</h2>
         <p>
           Everything is used locally to save your repertoire and progress, schedule practice, and
-          restore your display preferences. There is no account sync and no personal data is sent
-          to a Chessbook server.
+          restore your display preferences. There is no account sync, no telemetry and no personal
+          data sent to a Chessbook server.
         </p>
         <h2>Local storage and cookies</h2>
         <p>
@@ -53,69 +55,58 @@ const content: Record<Kind, { title: string; updated: string; body: React.ReactN
         </p>
         <h2>Contact</h2>
         <p className="contact">
-          Questions about this policy? Email <a href="mailto:marcus@chessbook.com">marcus@chessbook.com</a>.
+          Questions about this policy? Open an issue on the{" "}
+          <a href="https://github.com/Abhinav-Prabhakar/chessbook-clone/issues/new">
+            project issue tracker
+          </a>
+          .
         </p>
       </>
     ),
   },
   fulfillment: {
     title: "Fulfillment Policy",
-    updated: "Last updated: September 28, 2023",
+    updated: "Local build policy · October 2026",
     body: (
       <>
-        <h2>Refunds</h2>
-        <h3>Refund eligibility</h3>
-        <ul>
-          <li>
-            Refunds are available within the first 14 days of your initial subscription purchase if
-            you are not satisfied with the product.
-          </li>
-          <li>
-            Refunds are not available for subsequent subscription renewals or partial periods of
-            use unless there is a verified technical issue that prevents access or use.
-          </li>
-        </ul>
-        <h3>How to request a refund</h3>
+        <h2>No purchases or subscriptions</h2>
         <p>
-          Contact <a href="mailto:support@chessbook.com">support@chessbook.com</a> with your account
-          details and the reason for your request. Approved refunds are processed within 5–7
-          business days.
+          This build is free and local. It has no checkout, subscription, billing, trial, plan
+          limit, paywall or in-app purchase, so there is nothing to fulfill, refund or cancel. The
+          only hosted link on the site is to Chessbook's public mobile-app listings, which are
+          operated by Chessbook under their own terms.
         </p>
-        <h3>Non-refundable circumstances</h3>
-        <ul>
-          <li>Refunds cannot be granted for failure to use the subscription.</li>
-          <li>
-            Refunds are not available for promotional or discounted subscriptions, except in cases
-            of technical issues.
-          </li>
-        </ul>
-        <h2>Cancellations</h2>
+        <h2>Running and updating</h2>
         <p>
-          You may cancel your subscription at any time from Settings. Once cancelled, your
-          subscription remains active until the end of the current billing period, after which it
-          will not renew. No further charges are applied after cancellation.
+          Install and run the app from this repository with <code>npm install</code>,{" "}
+          <code>npm run dev</code> or <code>npm run build &amp;&amp; npm start</code>. Updates are
+          whatever revision of the repository you choose to run.
         </p>
-        <h3>Trial period cancellations</h3>
+        <h2>Data removal</h2>
         <p>
-          If you are on a trial period, you may cancel at any time before the trial ends to avoid
-          being charged. Contact support if you need help cancelling.
+          Delete <code>server/data/chessbook.db</code> or run <code>npm run db:reset</code> to
+          recreate the local profile and seed repertoires. Browser preferences can be cleared from
+          Settings or the browser's site-data controls.
         </p>
         <h2>Contact</h2>
         <p className="contact">
-          Email <a href="mailto:support@chessbook.com">support@chessbook.com</a> for billing or
-          fulfillment questions.
+          For problems or questions, open an issue on the{" "}
+          <a href="https://github.com/Abhinav-Prabhakar/chessbook-clone/issues/new">
+            project issue tracker
+          </a>
+          .
         </p>
       </>
     ),
   },
   terms: {
     title: "Terms of Service",
-    updated: "Last updated: September 28, 2023",
+    updated: "Local build policy · October 2026",
     body: (
       <>
         <p>
-          These Terms govern your use of Chessbook. By using the local app, you agree to these
-          Terms.
+          These Terms govern your use of this local recreation of Chessbook. By using the local app,
+          you agree to these Terms. This project is not affiliated with or endorsed by Chessbook.
         </p>
         <h2>Your local profile</h2>
         <p>
@@ -128,25 +119,32 @@ const content: Record<Kind, { title: string; updated: string; body: React.ReactN
           <li>Do not scrape or redistribute the opening database in violation of its license.</li>
           <li>Do not use the service to infringe the rights of others.</li>
         </ul>
-        <h2>Subscriptions</h2>
+        <h2>No accounts or subscriptions</h2>
         <p>
-          Paid plans renew automatically until cancelled. Prices and features may change with
-          notice. Refund and cancellation terms are described in the Fulfillment Policy.
+          This build has no login, paid plans, automatic renewals, billing or entitlement gates.
+          Features that require a subscription on the hosted product are either available here for
+          free or explicitly marked unavailable. There is nothing to cancel.
         </p>
         <h2>Content and intellectual property</h2>
         <p>
-          Chessbook and its licensors own the service, branding, and original content. Opening data
-          is derived from the open-source Lichess chess-openings dataset. You retain ownership of
-          the PGNs you import.
+          Chessbook and its licensors own the hosted service, branding, and original content.
+          Opening data is derived from the open-source Lichess chess-openings dataset. You retain
+          ownership of the PGNs you import. The captured production assets in this repository are
+          kept as design references for a study/portfolio recreation.
         </p>
         <h2>Disclaimer</h2>
         <p>
           The service is provided “as is” without warranties of any kind. Chessbook is a study tool;
-          it does not guarantee rating improvement or tournament results.
+          it does not guarantee rating improvement or tournament results, and its local engine is
+          not Stockfish.
         </p>
         <h2>Contact</h2>
         <p className="contact">
-          Questions? Email <a href="mailto:marcus@chessbook.com">marcus@chessbook.com</a>.
+          Questions? Open an issue on the{" "}
+          <a href="https://github.com/Abhinav-Prabhakar/chessbook-clone/issues/new">
+            project issue tracker
+          </a>
+          .
         </p>
       </>
     ),

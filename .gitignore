@@ -10,3 +10,7 @@ server/data/chessbook.db-wal
 server/data/chessbook.db-shm
 app/dist/
 app/node_modules/
+
+# Local verification screenshots (regenerate with npm run test:e2e)
+audit/e2e/**/*.png
+audit/e2e/*.png

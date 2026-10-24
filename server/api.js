@@ -101,7 +101,6 @@ const userOut = (u) => ({
   id: u.id,
   email: u.email,
   name: u.name,
-  plan: u.plan,
   trainingRating: Number(u.training_rating ?? 1200),
   training: {
     rating: Number(u.training_rating ?? 1200),
@@ -3338,6 +3337,7 @@ api.post("/practice/sessions/:id/attempt", requireAuth, (req, res) => {
   }
 
   const grade = gradeFor(req.body, correct, match);
+  const hadPriorMistake = Number(target.wrong_count || 0) > 0;
   const scheduled = correct ? applyCorrect(target, grade, stamp) : null;
   const penalty = correct ? null : applyWrong(target, stamp);
   const expectedSan = match ? match.san : task.expectedSan;
@@ -3360,9 +3360,13 @@ api.post("/practice/sessions/:id/attempt", requireAuth, (req, res) => {
   });
 
   if (correct) {
+    // Production keeps the miss counter steady while you retry the same
+    // position and only counts the position once it is solved (D007/D008).
+    if (hadPriorMistake) {
+      db.prepare("UPDATE practice_sessions SET wrong = wrong + 1, updated_at = ? WHERE id = ?").run(stamp, session.id);
+    }
     advanceSession(session, task.epd);
   } else {
-    db.prepare("UPDATE practice_sessions SET wrong = wrong + 1, updated_at = ? WHERE id = ?").run(stamp, session.id);
     if (task.lineId) replayLine(loadSession(req.user.id, session.id), repertoire, task.lineId);
   }
 

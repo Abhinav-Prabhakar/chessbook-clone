@@ -1395,6 +1395,17 @@ export function BuildPage() {
               onClick={() => navigate(`/build/${key}?${positionQuery()}`)}
             />
             <Row
+              title="Play a training game from here"
+              meta={
+                position?.fen
+                  ? "Play the local bot from this exact position"
+                  : "Play the local bot from the start position"
+              }
+              to={`/training-games?fen=${encodeURIComponent(
+                position?.fen || START_FEN
+              )}&color=${repo?.repertoire.color ?? "white"}&from=build`}
+            />
+            <Row
               title="Practice from here"
               meta={
                 practiceTarget
@@ -1409,6 +1420,7 @@ export function BuildPage() {
               }
               disabled={!practiceTarget}
             />
+            <Row title="How the builder works" to="/help#builder" />
           </Section>
 
           <Section
