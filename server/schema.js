@@ -584,6 +584,113 @@ const MIGRATIONS = [
       `);
     },
   },
+  {
+    version: 4,
+    name: "offline explorer corpora and engine eval cache",
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS explorer_reports (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          dataset TEXT NOT NULL,
+          epd TEXT NOT NULL,
+          games INTEGER NOT NULL DEFAULT 0,
+          white INTEGER NOT NULL DEFAULT 0,
+          draw INTEGER NOT NULL DEFAULT 0,
+          black INTEGER NOT NULL DEFAULT 0,
+          name TEXT,
+          source TEXT NOT NULL,
+          version TEXT NOT NULL,
+          imported_at TEXT NOT NULL,
+          UNIQUE (dataset, epd)
+        );
+        CREATE INDEX IF NOT EXISTS idx_explorer_reports_epd
+          ON explorer_reports(epd);
+
+        CREATE TABLE IF NOT EXISTS explorer_moves (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          report_id INTEGER NOT NULL REFERENCES explorer_reports(id) ON DELETE CASCADE,
+          epd TEXT NOT NULL,
+          san TEXT NOT NULL,
+          san_key TEXT NOT NULL,
+          games INTEGER NOT NULL DEFAULT 0,
+          white INTEGER NOT NULL DEFAULT 0,
+          draw INTEGER NOT NULL DEFAULT 0,
+          black INTEGER NOT NULL DEFAULT 0,
+          rank INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (report_id, san_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_explorer_moves_epd
+          ON explorer_moves(epd, san_key);
+
+        CREATE TABLE IF NOT EXISTS explorer_band_positions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          dataset TEXT NOT NULL,
+          epd TEXT NOT NULL,
+          band TEXT NOT NULL,
+          games INTEGER NOT NULL DEFAULT 0,
+          white INTEGER NOT NULL DEFAULT 0,
+          draw INTEGER NOT NULL DEFAULT 0,
+          black INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (dataset, epd, band)
+        );
+        CREATE INDEX IF NOT EXISTS idx_explorer_band_positions
+          ON explorer_band_positions(epd, band);
+
+        CREATE TABLE IF NOT EXISTS explorer_band_moves (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          dataset TEXT NOT NULL,
+          epd TEXT NOT NULL,
+          band TEXT NOT NULL,
+          san TEXT NOT NULL,
+          san_key TEXT NOT NULL,
+          games INTEGER NOT NULL DEFAULT 0,
+          white INTEGER NOT NULL DEFAULT 0,
+          draw INTEGER NOT NULL DEFAULT 0,
+          black INTEGER NOT NULL DEFAULT 0,
+          rank INTEGER NOT NULL DEFAULT 0,
+          UNIQUE (dataset, epd, band, san_key)
+        );
+        CREATE INDEX IF NOT EXISTS idx_explorer_band_moves_lookup
+          ON explorer_band_moves(epd, band);
+
+        CREATE TABLE IF NOT EXISTS explorer_imports (
+          dataset TEXT PRIMARY KEY,
+          version TEXT NOT NULL,
+          source TEXT NOT NULL,
+          games INTEGER NOT NULL DEFAULT 0,
+          positions INTEGER NOT NULL DEFAULT 0,
+          moves INTEGER NOT NULL DEFAULT 0,
+          bands TEXT NOT NULL DEFAULT '[]',
+          file_size INTEGER NOT NULL DEFAULT 0,
+          file_mtime INTEGER NOT NULL DEFAULT 0,
+          generated_at TEXT,
+          imported_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS engine_evals (
+          fen TEXT NOT NULL,
+          depth INTEGER NOT NULL,
+          cp INTEGER,
+          mate INTEGER,
+          best_san TEXT,
+          best_uci TEXT,
+          pv TEXT,
+          engine TEXT,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (fen, depth)
+        );
+
+        CREATE TABLE IF NOT EXISTS model_game_reviews (
+          game_id INTEGER NOT NULL REFERENCES model_games(id) ON DELETE CASCADE,
+          depth INTEGER NOT NULL,
+          engine TEXT,
+          payload TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY (game_id, depth)
+        );
+      `);
+    },
+  },
 ];
 
 function hasColumn(db, table, column) {

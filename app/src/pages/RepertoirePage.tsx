@@ -526,6 +526,12 @@ export function RepertoirePage() {
             to={`/learn/${key}`}
             testId="continue-learning"
           />
+          <Row
+            title="Review history"
+            right={<span className="cb-row-meta">Every reviewed move</span>}
+            to={`/history/${key}`}
+            testId="review-history"
+          />
 
           <div className="cb-stats-block">
             <div className="cb-stats-head">

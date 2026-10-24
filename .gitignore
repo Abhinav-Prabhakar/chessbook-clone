@@ -14,3 +14,4 @@ app/node_modules/
 # Local verification screenshots (regenerate with npm run test:e2e)
 audit/e2e/**/*.png
 audit/e2e/*.png
+audit/06-*.png

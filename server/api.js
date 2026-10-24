@@ -60,7 +60,9 @@ import {
   STYLES,
   annotationForMove,
   annotationsForPosition,
+  applyEngineEvals,
   candidateList,
+  explorerCommonQueue,
   fullNameForEpd,
   pathForEpd,
   positionHeading,
@@ -70,6 +72,7 @@ import {
 import { chooseGap, computeGaps } from "./gaps.js";
 import {
   dailyGame,
+  engineReview,
   gameDetail,
   gameRow,
   gameRows,
@@ -83,6 +86,15 @@ import {
 import { addBranchAt, addLineFromSans, lineEpds } from "./branches.js";
 import { commonMoveQueue } from "./common.js";
 import { refuteMove } from "./refutation.js";
+import {
+  analyse as engineAnalyse,
+  evaluate as engineEvaluate,
+  status as engineStatus,
+} from "./engine.js";
+import {
+  explorerPosition,
+  explorerStatus,
+} from "./explorer-data.js";
 import {
   COVERAGE_OPTIONS,
   bandMatch,
@@ -177,6 +189,64 @@ export function requireAuth(req, res, next) {
   req.user = userOut(user);
   next();
 }
+
+/* ------------------------------------------------------------------ engine --- */
+
+/**
+ * Real engine state for the UI. `available` means the Stockfish 19 WASM
+ * binary is present; `started` becomes true after the first analysis. No
+ * process is spawned just to answer this endpoint.
+ */
+api.get("/engine/status", requireAuth, (_req, res) => {
+  const status = engineStatus();
+  res.json({
+    ...status,
+    stockfish: Boolean(status.available),
+    explorer: explorerStatus(db),
+  });
+});
+
+/**
+ * Live Stockfish analysis. `fen` is required; `depth` is clamped by the
+ * engine service and `multipv` returns up to 20 ranked lines. This is the
+ * endpoint behind every eval the UI shows for uncaptured positions.
+ */
+api.get("/engine/eval", requireAuth, async (req, res) => {
+  const raw = String(req.query.fen || "").trim();
+  if (!raw) return res.status(400).json({ error: "Provide fen" });
+  let fen;
+  try {
+    fen = new Chess(raw).fen();
+  } catch {
+    return res.status(400).json({ error: "Invalid FEN", code: "invalid_fen" });
+  }
+  const depth = Math.max(1, Math.min(30, Number(req.query.depth) || 12));
+  const multipv = Math.max(1, Math.min(20, Number(req.query.multipv) || 1));
+  try {
+    const analysis = await engineAnalyse(fen, { depth, multipv });
+    res.json({
+      ...analysis,
+      fen,
+      epd: fen.split(" ").slice(0, 4).join(" "),
+      requested: { depth, multipv },
+      stockfish: Boolean(analysis.available),
+      fallback: analysis.available
+        ? null
+        : {
+            available: true,
+            name: "Chessbook local heuristic",
+            note: "Stockfish could not start; callers must label any heuristic result.",
+          },
+    });
+  } catch (error) {
+    res.status(503).json({
+      error: "Engine unavailable",
+      code: "engine_unavailable",
+      reason: error?.message ?? String(error),
+      stockfish: false,
+    });
+  }
+});
 
 /* ------------------------------------------------------------------ profile --- */
 
@@ -830,13 +900,15 @@ api.get("/openings/supplementary", requireAuth, (req, res) => {
   });
 });
 
-api.get("/openings/position", requireAuth, (req, res) => {
+api.get("/openings/position", requireAuth, async (req, res) => {
   const epd =
     cleanEpd(req.query.epd, req.query.fen) ||
     (req.query.moves ? epdFromMoves(req.query.moves) : null);
   if (!epd) return res.status(400).json({ error: "Provide epd, fen or moves" });
   const report = reportForEpd(db, epd);
   const detail = candidateList(db, { epd, repertoire: null, prefixMoves: [] });
+  await applyEngineEvals(db, detail);
+  const explorer = explorerPosition(db, epd, { band: detail.ratingBand.explorer.band });
   const name = fullNameForEpd(db, epd);
   const alias = db.prepare("SELECT * FROM opening_aliases WHERE epd = ? LIMIT 1").get(epd);
   res.json({
@@ -847,6 +919,7 @@ api.get("/openings/position", requireAuth, (req, res) => {
       name: name.name,
       fullName: name.fullName,
       friendlyName: name.friendlyName,
+      openingName: detail.openingName,
       aliases: alias
         ? [{ fullName: alias.full_name, friendlyName: alias.friendly_name, targetEpd: alias.target_epd, kind: alias.kind }]
         : [],
@@ -860,24 +933,44 @@ api.get("/openings/position", requireAuth, (req, res) => {
             draw: report.master_draw,
             black: report.master_black,
           }
-        : null,
+        : detail.games.masters && explorer?.masters
+          ? {
+              white: explorer.masters.white,
+              draw: explorer.masters.draw,
+              black: explorer.masters.black,
+              games: explorer.masters.games,
+            }
+          : null,
       peerResults: report
         ? {
             white: report.peer_white,
             draw: report.peer_draw,
             black: report.peer_black,
           }
-        : null,
+        : explorer?.band
+          ? {
+              white: explorer.band.white,
+              draw: explorer.band.draw,
+              black: explorer.band.black,
+              games: explorer.band.games,
+            }
+          : null,
       reportAvailable: Boolean(report),
       reportSource: report?.source ?? null,
       complete: report ? Boolean(report.complete) : null,
       ratingBand: detail.ratingBand,
       incidenceByBand: detail.incidenceByBand,
       bandsAvailable: detail.bandsAvailable,
+      games: detail.games,
+      sources: detail.sources,
+      engineAvailable: detail.engineAvailable,
+      available: detail.available,
+      unavailableReason: detail.unavailableReason,
     },
     candidates: detail.candidates,
     available: detail.available,
     source: detail.source,
+    sources: detail.sources,
   });
 });
 
@@ -1515,7 +1608,10 @@ function requestPosition(req, repertoire) {
   return null;
 }
 
-function gapResponse(repertoire, detail, gap, gaps = [], req) {
+async function gapResponse(repertoire, detail, gap, gaps = [], req) {
+  if (detail) {
+    await applyEngineEvals(db, detail);
+  }
   const limit =
     req.query.limit != null ? Math.max(0, Number(req.query.limit)) : null;
   const offset = Math.max(0, Number(req.query.offset) || 0);
@@ -1583,7 +1679,7 @@ function gapResponse(repertoire, detail, gap, gaps = [], req) {
   };
 }
 
-api.get("/repertoires/:key/gap", requireAuth, (req, res) => {
+api.get("/repertoires/:key/gap", requireAuth, async (req, res) => {
   const repertoire = getRepertoire(req.user.id, req.params.key);
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
   const requested = requestPosition(req, repertoire);
@@ -1597,7 +1693,7 @@ api.get("/repertoires/:key/gap", requireAuth, (req, res) => {
   });
   const detail = selection.detail ?? selection.position;
   res.json(
-    gapResponse(repertoire, detail, selection.gap, selection.gaps, req)
+    await gapResponse(repertoire, detail, selection.gap, selection.gaps, req)
   );
 });
 
@@ -1616,7 +1712,7 @@ api.get("/repertoires/:key/gaps", requireAuth, (req, res) => {
   });
 });
 
-api.get("/repertoires/:key/gap/next", requireAuth, (req, res) => {
+api.get("/repertoires/:key/gap/next", requireAuth, async (req, res) => {
   const repertoire = getRepertoire(req.user.id, req.params.key);
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
   const afterEpd = cleanEpd(req.query.after, req.query.epd);
@@ -1624,7 +1720,7 @@ api.get("/repertoires/:key/gap/next", requireAuth, (req, res) => {
   const coverageGoal = readSettings(db, req.user.id).coverageGoal;
   const selection = chooseGap(db, repertoire, { lineId, afterEpd, coverageGoal });
   const detail = selection.detail ?? selection.position;
-  res.json(gapResponse(repertoire, detail, selection.gap, selection.gaps, req));
+  res.json(await gapResponse(repertoire, detail, selection.gap, selection.gaps, req));
 });
 
 /**
@@ -1632,7 +1728,7 @@ api.get("/repertoires/:key/gap/next", requireAuth, (req, res) => {
  * moves), with the exact path, notes and opening names. It never restricts the
  * list to already-saved lines.
  */
-api.get("/repertoires/:key/candidates", requireAuth, (req, res) => {
+api.get("/repertoires/:key/candidates", requireAuth, async (req, res) => {
   const repertoire = getRepertoire(req.user.id, req.params.key);
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
   const requested = requestPosition(req, repertoire);
@@ -1647,6 +1743,7 @@ api.get("/repertoires/:key/candidates", requireAuth, (req, res) => {
     limit,
     offset,
   });
+  await applyEngineEvals(db, detail);
   const heading = positionHeading(detail.prefixMoves, detail.side);
   const line = requested?.lineId
     ? db.prepare("SELECT * FROM lines WHERE id = ?").get(requested.lineId)
@@ -1666,6 +1763,10 @@ api.get("/repertoires/:key/candidates", requireAuth, (req, res) => {
     hasMore: detail.hasMore,
     nextOffset: detail.nextOffset,
     available: detail.available,
+    source: detail.source,
+    unavailableReason: detail.unavailableReason,
+    sources: detail.sources,
+    engineAvailable: detail.engineAvailable,
     stats: repStats(repertoire),
   });
 });
@@ -2179,10 +2280,30 @@ api.get("/repertoires/:key/learn", requireAuth, (req, res) => {
   const due = buildQueue(db, repertoire, "due");
   const weak = buildQueue(db, repertoire, "weak");
   const all = buildQueue(db, repertoire, "all");
-  const common = commonMoveQueue(db, repertoire, {
+  const capturedCommon = commonMoveQueue(db, repertoire, {
     coverageGoal: profile.coverageGoal,
     limit: 40,
   });
+  const explorerCommon = explorerCommonQueue(db, repertoire, {
+    coverageGoal: profile.coverageGoal,
+    limit: 40,
+  });
+  const commonByEpd = new Map();
+  for (const entry of [...capturedCommon, ...explorerCommon]) {
+    const existing = commonByEpd.get(entry.epd);
+    if (!existing) {
+      commonByEpd.set(entry.epd, entry);
+      continue;
+    }
+    if (
+      Number(entry.via?.incidence || 0) > Number(existing.via?.incidence || 0)
+    ) {
+      commonByEpd.set(entry.epd, entry);
+    }
+  }
+  const common = [...commonByEpd.values()]
+    .sort((a, b) => Number(b.via?.incidence || 0) - Number(a.via?.incidence || 0))
+    .slice(0, 40);
   const ordered = [...new Set([...due, ...weak, ...all])].slice(0, 100);
 
   const queue = ordered
@@ -2211,7 +2332,9 @@ api.get("/repertoires/:key/learn", requireAuth, (req, res) => {
     all: all.length,
     common: common.length,
     commonMoves: common,
-    commonSource: "captured-position-incidence",
+    commonSource: common.length
+      ? "captured-position-incidence+offline-explorer"
+      : null,
     reviewStyle: profile.reviewStyle,
     practiceMode: profile.practiceMode,
     coverageGoal: profile.coverageGoal,
@@ -2252,14 +2375,34 @@ api.get("/repertoires/:key/mistakes", requireAuth, (req, res) => {
 
 /* ------------------------------------------------------------------ position --- */
 
-api.get("/repertoires/:key/position", requireAuth, (req, res) => {
+api.get("/repertoires/:key/position", requireAuth, async (req, res) => {
   const repertoire = getRepertoire(req.user.id, req.params.key);
   if (!repertoire) return res.status(404).json({ error: "Repertoire not found" });
   const raw = String(req.query.epd || req.query.fen || "").trim();
   if (!raw) return res.status(400).json({ error: "Provide epd or fen" });
   const detail = positionDetail(db, repertoire, raw);
   if (!detail) return res.status(400).json({ error: "Invalid position" });
-  res.json({ repertoire: repStats(repertoire), position: detail });
+  const candidates = candidateList(db, {
+    epd: detail.epd,
+    repertoire,
+    prefixMoves: pathForEpd(db, repertoire.id, detail.epd)?.prefixMoves ?? [],
+  });
+  await applyEngineEvals(db, candidates);
+  res.json({
+    repertoire: repStats(repertoire),
+    position: {
+      ...detail,
+      name: fullNameForEpd(db, detail.epd),
+      stockfish: candidates.stockfish,
+      ratingBand: candidates.ratingBand,
+      games: candidates.games,
+      sources: candidates.sources,
+      candidates: candidates.candidates,
+      candidatesAvailable: candidates.available,
+      unavailableReason: candidates.unavailableReason,
+      engineAvailable: candidates.engineAvailable,
+    },
+  });
 });
 
 /* -------------------------------------------------------------------- notes --- */
@@ -3271,7 +3414,7 @@ function gradeFor(body, correct, match) {
   return hinted ? 2 : 3;
 }
 
-api.post("/practice/sessions/:id/attempt", requireAuth, (req, res) => {
+api.post("/practice/sessions/:id/attempt", requireAuth, async (req, res) => {
   const submissionId =
     String(req.body?.submissionId || req.body?.submission_id || "").trim() || randomUUID();
   if (idempotentResponse(req, res, submissionId)) return;
@@ -3396,12 +3539,11 @@ api.post("/practice/sessions/:id/attempt", requireAuth, (req, res) => {
 
   persistStreak(db, req.user.id, req.body?.tzOffset);
 
-  // D020: compute a real refutation for a wrong move. The engine is a local
-  // material/mate search; captured annotations enrich the explanation when the
-  // position has one. The expected move is used for the damage comparison.
+  // D020/D203: Stockfish computes the refutation when it can start. If it
+  // cannot, `refuteMove` returns a clearly labelled heuristic result.
   const refutation = correct
     ? null
-    : refuteMove(db, task.fen, played.san, { expectedSan: task.expectedSan });
+    : await refuteMove(db, task.fen, played.san, { expectedSan: task.expectedSan });
   const refreshedTarget = moveById(target.id) || target;
   const refreshedLast = db
     .prepare(
@@ -3963,22 +4105,28 @@ api.post("/model-games/:id/progress", requireAuth, (req, res) => {
   });
 });
 
-api.get("/model-games/:id/review", requireAuth, (req, res) => {
+api.get("/model-games/:id/review", requireAuth, async (req, res) => {
   const row = gameRow(db, Number(req.params.id));
   if (!row) return res.status(404).json({ error: "Game not found" });
   const game = gameDetail(db, row, req.user.id);
+  const depth = Math.max(4, Math.min(20, Number(req.query.depth) || 10));
+  const engine = await engineReview(db, row, { depth });
   res.json({
     gameId: row.id,
     review: game.review,
     analysis: game.analysis,
     annotations: game.annotations,
     annotationsAvailable: game.annotationsAvailable,
-    available: game.analysis.available,
-    engineReviewAvailable: false,
+    available: engine?.available ?? false,
+    engineReview: engine,
+    engineReviewAvailable: Boolean(engine?.available),
+    engine: engine?.engine ?? null,
+    source: engine?.available ? "stockfish" : null,
+    capturedEvalGraph: game.evalGraph,
   });
 });
 
-api.post("/model-games/:id/review", requireAuth, (req, res) => {
+api.post("/model-games/:id/review", requireAuth, async (req, res) => {
   const row = gameRow(db, Number(req.params.id));
   if (!row) return res.status(404).json({ error: "Game not found" });
   const progress = markReviewed(db, req.user.id, row.id, {
@@ -3986,12 +4134,16 @@ api.post("/model-games/:id/review", requireAuth, (req, res) => {
     score: req.body?.score == null ? null : req.body.score,
   });
   const game = gameDetail(db, row, req.user.id);
+  const depth = Math.max(4, Math.min(20, Number(req.body?.depth) || 10));
+  const engine = req.body?.engine === false ? null : await engineReview(db, row, { depth });
   res.json({
     ok: true,
     progress,
     review: game.review,
     analysis: game.analysis,
-    engineReviewAvailable: false,
+    engineReview: engine,
+    engineReviewAvailable: Boolean(engine?.available),
+    source: engine?.available ? "stockfish" : null,
   });
 });
 

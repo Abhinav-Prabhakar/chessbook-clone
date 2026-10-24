@@ -113,6 +113,47 @@ export type PracticeModePreference = "individual" | "whole-lines";
 export type AnimationSpeed = "off" | "fast" | "normal";
 export type RecommendedMovesSize = "compact" | "comfortable" | "large";
 
+/** One bundled piece set (mirrors `PIECE_SETS` in server/settings.js). */
+export interface PieceSetMeta {
+  id: string;
+  name: string;
+  label?: string;
+  available: boolean;
+  source: string;
+  attribution: string;
+  license: string;
+}
+
+export interface ReviewHistoryRow {
+  id: number;
+  epd: string;
+  ply: number;
+  san: string;
+  playedSan: string;
+  side: Color;
+  correct: boolean;
+  grade: number | null;
+  mode: string;
+  daily: string | null;
+  sessionId: string | null;
+  submissionId: string | null;
+  lineId: number | null;
+  lineName: string | null;
+  createdAt: string;
+}
+
+export interface HistoryMistake {
+  epd: string;
+  fen: string;
+  ply: number;
+  side: Color;
+  expectedSan: string;
+  acceptableSans: string[];
+  lineId: number;
+  lineName: string;
+  alternatives: TaskAlternative[];
+}
+
 export interface Settings {
   boardTheme: BoardTheme;
   coordinates: boolean;

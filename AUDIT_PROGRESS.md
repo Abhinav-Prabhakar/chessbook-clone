@@ -4,10 +4,10 @@ Status as of the final hardening pass. Every batch was implemented by a
 subagent, verified by that subagent, and then re-checked by the orchestrator
 with the full test suite and a live end-to-end run.
 
-Verification at close:
+Verification at close (final engine/coverage/pieces/history pass):
 
-- `npm test` → **78/78 pass** (unit + API + contract).
-- `npm run test:e2e` → **124/124 checks** on a fresh temp database, desktop
+- `npm test` → **91/91 pass** (unit + API + contract).
+- `npm run test:e2e` → **126/126 checks** on a fresh temp database, desktop
   (1440×900) and mobile (390×844), zero unexpected console errors.
 - `npm run build` → green.
 - All 9 headline acceptance tests in `AUDIT.md` pass (details below).
@@ -98,8 +98,7 @@ Production guide/coaches/blog/repertoire routes exist with captured content.
 
 | Status | IDs |
 |---|---|
-| Done | D134–D143, D145–D157 |
-| Partial | D144 (only the bundled Chessbook Monochrome piece set is available; the UI says so explicitly rather than offering fake sets) |
+| Done | D134–D157 (five real bundled piece sets with previews/attribution; review style, cards, pauses, notifications, sound, haptics, animation, board appearances, recommended-move size and daily goal all wired) |
 
 Rating/coverage are persisted server-side and drive incidence/gap/trim/common;
 review styles, cards, pauses, notifications, sound volume/effects, haptics,
@@ -130,8 +129,8 @@ loading skeletons and landing nav match; settings values open sheets.
 | Status | IDs |
 |---|---|
 | Done | D196–D200, D202, D204–D212 |
+| Done | D203 (Stockfish 19 Lite WASM is bundled and used for refutations, model reviews, candidate evals and puzzle answers, with a labelled fallback only if the worker cannot start) |
 | Intentional local-first omission | D201 (no WebSocket; single-player local app needs no live socket — documented) |
-| Partial | D203 (no bundled Stockfish binary; refutation and bot use an honest local heuristic engine, labelled in the UI/README) |
 
 Migrations v1–v3 upgrade existing databases in place; captured data has
 provenance hashes; per-move review logs; idempotent submits; date handling;
@@ -168,17 +167,18 @@ match reality.
 
 ## Remaining known limitations (not silent gaps)
 
-1. **D144** — one bundled piece set (Chessbook Monochrome). Additional sets are
-   not bundled; Settings states this explicitly.
-2. **D203** — no Stockfish binary. Training-game bot and wrong-move refutation
-   use the local heuristic engine and are labelled as such; evals that are
-   shown come from captured production samples, not a live engine.
-3. **D201** — no WebSocket. Intentional for a single-machine, no-account app.
-4. **D107** — `/` is the landing page until `cb_entered`; `/dashboard` is the
+1. **D201** — no WebSocket. Intentional for a single-machine, no-account app;
+   every flow is request/response and reload-safe.
+2. **D107** — `/` is the landing page until `cb_entered`; `/dashboard` is the
    app root. Documented in the README.
-5. **Captured-data coverage** — masters/peer/incidence/annotations exist for
-   the positions present in the production capture (start position, 1.e4, 1.d4,
-   1.e4 c5 and variants). Other positions show explicit “not available” rather
-   than invented numbers.
-6. **D018/D022 history UI** — review history is recorded and exposed by the
-   API; there is no dedicated history browser screen, only per-session summaries.
+3. **Playback/anti-cheat are local.** Visualization FENs are in the client
+   payload; a local user could inspect network responses. Acceptable for a
+   single-player trainer, documented in the README.
+4. **Pre-made course library** is the captured sample. Opening guides, coaches,
+   blog posts and courses come from the production captures; no additional
+   marketplace content is fetched.
+
+Everything from the original limitations list is otherwise closed:
+five real piece sets (D144), bundled Stockfish 19 for refutations/reviews/evals
+(D203), offline real masters + rating-band peer/incidence coverage for the
+whole opening tree, and a full review-history browser (D018/D022).

@@ -4474,3 +4474,189 @@ a {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* --------------------------------------------------- D144 piece set picker --- */
+.cb-piece-set-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.cb-piece-set {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid var(--cb-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--cb-text-3);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.cb-piece-set:hover {
+  border-color: var(--cb-text-dim);
+}
+
+.cb-piece-set.active {
+  border-color: var(--cb-green);
+  background: oklch(73.5% 0.1736 141 / 0.07);
+}
+
+.cb-piece-set-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  aspect-ratio: 3 / 1;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #3f835c;
+}
+
+.cb-piece-set-preview > span {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+
+.cb-piece-set-preview > span.light {
+  background: #639e61;
+}
+
+.cb-piece-set-preview > span.dark {
+  background: #3f835c;
+}
+
+.cb-piece-set-preview img {
+  display: block;
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.cb-piece-set-preview.cburnett img,
+.cb-piece-set-preview.merida img,
+.cb-piece-set-preview.chessnut img {
+  transform: scale(0.96);
+}
+
+.cb-piece-set-preview.shapes img {
+  transform: scale(0.94);
+}
+
+.cb-piece-set-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--cb-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cb-piece-set-name .fa-check {
+  color: var(--cb-green);
+  font-size: 10px;
+}
+
+.cb-piece-set-license {
+  color: var(--cb-text-dim);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* Per-set scale/contrast tuning on the board. The default monochrome keeps the
+   shared 0.965 scale + soft shadow from the board section above. */
+.cb-board[data-piece-set="cburnett"] .cb-piece img,
+.cb-board[data-piece-set="merida"] .cb-piece img,
+.cb-board[data-piece-set="chessnut"] .cb-piece img {
+  transform: scale(0.96);
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.34));
+}
+
+.cb-board[data-piece-set="shapes"] .cb-piece img {
+  transform: scale(0.94);
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.4));
+}
+
+/* ------------------------------------------------------- D018/D022 history --- */
+.cb-history-stats {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding-top: 4px;
+}
+
+.cb-history-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 14px 18px 0;
+}
+
+.cb-history-filters .cb-select,
+.cb-history-filters .cb-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.cb-history-filters-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--cb-text-3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cb-history-mistake {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--cb-border-soft);
+}
+
+.cb-history-mistake-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cb-history-mistake-copy strong {
+  color: var(--cb-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cb-history-mistake-copy span {
+  color: var(--cb-text-3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.cb-history-mistake-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .cb-history-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cb-history-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cb-history-mistake {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

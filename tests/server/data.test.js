@@ -71,25 +71,36 @@ test("gap heading names the previous move and the side to move correctly", async
   assert.equal(body.position.heading.prompt, "Choose a response to 1… c5");
 });
 
-test("a position without a captured report is explicitly unavailable", async () => {
+test("a position without a captured report now uses the offline explorer and Stockfish", async () => {
   const body = await ctx.apiOk(
     "GET",
     `/repertoires/white/candidates?epd=${q(AFTER_A3)}`
   );
-  assert.equal(body.available, false);
-  assert.deepEqual(body.candidates, []);
-  assert.equal(body.position.stockfish.eval, null);
-  assert.equal(body.position.stockfish.pawns, null);
-  assert.equal(body.total, 0);
+  assert.equal(body.available, true);
+  assert.ok(body.candidates.length > 0);
+  assert.ok(body.position.stockfish.eval != null);
+  assert.ok(body.position.stockfish.pawns != null);
+  assert.equal(body.position.stockfish.source, "stockfish");
+  assert.ok(body.total > 0);
+  const first = body.candidates[0];
+  assert.ok(first.masters != null);
+  assert.ok(first.peersAvailable || first.peers != null);
+  assert.ok(first.incidence != null);
+  assert.equal(first.oneIn >= 1, true);
+  assert.ok(first.evalAvailable);
+  assert.equal(first.evalSource, "stockfish");
+  assert.ok(body.sources.masters);
+  assert.ok(body.sources.lichess);
 
   const opening = await ctx.apiOk(
     "GET",
     `/openings/position?epd=${q(AFTER_A3)}`
   );
-  assert.equal(opening.available, false);
+  assert.equal(opening.available, true);
   assert.equal(opening.position.reportAvailable, false);
-  assert.deepEqual(opening.candidates, []);
-  assert.equal(opening.position.stockfish.eval, null);
+  assert.ok(opening.candidates.length > 0);
+  assert.ok(opening.position.stockfish.eval != null);
+  assert.equal(opening.position.stockfish.source, "stockfish");
 });
 
 test("autofill inserts a real saved branch and respects exclusions", async () => {
@@ -286,7 +297,8 @@ test("repertoire characteristics and coverage come from captured reports", async
   assert.equal(coverage.available, true);
   assert.ok(coverage.coverage != null);
   assert.ok(coverage.positionsWithReport > 0);
-  assert.ok(coverage.positionsWithoutReport > 0);
+  // The offline explorer covers the positions the production capture did not.
+  assert.equal(coverage.positionsWithoutReport, 0);
 });
 
 test("model games use the real daily game, history, evals and review state", async () => {
@@ -321,7 +333,8 @@ test("model games use the real daily game, history, evals and review state", asy
   assert.equal(detail.game.evals.length, 90);
   assert.equal(detail.game.evalsAvailable, true);
   assert.ok(detail.game.openingMatch.available);
-  assert.equal(detail.game.analysis.engineReviewAvailable, false);
+  assert.equal(detail.game.analysis.engineReviewAvailable, true);
+  assert.equal(detail.game.analysis.engineReviewSource, "stockfish");
 
   const progress = await ctx.apiOk(
     "POST",
@@ -337,7 +350,27 @@ test("model games use the real daily game, history, evals and review state", asy
   );
   assert.equal(reviewed.progress.reviewed, true);
   assert.equal(reviewed.progress.score, 82);
-  assert.equal(reviewed.engineReviewAvailable, false);
+  assert.equal(reviewed.engineReviewAvailable, true);
+  assert.ok(reviewed.engineReview?.available);
+  assert.equal(reviewed.engineReview.summary.plies, 89);
+  assert.ok(reviewed.engineReview.summary.blunders >= 0);
+
+  const engineReview = await ctx.apiOk(
+    "GET",
+    `/model-games/${daily.game.id}/review?depth=6`
+  );
+  assert.equal(engineReview.engineReviewAvailable, true);
+  assert.equal(engineReview.source, "stockfish");
+  assert.equal(engineReview.engineReview.moves.length, 89);
+  assert.ok(
+    engineReview.engineReview.moves.every((move) =>
+      ["best", "good", "inaccuracy", "mistake", "blunder", "unavailable"].includes(
+        move.classification
+      )
+    )
+  );
+  // The captured graph remains historical data, not overwritten by the review.
+  assert.equal(engineReview.capturedEvalGraph.source, "captured");
 
   const tooFar = await ctx.api(
     "POST",

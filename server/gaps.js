@@ -10,18 +10,25 @@
 import { Chess } from "chess.js";
 import { epdOf, lineSans, sanKey } from "./positions.js";
 import { candidateList, reportForEpd, pathForEpd } from "./opening-data.js";
+import { explorerMoveShare, lichessBandFor } from "./explorer-data.js";
+import { readSettings } from "./settings.js";
 
-function lastMoveProbability(db, epd, san, repertoireColor) {
+function lastMoveProbability(db, epd, san, repertoireColor, band) {
   const report = reportForEpd(db, epd, { repertoireColor });
-  if (!report) return null;
-  const key = sanKey(san);
-  const candidate = report.candidates.find((c) => c.san_key === key);
-  if (!candidate) return null;
-  const sideToMove = String(epd).split(" ")[1] === "b" ? "black" : "white";
-  if (report.reference_color && report.reference_color !== sideToMove) {
-    return candidate.incidence != null ? Number(candidate.incidence) : null;
+  if (report) {
+    const key = sanKey(san);
+    const candidate = report.candidates.find((c) => c.san_key === key);
+    if (candidate) {
+      const sideToMove = String(epd).split(" ")[1] === "b" ? "black" : "white";
+      if (report.reference_color && report.reference_color !== sideToMove) {
+        return candidate.incidence != null ? Number(candidate.incidence) : null;
+      }
+      return candidate.probability != null ? Number(candidate.probability) : null;
+    }
   }
-  return candidate.probability != null ? Number(candidate.probability) : null;
+  // No captured report (or the captured list is truncated): use the offline
+  // explorer at the user's band. This is a real conditional play rate.
+  return explorerMoveShare(db, epd, san, { band });
 }
 
 function disabledMoveKeys(db, repertoireId) {
@@ -40,6 +47,8 @@ function positionsForRepertoire(db, repertoire, { lineId = null } = {}) {
     : db.prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id").all(repertoire.id);
   const byEpd = new Map();
   const disabled = disabledMoveKeys(db, repertoire.id);
+  const settings = repertoire.user_id ? readSettings(db, repertoire.user_id) : null;
+  const band = lichessBandFor(settings ?? { singleElo: 1800 });
 
   for (const line of lines) {
     if (line.disabled) continue;
@@ -65,7 +74,7 @@ function positionsForRepertoire(db, repertoire, { lineId = null } = {}) {
           const incidence =
             i === 0
               ? 1
-              : lastMoveProbability(db, parentEpd, lastSan, repertoire.color);
+              : lastMoveProbability(db, parentEpd, lastSan, repertoire.color, band);
           byEpd.set(epd, {
             epd,
             fen: chess.fen(),
@@ -240,6 +249,17 @@ export function chooseGap(
     });
     if (!detail.available) return { gap: null, position: null, detail, gaps: [] };
     const missing = detail.candidates.filter((c) => !c.saved);
+    const settings = repertoire.user_id ? readSettings(db, repertoire.user_id) : null;
+    const band = lichessBandFor(settings ?? { singleElo: 1800 });
+    const lastSan = path?.prefixMoves?.length
+      ? path.prefixMoves[path.prefixMoves.length - 1]
+      : null;
+    const parentEpd = path?.prefixMoves?.length
+      ? epdOf(replay(path.prefixMoves.slice(0, -1)))
+      : null;
+    const positionIncidence = lastSan
+      ? lastMoveProbability(db, parentEpd, lastSan, repertoire.color, band)
+      : 1;
     const position = {
       epd,
       fen: detail.fen,
@@ -258,8 +278,11 @@ export function chooseGap(
         : null,
       lineId: path?.lineId ?? null,
       lineName: path?.lineName ?? null,
-      incidence: null,
-      oneIn: null,
+      incidence: positionIncidence,
+      oneIn:
+        positionIncidence > 0
+          ? Math.max(1, Math.round(1 / positionIncidence))
+          : null,
       candidateCount: detail.candidates.length,
       savedCount: detail.candidates.length - missing.length,
       missingCount: missing.length,

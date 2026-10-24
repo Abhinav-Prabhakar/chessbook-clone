@@ -6,8 +6,14 @@
  * position without a captured report is explicitly `available:false`.
  */
 import { Chess } from "chess.js";
-import { epdOf, fenFromEpd, lineSans, sanKey } from "./positions.js";
+import { epdOf, fenFromEpd, lineSans, sanKey, findLegalMove } from "./positions.js";
 import { bandMatch, readSettings } from "./settings.js";
+import {
+  explorerPosition,
+  explorerMoveShare,
+  lichessBandFor,
+} from "./explorer-data.js";
+import { evaluateCached, status as engineStatus } from "./engine.js";
 
 const pct = (part, total) =>
   total > 0 && Number.isFinite(part) ? Math.round((part / total) * 1000) / 10 : null;
@@ -318,9 +324,16 @@ export function candidateList(
   const band = ratingBandInfo(db);
   const settings = repertoire?.user_id ? readSettings(db, repertoire.user_id) : null;
   const profileBand = settings ? bandMatch(db, settings) : null;
+  const explorerBand = lichessBandFor(settings ?? { singleElo: 1800, eloRange: null });
+  const explorer = explorerPosition(db, epd, { band: explorerBand });
+  const masters = explorer.masters;
+  const peer = explorer.band;
   const coverageGoal = settings?.coverageGoal ?? 50;
   const minIncidence = 1 / Math.max(1, coverageGoal);
-  const bandMatches = profileBand ? profileBand.matches : true;
+  const capturedBandUsable = !profileBand || profileBand.matches;
+  const bandMatches = capturedBandUsable || Boolean(peer);
+  const dataAvailable = Boolean(report) || explorer.available;
+  const openingName = fullNameForEpd(db, epd);
 
   const base = {
     epd,
@@ -332,9 +345,17 @@ export function candidateList(
     moveNumber: Math.floor(path.length / 2) + 1,
     parentLineId: pathInfo?.lineId ?? null,
     parentLineName: pathInfo?.lineName ?? null,
-    available: Boolean(report),
-    source: report?.source ?? null,
+    available: dataAvailable,
+    source: report?.source ?? explorer.source ?? null,
+    openingName: openingName.name,
+    eco: openingName.eco ?? null,
     complete: report ? Boolean(report.complete) : null,
+    games: {
+      masters: masters?.games ?? null,
+      band: peer?.games ?? null,
+      bandLabel: peer?.band ?? explorerBand,
+      total: explorer.available ? explorer.bands.reduce((sum, row) => sum + row.games, 0) : null,
+    },
     stockfish: report
       ? {
           eval: report.stockfish_eval,
@@ -344,8 +365,9 @@ export function candidateList(
               ? null
               : Math.round((report.stockfish_eval / 100) * 100) / 100,
           available: report.stockfish_eval != null || report.stockfish_mate != null,
+          source: report.stockfish_eval == null ? null : report.source,
         }
-      : { eval: null, mate: null, pawns: null, available: false },
+      : { eval: null, mate: null, pawns: null, available: false, source: null },
     savedMoves: [...saved.values()],
     excludedMoves: [...excluded],
     candidates: [],
@@ -359,205 +381,161 @@ export function candidateList(
       ...band,
       profile: profileBand,
       matches: bandMatches,
+      explorer: {
+        band: explorerBand,
+        available: Boolean(peer),
+        source: peer ? peer.source : null,
+        bands: explorer.bands,
+      },
       note: profileBand
         ? profileBand.matches
-          ? `Statistics captured for ${profileBand.userBand} ${profileBand.capturedSystem ?? ""}`.trim()
-          : `Captured statistics are for ${profileBand.capturedBands.join(", ")}; your profile is ${profileBand.userBand}. Band-specific incidence is hidden.`
-        : null,
+          ? `Captured statistics for ${profileBand.userBand} ${profileBand.capturedSystem ?? ""}; offline peer data mapped to ${explorerBand}.`.trim()
+          : `Captured statistics are for ${profileBand.capturedBands.join(", ")}; your profile is ${profileBand.userBand}. Offline peer data is used for ${explorerBand}.`
+        : `Offline peer data mapped to ${explorerBand}.`,
     },
     coverageGoal,
     minIncidence,
-    incidenceByBand: band.available
-      ? [{ band: band.band, probability: null, source: band.source, available: true }]
-      : [],
-    bandsAvailable: band.available && bandMatches,
+    incidenceByBand: peer
+      ? [{ band: peer.band, probability: null, source: peer.source, available: true, games: peer.games }]
+      : band.available
+        ? [{ band: band.band, probability: null, source: band.source, available: true }]
+        : [],
+    bandsAvailable: bandMatches || Boolean(peer),
     profileBand,
+    sources: {
+      captured: report?.source ?? null,
+      masters: masters?.source ?? null,
+      lichess: peer?.source ?? null,
+      engine: null,
+    },
+    unavailableReason:
+      dataAvailable
+        ? null
+        : "No captured production report and no offline explorer data for this position.",
   };
 
-  if (!report) return base;
-
-  const masterBase = masterTotals(report);
-  const all = report.candidates
-    .map((candidate) => {
-      const key = candidate.san_key;
-      const savedMove = saved.get(key);
-      const isExcluded = excluded.has(key);
-      const movePath = [...path, candidate.san];
-      const opening = openingForPath(db, movePath);
-      const fallback = candidate.epd_after ? fullNameForEpd(db, candidate.epd_after) : null;
-      const annotation =
-        candidate.annotation ??
-        annotationForMove(db, epd, candidate.san)?.text ??
-        null;
-      const master = masterResults(candidate, masterBase);
-      const peers = peerResults(candidate);
-      const realIncidence =
-        report.reference_color && report.reference_color !== sideToMove
-          ? candidate.incidence
-          : null;
-      const playProbability =
-        candidate.probability == null ? null : Number(candidate.probability);
-      const capturedIncidence = realIncidence ?? playProbability;
-      const incidence = bandMatches ? capturedIncidence : null;
-      const oneIn =
-        incidence && incidence > 0 ? Math.max(1, Math.round(1 / incidence)) : null;
-      return {
-        rank: candidate.rank,
-        san: candidate.san,
-        sanKey: key,
-        uci: null,
-        epd: epd,
-        epdAfter: candidate.epd_after,
-        fenAfter: candidate.epd_after ? fenFromEpd(candidate.epd_after) : null,
-        name: opening?.name ?? fallback?.name ?? null,
-        eco: opening?.eco ?? fallback?.eco ?? null,
-        openingId: opening?.id ?? null,
-        friendlyName: fallback?.friendlyName ?? null,
-        // Legacy builder field: Masters used to be local mastery. It is now the
-        // captured master-game share, so old screens show real data (D036).
-        mastery: master?.share ?? null,
-        lineCount: savedMove ? 1 : 0,
-        inRepertoire: Boolean(savedMove),
-        annotation,
-        description: annotation,
-        masters: master?.share ?? null,
-        masterResults: master,
-        mastersAvailable: Boolean(master),
-        peers: peers
-          ? { white: peers.white, black: peers.black, draw: peers.draw }
-          : null,
-        peerResults: peers,
-        peersAvailable: Boolean(peers),
-        eval: candidate.stockfish_eval,
-        evalPawn:
-          candidate.stockfish_eval == null
-            ? null
-            : Math.round((candidate.stockfish_eval / 100) * 100) / 100,
-        mate: candidate.stockfish_mate,
-        evalAvailable:
-          candidate.stockfish_eval != null || candidate.stockfish_mate != null,
-        probability: playProbability,
-        incidence,
-        capturedIncidence,
-        incidenceAvailable: incidence != null,
-        bandMismatch: !bandMatches && capturedIncidence != null,
-        meetsCoverage: incidence != null ? incidence >= minIncidence : null,
-        incidenceByBand: band.available && bandMatches
-          ? [
-              {
-                band: band.band,
-                probability: playProbability,
-                incidence,
-                source: band.source,
-                available: incidence != null,
-              },
-            ]
-          : [],
-        oneIn,
-        incidenceLabel: oneIn ? `1 in ${oneIn} games` : null,
-        // True incidence is only known when the captured report looked at this
-        // position from the opponent's side. Own moves still have a real
-        // conditional play rate (`probability`).
-        realIncidenceAvailable: realIncidence != null,
-        needed: !savedMove,
-        saved: Boolean(savedMove),
-        disabled: Boolean(savedMove?.disabled),
-        excluded: isExcluded,
-        playable: !isExcluded && !savedMove?.disabled,
-        lineId: savedMove?.lineId ?? null,
-        lineName: savedMove?.lineName ?? null,
-        lineMoveId: savedMove?.lineMoveId ?? null,
-        parentLineId: pathInfo?.lineId ?? null,
-        parentLineName: pathInfo?.lineName ?? null,
-        branchMoves: movePath,
-        branchPgn: null,
-        danger: candidate.danger,
-        similarPositionCount: candidate.similar_position_count,
-        similarPositionMatchCount: candidate.similar_position_match_count,
-        source: report.source,
-      };
-    })
-    .filter((candidate) => includeExcluded || !candidate.excluded);
-  all.forEach((candidate, index) => {
-    candidate.rank = index + 1;
-    candidate.branchPgn = candidate.branchMoves
-      .map((san, i) => `${i % 2 === 0 ? `${i / 2 + 1}. ` : ""}${san}`)
-      .join(" ");
-    candidate.pgn = candidate.branchPgn;
-  });
-
-  // Saved moves that are not part of the captured top list still belong in the
-  // builder; append them honestly with unavailable stats rather than hiding
-  // the user's own branch.
-  const present = new Set(all.map((candidate) => candidate.sanKey));
-  for (const [key, savedMove] of saved) {
-    if (present.has(key) || (!includeExcluded && excluded.has(key))) continue;
-    const movePath = [...path, savedMove.san];
-    const opening = openingForPath(db, movePath);
-    all.push({
-      rank: all.length + 1,
-      san: savedMove.san,
-      sanKey: key,
-      uci: null,
-      epd,
-      epdAfter: null,
-      fenAfter: null,
-      name: opening?.name ?? null,
-      eco: opening?.eco ?? null,
-      openingId: opening?.id ?? null,
-      friendlyName: null,
-      mastery: null,
-      lineCount: 1,
-      inRepertoire: true,
-      annotation: annotationForMove(db, epd, savedMove.san)?.text ?? null,
-      description: annotationForMove(db, epd, savedMove.san)?.text ?? null,
-      masters: null,
-      masterResults: null,
-      mastersAvailable: false,
-      peers: null,
-      peerResults: null,
-      peersAvailable: false,
-      eval: null,
-      evalPawn: null,
-      mate: null,
-      evalAvailable: false,
-      probability: null,
-      incidence: null,
-      capturedIncidence: null,
-      incidenceAvailable: false,
-      bandMismatch: false,
-      meetsCoverage: null,
-      incidenceByBand: [],
-      oneIn: null,
-      incidenceLabel: null,
-      realIncidenceAvailable: false,
-      needed: false,
-      saved: true,
-      disabled: Boolean(savedMove.disabled),
-      excluded: excluded.has(key),
-      playable: !excluded.has(key) && !savedMove.disabled,
-      lineId: savedMove.lineId,
-      lineName: savedMove.lineName,
-      lineMoveId: savedMove.lineMoveId,
-      parentLineId: pathInfo?.lineId ?? null,
-      parentLineName: pathInfo?.lineName ?? null,
-      branchMoves: movePath,
-      branchPgn: movePath
-        .map((san, i) => `${i % 2 === 0 ? `${i / 2 + 1}. ` : ""}${san}`)
-        .join(" "),
-      pgn: null,
-      danger: null,
-      similarPositionCount: null,
-      similarPositionMatchCount: null,
-      statsAvailable: false,
-      source: null,
-    });
+  if (!dataAvailable) {
+    return { ...base, candidates: [], total: 0 };
   }
 
-  const total = all.length;
+  const masterBase = report ? masterTotals(report) : null;
+
+  const lookupExplorer = (key, san) => ({
+    em:
+      masters?.moves.get(key) ||
+      masters?.moves.get(sanKey(san)) ||
+      null,
+    ep:
+      peer?.moves.get(key) ||
+      peer?.moves.get(sanKey(san)) ||
+      null,
+  });
+
+  const specs = [];
+  const seen = new Set();
+  if (report) {
+    for (const candidate of report.candidates) {
+      const key = candidate.san_key || sanKey(candidate.san);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      specs.push({
+        key,
+        san: candidate.san,
+        captured: candidate,
+        ...lookupExplorer(key, candidate.san),
+        order: specs.length,
+      });
+    }
+    // A truncated production capture has an unknown denominator; the offline
+    // corpus can complete the list without overriding the captured rows.
+    if (!report.complete && explorer.available) {
+      for (const move of [...(masters?.moves.values() ?? []), ...(peer?.moves.values() ?? [])]) {
+        const key = move.sanKey || sanKey(move.san);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        specs.push({ key, san: move.san, captured: null, ...lookupExplorer(key, move.san), order: specs.length });
+      }
+    }
+  } else if (explorer.available) {
+    for (const move of [...(peer?.moves.values() ?? []), ...(masters?.moves.values() ?? [])]) {
+      const key = move.sanKey || sanKey(move.san);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      specs.push({ key, san: move.san, captured: null, ...lookupExplorer(key, move.san), order: specs.length });
+    }
+  }
+
+  const built = [];
+  for (const spec of specs) {
+    const candidate = buildMergedCandidate({
+      db,
+      base,
+      spec,
+      path,
+      report,
+      masters,
+      peer,
+      masterBase,
+      capturedBandUsable,
+      saved,
+      excluded,
+      openingForPath,
+      fullNameForEpd,
+      minIncidence,
+      explorerBand,
+    });
+    if (candidate) built.push(candidate);
+  }
+
+  // Saved moves that neither the capture nor the corpora listed still belong
+  // in the builder, honestly marked unavailable rather than hidden.
+  const present = new Set(built.map((candidate) => candidate.sanKey));
+  for (const [key, savedMove] of saved) {
+    if (present.has(key)) continue;
+    const { em, ep } = lookupExplorer(key, savedMove.san);
+    const candidate = buildMergedCandidate({
+      db,
+      base,
+      spec: { key, san: savedMove.san, captured: null, em, ep, order: specs.length },
+      path,
+      report,
+      masters,
+      peer,
+      masterBase,
+      capturedBandUsable,
+      saved,
+      excluded,
+      openingForPath,
+      fullNameForEpd,
+      minIncidence,
+      explorerBand,
+    });
+    if (candidate) built.push(candidate);
+  }
+
+  if (!report) {
+    built.sort(
+      (a, b) =>
+        Number(b.incidence ?? -1) - Number(a.incidence ?? -1) ||
+        Number(b.masters ?? -1) - Number(a.masters ?? -1) ||
+        a.san.localeCompare(b.san)
+    );
+  }
+  built
+    .filter((candidate) => includeExcluded || !candidate.excluded)
+    .forEach((candidate, index) => {
+      candidate.rank = index + 1;
+      candidate.branchPgn = candidate.branchMoves
+        .map((san, i) => `${i % 2 === 0 ? `${i / 2 + 1}. ` : ""}${san}`)
+        .join(" ");
+      candidate.pgn = candidate.branchPgn;
+    });
+  const filtered = built.filter((candidate) => includeExcluded || !candidate.excluded);
+
+  const total = filtered.length;
   const start = Math.max(0, Math.trunc(Number(offset) || 0));
   const end = limit == null ? total : Math.min(total, start + Math.max(0, Number(limit)));
-  const candidates = all.slice(start, end);
+  const candidates = filtered.slice(start, end);
   return {
     ...base,
     candidates,
@@ -567,6 +545,399 @@ export function candidateList(
     hasMore: end < total,
     nextOffset: end < total ? end : null,
   };
+}
+
+function pctOf(part, total) {
+  return total > 0 ? Math.round((Number(part || 0) / total) * 1000) / 10 : null;
+}
+
+function peerResultsFromExplorer(move) {
+  if (!move || !move.games) return null;
+  return {
+    white: pctOf(move.white, move.games),
+    draw: pctOf(move.draw, move.games),
+    black: pctOf(move.black, move.games),
+    games: move.games,
+    whiteWins: move.white,
+    draws: move.draw,
+    blackWins: move.black,
+  };
+}
+
+function masterResultsFromExplorer(move, position) {
+  if (!move || !position || !position.games) return null;
+  return {
+    white: pctOf(move.white, position.games),
+    draw: pctOf(move.draw, position.games),
+    black: pctOf(move.black, position.games),
+    games: move.games,
+    share: pctOf(move.games, position.games),
+    whiteWins: move.white,
+    draws: move.draw,
+    blackWins: move.black,
+  };
+}
+
+function buildMergedCandidate({
+  db,
+  base,
+  spec,
+  path,
+  report,
+  masters,
+  peer,
+  masterBase,
+  capturedBandUsable,
+  saved,
+  excluded,
+  openingForPath,
+  fullNameForEpd,
+  minIncidence,
+  explorerBand,
+}) {
+  const captured = spec.captured;
+  const key = spec.key || sanKey(spec.san);
+  const legal = findLegalMove(base.fen, spec.san);
+  if (!legal && !captured) return null;
+  const san = legal?.san ?? spec.san;
+  const sanKeyValue = key;
+  const fenAfter = legal ? legal.after ?? null : null;
+  const epdAfter = captured?.epd_after ?? (fenAfter ? epdOf(fenAfter) : null);
+  const movePath = [...path, san];
+  const opening = openingForPath(db, movePath);
+  const fallback = epdAfter ? fullNameForEpd(db, epdAfter) : null;
+  const capturedSupplementary = Boolean(
+    fallback?.source && !String(fallback.source).startsWith("explorer-")
+  );
+  const candidateName = capturedSupplementary
+    ? fallback?.name ?? opening?.name ?? null
+    : opening?.name ?? fallback?.name ?? null;
+  const annotation =
+    captured?.annotation ??
+    annotationForMove(db, base.epd, san)?.text ??
+    null;
+
+  const capturedMaster = captured && masterBase ? masterResults(captured, masterBase) : null;
+  const explorerMaster = spec.em ? masterResultsFromExplorer(spec.em, masters) : null;
+  const master = capturedMaster ?? explorerMaster;
+  const capturedPeer = captured && capturedBandUsable ? peerResults(captured) : null;
+  const explorerPeer = spec.ep ? peerResultsFromExplorer(spec.ep) : null;
+  const peers = capturedPeer ?? explorerPeer;
+
+  const peerShare = spec.ep && peer?.games ? spec.ep.games / peer.games : null;
+  const masterShare = spec.em && masters?.games ? spec.em.games / masters.games : null;
+  const capturedProbability =
+    captured?.probability == null ? null : Number(captured.probability);
+  const capturedIncidence =
+    report?.reference_color &&
+    report.reference_color !== base.side &&
+    captured?.incidence != null
+      ? Number(captured.incidence)
+      : null;
+  const useCapturedIncidence = capturedBandUsable && capturedIncidence != null;
+  const probability =
+    capturedBandUsable && capturedProbability != null
+      ? capturedProbability
+      : peerShare ?? masterShare ?? null;
+  const incidence =
+    (useCapturedIncidence ? capturedIncidence : null) ??
+    peerShare ??
+    masterShare ??
+    (capturedBandUsable ? capturedProbability : null);
+  const oneIn = incidence && incidence > 0 ? Math.max(1, Math.round(1 / incidence)) : null;
+  const savedMove =
+    saved.get(sanKeyValue) ||
+    saved.get(sanKey(san)) ||
+    null;
+  const isExcluded =
+    excluded.has(sanKeyValue) || excluded.has(sanKey(san));
+  const evalCp =
+    captured?.stockfish_eval == null ? null : Number(captured.stockfish_eval);
+  const mate = captured?.stockfish_mate ?? null;
+
+  return {
+    rank: 0,
+    san,
+    sanKey: sanKeyValue,
+    uci: legal ? `${legal.from}${legal.to}${legal.promotion ?? ""}` : null,
+    epd: base.epd,
+    epdAfter,
+    fenAfter,
+    name: candidateName,
+    openingName: candidateName,
+    eco: opening?.eco ?? fallback?.eco ?? null,
+    openingId: opening?.id ?? null,
+    friendlyName: fallback?.friendlyName ?? null,
+    nameSource: capturedSupplementary
+      ? fallback?.source ?? null
+      : opening
+        ? "lichess-eco"
+        : fallback?.source ?? null,
+    // Legacy builder field: Masters is the master-game share, not local
+    // mastery (D036).
+    mastery: master?.share ?? null,
+    lineCount: savedMove ? 1 : 0,
+    inRepertoire: Boolean(savedMove),
+    annotation,
+    description: annotation,
+    masters: master?.share ?? null,
+    masterResults: master,
+    mastersAvailable: Boolean(master),
+    peers: peers ? { white: peers.white, black: peers.black, draw: peers.draw } : null,
+    peerResults: peers,
+    peersAvailable: Boolean(peers),
+    eval: evalCp,
+    evalPawn: evalCp == null ? null : Math.round((evalCp / 100) * 100) / 100,
+    mate,
+    evalAvailable: evalCp != null || mate != null,
+    evalSource: evalCp != null ? report?.source ?? null : null,
+    probability,
+    incidence,
+    incidenceSource:
+      useCapturedIncidence
+        ? report?.source ?? "captured"
+        : peerShare != null
+          ? peer?.source ?? "lichess-band"
+          : masterShare != null
+            ? masters?.source ?? "pgnmentor-masters"
+            : null,
+    capturedIncidence,
+    incidenceAvailable: incidence != null,
+    bandMismatch: !capturedBandUsable && capturedIncidence != null && !peerShare,
+    meetsCoverage: incidence != null ? incidence >= minIncidence : null,
+    incidenceByBand: peer
+      ? [
+          {
+            band: peer.band,
+            probability: peerShare,
+            incidence: peerShare,
+            games: peer.games,
+            source: peer.source,
+            available: true,
+          },
+        ]
+      : [],
+    oneIn,
+    incidenceLabel: oneIn ? `1 in ${oneIn} games` : null,
+    realIncidenceAvailable: incidence != null,
+    needed: !savedMove,
+    saved: Boolean(savedMove),
+    disabled: Boolean(savedMove?.disabled),
+    excluded: isExcluded,
+    playable: !isExcluded && !savedMove?.disabled,
+    lineId: savedMove?.lineId ?? null,
+    lineName: savedMove?.lineName ?? null,
+    lineMoveId: savedMove?.lineMoveId ?? null,
+    parentLineId: base.parentLineId ?? null,
+    parentLineName: base.parentLineName ?? null,
+    branchMoves: movePath,
+    branchPgn: null,
+    pgn: null,
+    danger: captured?.danger ?? null,
+    similarPositionCount: captured?.similar_position_count ?? null,
+    similarPositionMatchCount: captured?.similar_position_match_count ?? null,
+    games: peers?.games ?? spec.em?.games ?? spec.ep?.games ?? null,
+    mastersGames: spec.em?.games ?? null,
+    peerGames: spec.ep?.games ?? null,
+    statsAvailable: Boolean(master || peers || evalCp != null || mate != null),
+    source: captured
+      ? report.source
+      : spec.ep
+        ? peer?.source ?? "lichess-band"
+        : spec.em
+          ? masters?.source ?? "pgnmentor-masters"
+          : null,
+    sourceDetail: {
+      captured: captured ? report?.source ?? null : null,
+      masters: spec.em ? masters?.source ?? "pgnmentor-masters" : null,
+      lichess: spec.ep ? peer?.source ?? "lichess-band" : null,
+      engine: evalCp != null ? report?.source ?? null : null,
+    },
+    explorerBand,
+  };
+}
+
+/**
+ * Fill candidate and position evals from Stockfish (never from a hash).
+ *
+ * Captured evals win. Every other candidate gets the real eval of the position
+ * after the move, at a modest depth, cached in memory and SQLite. Called by
+ * API endpoints that render candidates, not by the internal gap ranking walk.
+ */
+/**
+ * Explorer-backed "next common moves" for /learn.
+ *
+ * `server/common.js` is captured-data only. This fills the positions the
+ * capture never covered, using the offline Lichess band corpora and the same
+ * saved-reply requirement. Captured entries are merged separately and win on
+ * duplicates.
+ */
+export function explorerCommonQueue(
+  db,
+  repertoire,
+  { coverageGoal = 50, limit = 40 } = {}
+) {
+  const settings = repertoire?.user_id ? readSettings(db, repertoire.user_id) : null;
+  const band = lichessBandFor(settings ?? { singleElo: 1800 });
+  const threshold = 1 / Math.max(1, Number(coverageGoal) || 50);
+  const lines = db
+    .prepare("SELECT * FROM lines WHERE repertoire_id = ? ORDER BY id")
+    .all(repertoire.id);
+  const savedMoves = new Map();
+  for (const row of db
+    .prepare(
+      `SELECT epd, san_key FROM line_moves
+       WHERE repertoire_id = ? AND is_user = 1 AND disabled = 0`
+    )
+    .all(repertoire.id)) {
+    if (!savedMoves.has(row.epd)) savedMoves.set(row.epd, row.san_key);
+  }
+
+  const found = new Map();
+  for (const line of lines) {
+    if (line.disabled) continue;
+    let sans;
+    try {
+      sans = lineSans(line);
+    } catch {
+      continue;
+    }
+    const chess = new Chess();
+    const path = [];
+    for (let i = 0; i < sans.length; i += 1) {
+      const beforeEpd = epdOf(chess.fen());
+      const side = chess.turn() === "w" ? "white" : "black";
+      const san = sans[i];
+      if (side !== repertoire.color) {
+        const incidence = explorerMoveShare(db, beforeEpd, san, { band });
+        if (incidence != null && incidence >= threshold) {
+          let after;
+          try {
+            const probe = new Chess(chess.fen());
+            probe.move(san);
+            after = probe;
+          } catch {
+            after = null;
+          }
+          if (after) {
+            const epd = epdOf(after.fen());
+            const replyKey = savedMoves.get(epd);
+            if (replyKey) {
+              const existing = found.get(epd);
+              if (!existing || incidence > existing.incidence) {
+                found.set(epd, {
+                  epd,
+                  fen: after.fen(),
+                  path: [...path, san],
+                  ply: i + 1,
+                  moveNumber: Math.floor(i / 2) + 1,
+                  side: repertoire.color,
+                  via: {
+                    epd: beforeEpd,
+                    san,
+                    incidence,
+                    oneIn: Math.max(1, Math.round(1 / incidence)),
+                    source: "lichess-band",
+                    referenceColor: null,
+                    band,
+                  },
+                  lineId: line.id,
+                  lineName: line.name,
+                  source: "offline-explorer",
+                });
+              }
+            }
+          }
+        }
+      }
+      try {
+        chess.move(san);
+        path.push(san);
+      } catch {
+        break;
+      }
+    }
+  }
+
+  return [...found.values()]
+    .sort(
+      (a, b) =>
+        b.via.incidence - a.via.incidence ||
+        a.path.length - b.path.length ||
+        a.epd.localeCompare(b.epd)
+    )
+    .slice(0, Math.max(1, Number(limit) || 40));
+}
+
+export async function applyEngineEvals(
+  db,
+  detail,
+  { depth = null, candidateDepth = null, maxCandidates = 40 } = {}
+) {
+  if (!detail) return detail;
+  const engineDepth = Math.max(
+    4,
+    Math.min(24, Number(depth ?? process.env.CHESSBOOK_ENGINE_DEPTH) || 12)
+  );
+  const evalDepth = Math.max(
+    4,
+    Math.min(engineDepth, Number(candidateDepth ?? process.env.CHESSBOOK_CANDIDATE_DEPTH) || 10)
+  );
+  const engineAvailable = engineStatus().available;
+
+  if (engineAvailable && !detail.stockfish?.available) {
+    const positionEval = await evaluateCached(db, detail.fen, { depth: engineDepth });
+    if (positionEval.available) {
+      detail.stockfish = {
+        eval: positionEval.evalCp,
+        cp: positionEval.evalCp,
+        mate: positionEval.mate,
+        pawns: positionEval.evalPawns,
+        available: true,
+        depth: positionEval.depth,
+        engine: positionEval.engine?.name ?? null,
+        source: "stockfish",
+        cached: Boolean(positionEval.cached),
+      };
+      if (detail.sources) detail.sources.engine = "stockfish";
+    } else {
+      detail.engineAvailable = false;
+      detail.engineReason = positionEval.reason ?? "engine_unavailable";
+    }
+  }
+
+  const candidates = (detail.candidates || []).slice(0, Math.max(0, maxCandidates));
+  for (const candidate of candidates) {
+    if (candidate.evalAvailable) continue;
+    const fen = candidate.fenAfter || (() => {
+      const move = findLegalMove(detail.fen, candidate.san);
+      return move?.after ?? null;
+    })();
+    if (!fen) continue;
+    if (!engineAvailable) {
+      candidate.evalAvailable = false;
+      candidate.evalReason = "engine_unavailable";
+      continue;
+    }
+    const result = await evaluateCached(db, fen, { depth: evalDepth });
+    if (!result.available) {
+      candidate.evalAvailable = false;
+      candidate.evalReason = result.reason ?? "engine_unavailable";
+      continue;
+    }
+    candidate.eval = result.evalCp;
+    candidate.evalCp = result.evalCp;
+    candidate.evalPawn = result.evalPawns;
+    candidate.evalAvailable = true;
+    candidate.mate = result.mate;
+    candidate.evalDepth = result.depth;
+    candidate.evalEngine = result.engine?.name ?? null;
+    candidate.evalSource = "stockfish";
+    candidate.evalCached = Boolean(result.cached);
+    if (candidate.sourceDetail) candidate.sourceDetail.engine = "stockfish";
+  }
+  detail.engineAvailable = engineAvailable;
+  return detail;
 }
 
 /* -------------------------------------------------------------- headings --- */

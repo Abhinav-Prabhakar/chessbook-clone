@@ -16,9 +16,48 @@ export const RECOMMENDED_SIZES = ["compact", "comfortable", "large"];
 export const PIECE_SETS = [
   {
     id: "chessbook_monochrome",
+    name: "Chessbook Monochrome",
     label: "Chessbook Monochrome",
     available: true,
     source: "pieces/chessbook_monochrome",
+    attribution: "Bundled with this local Chessbook build",
+    license: "Project assets",
+  },
+  {
+    id: "cburnett",
+    name: "Cburnett",
+    label: "Cburnett",
+    available: true,
+    source: "pieces/cburnett",
+    attribution: "Colin M.L. Burnett",
+    license: "GPLv2+",
+  },
+  {
+    id: "merida",
+    name: "Merida",
+    label: "Merida",
+    available: true,
+    source: "pieces/merida",
+    attribution: "Armando Hernandez Marroquin",
+    license: "GPLv2+",
+  },
+  {
+    id: "chessnut",
+    name: "Chessnut",
+    label: "Chessnut",
+    available: true,
+    source: "pieces/chessnut",
+    attribution: "Alexis Luengas",
+    license: "Apache 2.0",
+  },
+  {
+    id: "shapes",
+    name: "Shapes",
+    label: "Shapes",
+    available: true,
+    source: "pieces/shapes",
+    attribution: "flugsio (chess_shapes)",
+    license: "CC BY-SA 4.0",
   },
 ];
 export const COVERAGE_OPTIONS = [25, 50, 100, 200, 500];

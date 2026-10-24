@@ -307,6 +307,12 @@ export function LearnPage() {
               onClick={() => start("specific")}
               disabled={savedLines.length === 0}
             />
+            <Row
+              title="Review history"
+              meta="Every reviewed move, with what you played"
+              to={`/history/${key}`}
+              right={<i className="fa fa-arrow-right" aria-hidden />}
+            />
           </div>
 
           {dueCount === 0 && (

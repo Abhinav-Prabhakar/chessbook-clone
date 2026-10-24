@@ -51,6 +51,12 @@ export async function startTestServer() {
 
   async function close() {
     await new Promise((resolve) => server.close(resolve));
+    try {
+      const { close: closeEngine } = await import("../../server/engine.js");
+      await closeEngine();
+    } catch {
+      // engine already closed or unavailable
+    }
     db.close();
     rmSync(dir, { recursive: true, force: true });
   }

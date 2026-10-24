@@ -40,6 +40,7 @@ import { BlogPostPage } from "./pages/BlogPostPage";
 import { RepertoiresPage } from "./pages/RepertoiresPage";
 import { WelcomePage } from "./pages/WelcomePage";
 import { HelpPage } from "./pages/HelpPage";
+import { HistoryPage } from "./pages/HistoryPage";
 
 const PLAY_STORE = "https://play.google.com/store/apps/details?id=com.chessbook.android";
 const APP_STORE = "https://apps.apple.com/us/app/chessbook/id6466343415";
@@ -154,6 +155,8 @@ function RoutedPages() {
           <Route path="/gap/:key" element={<GapPage />} />
           <Route path="/learn/:key" element={<LearnPage />} />
           <Route path="/practice/:key" element={<PracticePage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/history/:key" element={<HistoryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/add" element={<AddPage />} />
           <Route path="/model" element={<ModelPage />} />

@@ -1,16 +1,18 @@
 /**
- * Local refutation for a wrong practice move (D020).
+ * Refutation for a wrong practice move (D020 / D203).
  *
- * There is no bundled Stockfish binary in this build, so this module is a
- * small, deterministic material/mate search over `chess.js` — not a fake
- * number and not a cloud call. Every result is labelled with its engine and
- * depth so the UI can say exactly where it came from. When the captured
- * production data contains an annotation for the reply, it is attached as an
- * explanation, but the move itself is still computed locally.
+ * Primary path: Stockfish 19 (`server/engine.js`). The reply is the engine's
+ * best move from the position after the played move, and the eval comes from
+ * the same engine run. If the binary cannot start at all, a clearly labelled
+ * local material/mate search is used instead — never a fabricated number.
+ *
+ * Captured production annotations still enrich the prose when they exist, but
+ * the move and evaluation always come from the engine named in `engine`.
  */
 import { Chess } from "chess.js";
 import { annotationForMove } from "./opening-data.js";
 import { epdOf, findLegalMove } from "./positions.js";
+import { enginePath, refute as engineRefute } from "./engine.js";
 
 const VALUE = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
 const MATE = 100000;
@@ -26,6 +28,9 @@ const PIECE_NAME = {
   k: "king",
 };
 
+const HEURISTIC_ENGINE = "chessbook-heuristic";
+const HEURISTIC_LABEL = "Chessbook local heuristic (material + mate search)";
+
 function material(game) {
   let score = 0;
   for (const row of game.board()) {
@@ -37,7 +42,6 @@ function material(game) {
   return score;
 }
 
-/** Tiny positional bonus: central pawns/knights, castled king safety. */
 function positional(game) {
   let score = 0;
   for (const row of game.board()) {
@@ -82,7 +86,6 @@ class SearchBudget {
   }
 }
 
-/** Quiescence over captures only, so hanging material is not missed. */
 function quiesce(game, alpha, beta, budget, depth = 2) {
   if (budget.exhausted()) return evaluate(game);
   const standing = evaluate(game);
@@ -118,7 +121,6 @@ function quiesce(game, alpha, beta, budget, depth = 2) {
   return best;
 }
 
-/** Negamax-style minimax returning White's centipawn evaluation. */
 function search(game, depth, alpha, beta, budget) {
   if (budget.exhausted()) return evaluate(game);
   if (game.isCheckmate()) return game.turn() === "w" ? -MATE - depth : MATE + depth;
@@ -179,7 +181,7 @@ function bestReply(game, depth, budget) {
   return { move: best, score: bestScore, line };
 }
 
-function describe({ game, reply, damage, expectedSan, expectedMove, captured }) {
+function describe({ game, reply, damage, expectedSan, expectedMove, captured, engineLabel }) {
   const parts = [];
   const check = (() => {
     const probe = new Chess(game.fen());
@@ -203,31 +205,34 @@ function describe({ game, reply, damage, expectedSan, expectedMove, captured }) 
   if (mate) {
     parts.push(`${reply.san} is checkmate.`);
   } else if (reply.captured) {
-    parts.push(
-      `${reply.san} wins your ${PIECE_NAME[reply.captured] ?? "piece"} on ${reply.to}.`
-    );
+    parts.push(`${reply.san} wins your ${PIECE_NAME[reply.captured] ?? "piece"} on ${reply.to}.`);
   } else if (check) {
     parts.push(`${reply.san} comes with check and takes the initiative.`);
   } else {
-    parts.push(`${reply.san} is the strongest reply in this position.`);
+    parts.push(
+      engineLabel
+        ? `${reply.san} is ${engineLabel}'s strongest reply in this position.`
+        : `${reply.san} is the strongest reply in this position.`
+    );
   }
 
   if (Number.isFinite(damage)) {
     const pawns = Math.round((damage / 100) * 10) / 10;
+    const reference = engineLabel
+      ? "best play"
+      : `your saved move ${expectedSan ?? expectedMove?.san ?? ""}`.trim();
     if (pawns >= 9) {
       parts.push(
-        `It throws away decisive material (about ${pawns} pawns) compared with your saved move ${
-          expectedSan ?? expectedMove?.san ?? ""
-        }.`
+        `It throws away decisive material (about ${pawns} pawns) compared with ${reference}.`
       );
     } else if (pawns >= 0.5) {
       parts.push(
-        `That is about ${pawns} pawn${pawns === 1 ? "" : "s"} worse than your saved move ${
-          expectedSan ?? expectedMove?.san ?? ""
-        }.`.trim()
+        `That is about ${pawns} pawn${pawns === 1 ? "" : "s"} worse than ${reference}.`
       );
     } else if (pawns <= -0.5) {
       parts.push("The evaluation is still close — it is the move, not the advantage, that is wrong.");
+    } else {
+      parts.push("The evaluation is roughly equal; it is the move, not the advantage, that is wrong.");
     }
   }
   if (captured?.text) parts.push(captured.text);
@@ -241,46 +246,41 @@ function describe({ game, reply, damage, expectedSan, expectedMove, captured }) 
   };
 }
 
-/**
- * Compute a refutation for `playedSan` at `fen`.
- *
- * @returns {{
- *   available: boolean, san?: string, uci?: string, from?: string, to?: string,
- *   fen?: string, epd?: string, line?: string[], evalPawns?: number|null,
- *   mate?: boolean, depth?: number, engine?: string, source?: string,
- *   explanation?: string, damagePawns?: number|null, expectedEvalPawns?: number|null,
- *   nodes?: number, reason?: string
- * }}
- */
-export function refuteMove(db, fen, playedSan, { expectedSan = null, depth = 2 } = {}) {
+function heuristicRefute(db, fen, playedSan, { expectedSan, depth = 2, reason = "engine_unavailable" } = {}) {
   let before;
   try {
     before = new Chess(fen);
   } catch {
-    return { available: false, reason: "invalid_position" };
+    return { available: false, reason: "invalid_position", source: "heuristic" };
   }
   const played = findLegalMove(fen, playedSan);
-  if (!played) return { available: false, reason: "illegal_move" };
+  if (!played) return { available: false, reason: "illegal_move", source: "heuristic" };
 
   let after;
   try {
     after = new Chess(fen);
     after.move(played.san);
   } catch {
-    return { available: false, reason: "illegal_move" };
+    return { available: false, reason: "illegal_move", source: "heuristic" };
   }
   if (after.isGameOver()) {
     return {
       available: false,
       reason: after.isCheckmate() ? "checkmate" : "game_over",
       playedSan: played.san,
-      engine: "local-material-search",
+      engine: HEURISTIC_ENGINE,
+      engineName: HEURISTIC_LABEL,
+      source: "heuristic",
+      fallback: true,
+      fallbackReason: reason,
     };
   }
 
   const budget = new SearchBudget();
   const reply = bestReply(after, depth, budget);
-  if (!reply.move) return { available: false, reason: "no_reply", playedSan: played.san };
+  if (!reply.move) {
+    return { available: false, reason: "no_reply", playedSan: played.san, source: "heuristic" };
+  }
 
   let expectedEval = null;
   let expectedMove = null;
@@ -313,6 +313,7 @@ export function refuteMove(db, fen, playedSan, { expectedSan = null, depth = 2 }
     expectedSan,
     expectedMove,
     captured,
+    engineLabel: null,
   });
 
   return {
@@ -329,8 +330,11 @@ export function refuteMove(db, fen, playedSan, { expectedSan = null, depth = 2 }
       Math.abs(evalCp) > MATE / 2 ? null : Math.round((evalCp / 100) * 10) / 10,
     mate: Math.abs(evalCp) > MATE / 2,
     depth,
-    engine: "local-material-search",
-    source: "local",
+    engine: HEURISTIC_ENGINE,
+    engineName: HEURISTIC_LABEL,
+    source: "heuristic",
+    fallback: true,
+    fallbackReason: reason,
     explanation: description.text,
     check: description.check,
     mateAvailable: description.mate,
@@ -344,6 +348,102 @@ export function refuteMove(db, fen, playedSan, { expectedSan = null, depth = 2 }
     annotation: captured?.text ?? null,
     annotationSource: captured?.source ?? null,
   };
+}
+
+/**
+ * Compute a refutation for `playedSan` at `fen`.
+ *
+ * Always async (Stockfish is a child process). Falls back to the labelled
+ * heuristic only when the engine cannot start, never when it merely returns a
+ * losing score.
+ */
+export async function refuteMove(db, fen, playedSan, { expectedSan = null, depth = null } = {}) {
+  let before;
+  try {
+    before = new Chess(fen);
+  } catch {
+    return { available: false, reason: "invalid_position", source: "unavailable" };
+  }
+  const played = findLegalMove(fen, playedSan);
+  if (!played) return { available: false, reason: "illegal_move", source: "unavailable" };
+
+  if (enginePath()) {
+    const engineDepth = Math.max(4, Math.min(24, Number(depth) || 12));
+    const result = await engineRefute(before.fen(), played.san, { depth: engineDepth });
+    if (result.available) {
+      const after = new Chess(result.fen);
+      const captured = db ? annotationForMove(db, result.epd, result.san) : null;
+      const replyMove = (() => {
+        try {
+          return after.move({
+            from: result.from,
+            to: result.to,
+            ...(result.promotion ? { promotion: result.promotion } : {}),
+          });
+        } catch {
+          return null;
+        }
+      })();
+      const expectedMove = expectedSan ? findLegalMove(fen, expectedSan) : null;
+      const description = replyMove
+        ? describe({
+            game: after,
+            reply: replyMove,
+            damage: result.damageCp,
+            expectedSan,
+            expectedMove,
+            captured,
+            engineLabel: "Stockfish",
+          })
+        : { text: `${result.san} is Stockfish's strongest reply.`, check: false, mate: false, captured: null, damagePawns: null };
+      return {
+        available: true,
+        playedSan: played.san,
+        san: result.san,
+        uci: result.uci,
+        from: result.from,
+        to: result.to,
+        fen: result.fen,
+        epd: result.epd,
+        line: result.line,
+        evalPawns:
+          result.evalPawns ??
+          (result.evalCp == null ? null : Math.round((result.evalCp / 100) * 10) / 10),
+        evalCp: result.evalCp,
+        mate: result.mate != null && Math.abs(result.mate) < 100,
+        depth: result.depth,
+        engine: result.engine?.id ?? "Stockfish 19",
+        engineName: result.engine?.name ?? "Stockfish 19 Lite WASM",
+        engineVersion: result.engine?.version ?? "19",
+        source: "stockfish",
+        fallback: false,
+        explanation: description.text,
+        check: description.check,
+        mateAvailable: description.mate,
+        captured: description.captured,
+        damagePawns: result.damagePawns,
+        damageCp: result.damageCp,
+        expectedEvalPawns:
+          result.evalBeforePawns == null
+            ? null
+            : result.evalBeforePawns,
+        nodes: result.nodes,
+        annotation: captured?.text ?? null,
+        annotationSource: captured?.source ?? null,
+      };
+    }
+    return heuristicRefute(db, before.fen(), played.san, {
+      expectedSan,
+      depth: 2,
+      reason: result.reason || "engine_unavailable",
+    });
+  }
+
+  return heuristicRefute(db, before.fen(), played.san, {
+    expectedSan,
+    depth: 2,
+    reason: "engine_missing",
+  });
 }
 
 export { evaluate as evaluateFen };

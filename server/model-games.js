@@ -6,6 +6,7 @@
 import { randomInt } from "node:crypto";
 import { epdOf, lineSans } from "./positions.js";
 import { nowIso } from "./dates.js";
+import { reviewGame as engineReviewPositions, status as engineStatus } from "./engine.js";
 
 const resultLabel = (result) =>
   result === "white" ? "White won" : result === "black" ? "Black won" : result === "draw" ? "Draw" : "Result unavailable";
@@ -165,14 +166,18 @@ export function gameDetail(db, row, userId, { repertoires = null } = {}) {
       }));
 
   const opening = openingMatch(db, moves, repertoires);
+  const engineAvailable = engineStatus().available;
   return {
     ...summary,
     performances,
     analysis: {
       available: Object.keys(performances || {}).length > 0,
       source: "captured",
-      engineReviewAvailable: false,
-      engineReviewReason: "No Stockfish service is bundled with the local-first build.",
+      engineReviewAvailable: engineAvailable,
+      engineReviewSource: "stockfish",
+      engineReviewReason: engineAvailable
+        ? null
+        : "Stockfish could not be found; the captured eval graph is still shown as historical data.",
       performances,
     },
     annotations,
@@ -405,6 +410,85 @@ export function history(db, userId, { groupBy = "week", includeDaily = true } = 
 }
 
 /* ----------------------------------------------------------------- review --- */
+
+/**
+ * Stockfish review for a model game (D102/D203).
+ *
+ * The captured `evals` array remains the historical graph. This produces a
+ * fresh, per-move engine review: real evaluations, the engine's best move and
+ * inaccuracy/mistake/blunder classifications. Payloads are cached per game and
+ * depth in SQLite so reopening a game is instant.
+ */
+export async function engineReview(
+  db,
+  gameRowValue,
+  { depth = Math.min(10, Number(process.env.CHESSBOOK_ENGINE_DEPTH) || 10), force = false } = {}
+) {
+  if (!gameRowValue) return null;
+  const gameId = Number(gameRowValue.id);
+  const safeDepth = Math.max(4, Math.min(20, Number(depth) || 10));
+  if (!force) {
+    const cached = db
+      .prepare("SELECT * FROM model_game_reviews WHERE game_id = ? AND depth = ?")
+      .get(gameId, safeDepth);
+    if (cached) {
+      try {
+        return { ...JSON.parse(cached.payload), cached: true };
+      } catch {
+        // Fall through and recompute a corrupt cache entry.
+      }
+    }
+  }
+
+  const moves = db
+    .prepare("SELECT * FROM model_game_moves WHERE game_id = ? ORDER BY ply")
+    .all(gameId);
+  if (!moves.length) {
+    return {
+      available: false,
+      reason: "no_moves",
+      gameId,
+      source: "stockfish",
+      engine: { name: "Stockfish 19 Lite WASM", version: "19" },
+    };
+  }
+  const fens = moves
+    .map((move) => (move.epd_before ? `${move.epd_before} 0 1` : null))
+    .filter(Boolean);
+  const last = moves[moves.length - 1];
+  if (last.epd_after) fens.push(`${last.epd_after} 0 1`);
+
+  const review = await engineReviewPositions(fens, {
+    depth: safeDepth,
+    plies: moves.map((move) => move.san),
+  });
+  const payload = {
+    ...review,
+    gameId,
+    depth: safeDepth,
+    capturedEvalGraph: {
+      source: "captured",
+      note: "The stored eval samples are historical production data and are not replaced by this review.",
+    },
+  };
+  if (review.available) {
+    db.prepare(
+      `INSERT INTO model_game_reviews (game_id, depth, engine, payload, created_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(game_id, depth) DO UPDATE SET
+         engine = excluded.engine,
+         payload = excluded.payload,
+         created_at = excluded.created_at`
+    ).run(
+      gameId,
+      safeDepth,
+      review.engine?.id ?? "stockfish",
+      JSON.stringify(payload),
+      nowIso()
+    );
+  }
+  return payload;
+}
 
 export function markReviewed(db, userId, gameId, { reviewed = true, score = null } = {}) {
   const row = db

@@ -34,8 +34,11 @@ async function makeOneDue(repertoire = "white") {
 test("rating, coverage, review and notification preferences round-trip (D135/D197)", async () => {
   const initial = await ctx.apiOk("GET", "/settings");
   assert.equal(initial.settings.ratingSystem, "Chess.com");
-  assert.ok(initial.availablePieceSets.length === 1);
+  assert.ok(initial.availablePieceSets.length >= 2);
   assert.equal(initial.availablePieceSets[0].id, "chessbook_monochrome");
+  assert.ok(initial.availablePieceSets.every((set) => set.available && set.license && set.attribution));
+  assert.ok(initial.availablePieceSets.some((set) => set.id === "cburnett"));
+  assert.equal(initial.settings.pieceSet, "chessbook_monochrome");
   assert.ok(initial.boardThemes.includes("lichess-green"));
 
   const patched = await ctx.apiOk("PATCH", "/settings", {
@@ -55,6 +58,7 @@ test("rating, coverage, review and notification preferences round-trip (D135/D19
     recommendedMovesSize: "large",
     notifications: { dailyPractice: true, mistakes: false },
     soundEffects: { move: false },
+    pieceSet: "merida",
   });
   assert.equal(patched.settings.ratingSystem, "Lichess");
   assert.equal(patched.settings.timeControl, "Rapid");
@@ -71,6 +75,7 @@ test("rating, coverage, review and notification preferences round-trip (D135/D19
   assert.equal(patched.settings.notifications.dailyPractice, true);
   assert.equal(patched.settings.notifications.mistakes, false);
   assert.equal(patched.settings.soundEffects.move, false);
+  assert.equal(patched.settings.pieceSet, "merida");
 
   const again = await ctx.apiOk("GET", "/settings");
   assert.equal(again.settings.reviewStyle, "complete-every");
@@ -107,6 +112,7 @@ test("rating, coverage, review and notification preferences round-trip (D135/D19
     soundVolume: 70,
     recommendedMovesSize: "comfortable",
     notifications: { dailyPractice: false, mistakes: true },
+    pieceSet: "chessbook_monochrome",
   });
 });
 
@@ -123,9 +129,11 @@ test("the rating band gates band-specific incidence (D135)", async () => {
   assert.equal(mismatched.position.ratingBand.profile.matches, false);
   const hidden = mismatched.candidates.find((candidate) => candidate.san === "c5");
   assert.ok(hidden);
-  assert.equal(hidden.incidence, null);
-  assert.equal(hidden.incidenceAvailable, false);
-  assert.equal(hidden.bandMismatch, true);
+  // The capture is for 1800-2000, so its band-specific numbers are hidden.
+  // Incidence can still come from the masters corpus (labelled as such).
+  assert.ok(hidden.incidence != null);
+  assert.ok(["lichess-band", "pgnmentor-masters"].includes(hidden.incidenceSource));
+  assert.equal(hidden.realIncidenceAvailable, true);
   assert.ok(hidden.capturedIncidence > 0);
 
   await ctx.apiOk("PATCH", "/settings", { singleElo: 1900 });
@@ -134,7 +142,7 @@ test("the rating band gates band-specific incidence (D135)", async () => {
 test("next common moves are derived from captured incidence (D016)", async () => {
   const learn = await ctx.apiOk("GET", "/repertoires/white/learn");
   assert.ok(learn.common > 0);
-  assert.equal(learn.commonSource, "captured-position-incidence");
+  assert.match(learn.commonSource, /captured-position-incidence/);
   const session = await ctx.apiOk("POST", "/practice/sessions", {
     repertoire: "white",
     mode: "common",
@@ -248,7 +256,8 @@ test("wrong moves return a real, legal refutation (D020)", async () => {
   );
   assert.equal(wrong.correct, false);
   assert.equal(wrong.refutation.available, true);
-  assert.equal(wrong.refutation.engine, "local-material-search");
+  assert.match(wrong.refutation.engine, /Stockfish|heuristic/i);
+  assert.ok(["stockfish", "heuristic"].includes(wrong.refutation.source));
   assert.ok(wrong.refutation.from && wrong.refutation.to);
   assert.ok(wrong.refutation.explanation.length > 0);
   const probe = new Chess(wrong.refutation.fen);
@@ -257,9 +266,9 @@ test("wrong moves return a real, legal refutation (D020)", async () => {
   assert.equal(reply.to, wrong.refutation.to);
 });
 
-test("the local refutation search finds a hanging queen", async () => {
+test("the refutation search finds a hanging queen", async () => {
   const { refuteMove } = await import("../../server/refutation.js");
-  const result = refuteMove(
+  const result = await refuteMove(
     ctx.db,
     "k2r4/7p/8/8/8/8/7P/K2Q4 w - - 0 1",
     "Qd4",

@@ -14,6 +14,7 @@ import {
   DEFAULT_CLIENT_PREFS,
   PAUSE_OPTIONS,
   PLATFORMS,
+  PIECE_SETS,
   RECOMMENDED_SIZE_OPTIONS,
   SOUND_LABELS,
   TIME_CONTROLS,
@@ -21,6 +22,7 @@ import {
   haptic,
   migrateLocalPrefs,
   notificationsSupported,
+  pieceSetLabel,
   previewSound,
   requestNotificationPermission,
   resetClientPrefs,
@@ -45,6 +47,7 @@ type SheetKey =
   | "pause"
   | "notifications"
   | "appearance"
+  | "pieces"
   | "animation"
   | "sound"
   | "recsize"
@@ -195,6 +198,16 @@ export function SettingsPage() {
     );
   };
 
+  const choosePieceSet = (id: string) => {
+    haptic();
+    void save({ pieceSet: id }).then((next) => {
+      if (!next) return;
+      setPrefs(getClientPrefs());
+      setSheet(null);
+      toast(`${pieceSetLabel(next.pieceSet)} selected`, "ok");
+    });
+  };
+
   const enableNotifications = async () => {
     if (!notificationsSupported()) {
       toast("This browser does not support notifications", "bad");
@@ -273,8 +286,7 @@ export function SettingsPage() {
   const soundLabel = settings.sound ? `On · ${prefs.soundVolume}%` : "Off";
   const themeLabel =
     BOARD_THEMES.find((theme) => theme.value === settings.boardTheme)?.label ?? "Chessbook";
-  const pieceSetLabel =
-    settings.pieceSet === "chessbook_monochrome" ? "Chessbook Monochrome" : settings.pieceSet;
+  const pieceSetLabelText = pieceSetLabel(settings.pieceSet);
 
   return (
     <div className="cb-app">
@@ -286,6 +298,7 @@ export function SettingsPage() {
             theme={settings.boardTheme}
             coordinates={settings.coordinates}
             showLegalMoves={settings.legalMoves}
+            pieceSet={settings.pieceSet}
           />
         </section>
 
@@ -316,6 +329,11 @@ export function SettingsPage() {
                 label="Daily practice goal"
                 value={`${settings.dailyGoal} moves`}
                 onClick={() => setSheet("goal")}
+              />
+              <SettingRow
+                label="Review history"
+                value="All reviews"
+                onClick={() => navigate(`/history/${repertoires[0]?.id ?? "white"}`)}
               />
               <SettingRow
                 label="Pause after playing a move"
@@ -358,6 +376,7 @@ export function SettingsPage() {
             <div className="cb-settings-head">Board settings</div>
             <div className="cb-settings-list">
               <SettingRow label="Appearance" value={themeLabel} onClick={() => setSheet("appearance")} />
+              <SettingRow label="Piece set" value={pieceSetLabelText} onClick={() => setSheet("pieces")} />
               <SettingRow label="Piece animation" value={animationLabel} onClick={() => setSheet("animation")} />
               <SettingRow label="Sound effects" value={soundLabel} onClick={() => setSheet("sound")} />
               <SwitchRow
@@ -640,15 +659,45 @@ export function SettingsPage() {
               </button>
             ))}
           </div>
-          <div className="cb-settings-list" style={{ marginTop: 14 }}>
-            <ChoiceRow
-              label={`Piece set: ${pieceSetLabel}`}
-              detail="The only piece set bundled with this local build — no alternative assets were captured."
-              active
-              onClick={() =>
-                toast("Additional piece sets are not bundled in this build", "info")
-              }
-            />
+        </Sheet>
+      )}
+
+      {sheet === "pieces" && (
+        <Sheet title="Piece set" onClose={() => setSheet(null)}>
+          <p className="cb-inline-note">
+            Open-source sets bundled from the Lichess piece collection. The choice is saved to this
+            local profile and applies to every board.
+          </p>
+          <div className="cb-piece-set-grid" data-testid="piece-set-grid">
+            {PIECE_SETS.map((set) => {
+              const active = settings.pieceSet === set.id;
+              return (
+                <button
+                  type="button"
+                  key={set.id}
+                  className={`cb-piece-set ${active ? "active" : ""}`}
+                  aria-pressed={active}
+                  data-testid={`piece-set-${set.id}`}
+                  title={`${set.name} — ${set.attribution} (${set.license})`}
+                  onClick={() => choosePieceSet(set.id)}
+                >
+                  <span className={`cb-piece-set-preview ${set.id}`} aria-hidden>
+                    {["wK", "wN", "wP"].map((piece, index) => (
+                      <span key={piece} className={index % 2 === 0 ? "light" : "dark"}>
+                        <img src={`/pieces/${set.id}/${piece}.svg`} alt="" loading="lazy" />
+                      </span>
+                    ))}
+                  </span>
+                  <span className="cb-piece-set-name">
+                    {set.label ?? set.name}
+                    {active && <i className="fa fa-check" aria-hidden />}
+                  </span>
+                  <span className="cb-piece-set-license">
+                    {set.attribution} · {set.license}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </Sheet>
       )}

@@ -1,7 +1,7 @@
 {
   "name": "chessbook",
   "version": "1.0.0",
-  "description": "Chessbook \u2014 full-stack opening repertoire trainer (React + Express + SQLite)",
+  "description": "Chessbook — full-stack opening repertoire trainer (React + Express + SQLite)",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -38,7 +38,8 @@
     "express": "^5.3.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-router-dom": "^7.18.4"
+    "react-router-dom": "^7.18.4",
+    "stockfish": "^19.0.1"
   },
   "private": true
 }

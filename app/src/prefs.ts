@@ -1,4 +1,4 @@
-import type { Settings } from "./types";
+import type { PieceSetMeta, Settings } from "./types";
 
 /**
  * Client preferences — one persisted object for everything the local server
@@ -36,6 +36,69 @@ export type ReviewStyle = "cards" | "complete-once" | "complete-every" | "entire
 export type AnimationSpeed = "off" | "fast" | "normal";
 export type RecommendedMovesSize = "compact" | "comfortable" | "large";
 export type SoundName = "move" | "capture" | "check" | "correct" | "wrong" | "notify";
+
+/**
+ * Client mirror of the server `PIECE_SETS` metadata (D144). The server is the
+ * source of truth for validation; this list drives the picker and the
+ * synchronous `getPieceSet()` read used by the board.
+ */
+export const PIECE_SETS: PieceSetMeta[] = [
+  {
+    id: "chessbook_monochrome",
+    name: "Chessbook Monochrome",
+    label: "Chessbook Monochrome",
+    available: true,
+    source: "pieces/chessbook_monochrome",
+    attribution: "Bundled with this local Chessbook build",
+    license: "Project assets",
+  },
+  {
+    id: "cburnett",
+    name: "Cburnett",
+    label: "Cburnett",
+    available: true,
+    source: "pieces/cburnett",
+    attribution: "Colin M.L. Burnett",
+    license: "GPLv2+",
+  },
+  {
+    id: "merida",
+    name: "Merida",
+    label: "Merida",
+    available: true,
+    source: "pieces/merida",
+    attribution: "Armando Hernandez Marroquin",
+    license: "GPLv2+",
+  },
+  {
+    id: "chessnut",
+    name: "Chessnut",
+    label: "Chessnut",
+    available: true,
+    source: "pieces/chessnut",
+    attribution: "Alexis Luengas",
+    license: "Apache 2.0",
+  },
+  {
+    id: "shapes",
+    name: "Shapes",
+    label: "Shapes",
+    available: true,
+    source: "pieces/shapes",
+    attribution: "flugsio (chess_shapes)",
+    license: "CC BY-SA 4.0",
+  },
+];
+
+export const DEFAULT_PIECE_SET = "chessbook_monochrome";
+
+export function isPieceSet(value: unknown): value is string {
+  return typeof value === "string" && PIECE_SETS.some((set) => set.id === value && set.available);
+}
+
+export function pieceSetLabel(id: string | undefined | null): string {
+  return PIECE_SETS.find((set) => set.id === id)?.label ?? "Chessbook Monochrome";
+}
 
 export type ServerSettings = Settings &
   Required<
@@ -100,8 +163,8 @@ export interface ClientPrefs {
   soundEffects: Record<SoundName, boolean>;
   recommendedMovesSize: RecommendedMovesSize;
   notifications: NotificationPrefs;
-  /** The only bundled set; kept as a field so the sheet can be explicit. */
-  pieceSet: "chessbook_monochrome";
+  /** One of `PIECE_SETS`; unknown values fall back to the default. */
+  pieceSet: string;
 }
 
 export const PLATFORMS: Platform[] = ["Chess.com", "Lichess", "FIDE", "USCF"];
@@ -158,7 +221,7 @@ export const DEFAULT_CLIENT_PREFS: ClientPrefs = {
   },
   recommendedMovesSize: "comfortable",
   notifications: { dailyPractice: false, streak: false, modelGame: false, mistakes: true },
-  pieceSet: "chessbook_monochrome",
+  pieceSet: DEFAULT_PIECE_SET,
 };
 
 const read = (key: string, fallback: string) => {
@@ -228,7 +291,7 @@ function normalise(raw: unknown): ClientPrefs {
       ? (value.pauseAfterMove as 0 | 1 | 2)
       : 0,
     soundVolume: Math.max(0, Math.min(100, Number(value.soundVolume ?? 70))),
-    pieceSet: "chessbook_monochrome",
+    pieceSet: isPieceSet(value.pieceSet) ? value.pieceSet : DEFAULT_PIECE_SET,
   };
 }
 
@@ -341,10 +404,10 @@ export function getShowHints() {
   return bool("cb_show_hints");
 }
 
-/** The only bundled set is explicit; unknown values fall back to it (D144). */
+/** The default is the fallback for unknown values (D144). */
 export function getPieceSet(): string {
-  const value = read("cb_piece_set", "chessbook_monochrome");
-  return value === "chessbook_monochrome" ? value : "chessbook_monochrome";
+  const value = read("cb_piece_set", DEFAULT_PIECE_SET);
+  return isPieceSet(value) ? value : DEFAULT_PIECE_SET;
 }
 
 export function getDailyGoal() {
@@ -363,7 +426,7 @@ export function applySettingsPrefs(settings: ServerSettings) {
   write("cb_sound", settings.sound ? "1" : "0");
   write("cb_show_hints", settings.showHints ? "1" : "0");
   write("cb_daily_goal", String(settings.dailyGoal));
-  write("cb_piece_set", settings.pieceSet ?? "chessbook_monochrome");
+  write("cb_piece_set", isPieceSet(settings.pieceSet) ? settings.pieceSet : DEFAULT_PIECE_SET);
 
   const previous = cache ?? getClientPrefs();
   cache = normalise({
@@ -382,7 +445,7 @@ export function applySettingsPrefs(settings: ServerSettings) {
     pauseWhenNote: settings.pauseWhenNote ?? previous.pauseWhenNote,
     animation: (settings.animation as AnimationSpeed) ?? previous.animation,
     haptics: settings.haptics ?? previous.haptics,
-    pieceSet: "chessbook_monochrome",
+    pieceSet: isPieceSet(settings.pieceSet) ? settings.pieceSet : previous.pieceSet,
     soundVolume: settings.soundVolume ?? previous.soundVolume,
     soundEffects:
       settings.soundEffects && typeof settings.soundEffects === "object"
@@ -467,6 +530,13 @@ export async function migrateLocalPrefs(
   }
   if (server.soundVolume === 70 && local.soundVolume !== 70) {
     patch.soundVolume = local.soundVolume;
+  }
+  if (
+    server.pieceSet === "chessbook_monochrome" &&
+    isPieceSet(local.pieceSet) &&
+    local.pieceSet !== "chessbook_monochrome"
+  ) {
+    patch.pieceSet = local.pieceSet;
   }
   try {
     let next = server;

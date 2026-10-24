@@ -507,6 +507,7 @@ const ROUTES = [
   ["gap-white", "/gap/white"],
   ["gap-black", "/gap/black"],
   ["learn-white", "/learn/white"],
+  ["history-white", "/history/white"],
   ["practice-white", "/practice/white"],
   ["settings", "/settings"],
   ["add", "/add"],

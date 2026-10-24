@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import type { BoardTheme, Color } from "../types";
-import { getBoardTheme, getCoordinates, getLegalMoves, getPieceSet } from "../prefs";
+import {
+  DEFAULT_PIECE_SET,
+  getBoardTheme,
+  getCoordinates,
+  getLegalMoves,
+  getPieceSet,
+  isPieceSet,
+} from "../prefs";
 import { playMoveSound } from "../sounds";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -15,9 +22,8 @@ const THEMES: Record<BoardTheme, readonly [string, string]> = {
   "chesscom-green": ["#769656", "#eeeed2"],
 };
 
-const BUNDLED_PIECE_SET = "chessbook_monochrome";
 const piecePath = (set: string, color: string, type: string) =>
-  `/pieces/${set === BUNDLED_PIECE_SET ? BUNDLED_PIECE_SET : BUNDLED_PIECE_SET}/${color}${type.toUpperCase()}.svg`;
+  `/pieces/${isPieceSet(set) ? set : DEFAULT_PIECE_SET}/${color}${type.toUpperCase()}.svg`;
 
 const PROMOTIONS = [
   { piece: "q", label: "Queen" },
@@ -155,7 +161,7 @@ export function Board({
   wrongMove?: { from: string; to: string } | null;
   feedback?: "correct" | "wrong" | null;
   theme?: BoardTheme;
-  /** Only `chessbook_monochrome` is bundled; unknown ids fall back to it. */
+  /** Bundled set id; unknown values fall back to Chessbook Monochrome (D144). */
   pieceSet?: string;
   /** Colour painted over both squares of the previous move (production blue). */
   lastMoveTint?: string | null;
@@ -340,11 +346,13 @@ export function Board({
   };
 
   const themeColors = THEMES[theme] ?? THEMES.green;
+  const resolvedPieceSet = isPieceSet(pieceSet) ? pieceSet : DEFAULT_PIECE_SET;
 
   return (
     <div
       className={`cb-board ${feedback ? `cb-board-${feedback}` : ""} ${className}`}
       data-testid="chessboard"
+      data-piece-set={resolvedPieceSet}
       role="group"
       aria-label="Chess board. Use arrow keys to move between squares, Enter to select, Escape to cancel."
       style={

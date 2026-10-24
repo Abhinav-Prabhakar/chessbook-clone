@@ -240,9 +240,12 @@ test("wrong attempts return a labelled local refutation and never advance", asyn
   assert.equal(wrong.next.task.epd, started.task.epd);
   assert.equal(wrong.next.task.expectedSan, started.task.expectedSan);
   assert.ok(wrong.refutation);
-  assert.equal(wrong.refutation.engine, "local-material-search");
+  assert.match(wrong.refutation.engine, /Stockfish|heuristic/i);
+  assert.ok(["stockfish", "heuristic"].includes(wrong.refutation.source));
   assert.equal(wrong.refutation.available, true);
   assert.equal(typeof wrong.refutation.depth, "number");
+  assert.equal(typeof wrong.refutation.explanation, "string");
+  assert.ok(wrong.refutation.explanation.length > 0);
 });
 
 test("error responses keep one JSON shape for 400/404/422", async () => {

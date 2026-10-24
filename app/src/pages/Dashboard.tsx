@@ -447,6 +447,12 @@ export function Dashboard() {
                 right={<i className="fa fa-arrow-right" aria-hidden />}
               />
             )}
+            <Row
+              title="Browse full review history"
+              meta="Correct and missed moves, with what you played"
+              to={`/history/${target?.id ?? "white"}`}
+              right={<i className="fa fa-arrow-right" aria-hidden />}
+            />
           </Section>
 
           <Section

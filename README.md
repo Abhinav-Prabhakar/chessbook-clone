@@ -190,12 +190,12 @@ logs are written under `audit/e2e/`.
 
 These are intentional limits of this build, not hidden TODOs:
 
-- **No real Stockfish engine.** The repository contains no Stockfish binary or WASM asset
-  (the only file named `stockfish-*` in `recon/` is a Sentry loader stub). Bot moves,
-  refutations, puzzle answers and game reviews use the transparent local heuristic engine
-  in `server/bot.js` / `server/refutation.js`. Every response carries
-  `engine`, `stockfish: false`, depth and node budget. Ratings are **not**
-  Stockfish-comparable.
+- **Stockfish 19 is bundled.** `stockfish@19.0.1` runs as a lazy local UCI worker
+  (`server/engine.js`) for wrong-move refutations, model-game reviews, candidate
+  evals and puzzle answers. Every result carries the engine name/version and
+  depth. If the WASM worker cannot start, the response says `available:false` and
+  falls back to the transparent local heuristic engine in `server/bot.js`; nothing
+  is labelled Stockfish unless Stockfish actually produced it.
 - **No WebSocket layer.** Practice, training games, puzzles and visualization are
   turn-based request/response exchanges. Move/answer responses carry the next authoritative
   state, and a reload re-fetches it. A socket would add a second source of truth for no
@@ -204,12 +204,20 @@ These are intentional limits of this build, not hidden TODOs:
   billing or subscription.** PGN import is the local equivalent for your own games.
 - **No social, notification server, telemetry or analytics.** Notification permission
   supports local browser reminders only.
-- **No official/pre-made course library beyond the captured sample**, and only the captured
-  position reports are available. A position outside the capture shows "unavailable".
-- **Only one piece set** (`chessbook_monochrome`) is bundled; no alternative SVG sets exist
-  in the capture. Five board themes are available.
-- **Two captured rating bands** (1800–2000 and 2000–2200). A profile band outside them
-  hides band-specific incidence rather than reusing another band's numbers.
+- **Pre-made courses are the captured sample.** Opening guides, coaches, blog posts and
+  courses come from the production captures; no additional marketplace content is fetched.
+- **Position coverage comes from three offline datasets.** Captured production reports are
+  authoritative where they exist. Every position in the 3,865-opening tree is otherwise
+  backed by a 71k-game master archive and a 404k-game Lichess rated archive, aggregated
+  locally; Stockfish supplies the engine eval. A position with no data in any source shows
+  an explicit “unavailable” state.
+- **Five complete piece sets** are bundled (`chessbook_monochrome`, `cburnett`, `merida`,
+  `chessnut`, `shapes`) with attribution and licences in `pieces/README.md`; five board
+  themes are available.
+- **Two captured rating bands** (1800–2000 and 2000–2200) drive the reference report. The
+  local peer corpus covers all rating bands, so changing your rating re-filters the peer
+  statistics; a band with too few sampled games shows the sample size rather than reusing
+  another band's percentages.
 - **Playback/anti-cheat are local.** Visualization FENs are in the client payload; a local
   user could inspect network responses. Acceptable for a single-player trainer.
 - **Mobile is a responsive clipped-board + sheet composition**, not the native app. The
@@ -228,12 +236,13 @@ your own local review history**. Nothing is hashed into a fake statistic.
 | Data | Source |
 | --- | --- |
 | Openings | `server/data/*.tsv` — Lichess `chess-openings` (3,865 rows). |
-| Position reports (masters, engine eval, peers, incidence, annotations, plans) | `server/data/captured-positions.json`, built from `recon/live4/network.json` and related captures. |
-| Opening guides, courses, coaches, blog | `server/data/captured-openings.json`, `captured-courses.json`, `captured-content.json`. |
+| Position reports (masters, engine eval, peers, incidence, annotations, plans) | Captured production data in `server/data/captured-positions.json` (authoritative where present), plus `explorer-masters.json` (PGN Mentor archives, 71k games) and `explorer-lichess.json` (Lichess rated 2013-01/02/03, 404k games) for every position in the opening tree. |
+| Opening guide/course/coach/blog content | `server/data/captured-openings.json`, `captured-courses.json`, `captured-content.json`. |
 | Model game + history | `server/data/captured-model-games.json` (`recon/daily-game-full.json`, `recon/model-history-full.json`). |
 | Repertoire/dashboard seed | Small readable starter state derived from the captured account; review state is generated locally and can be reset. |
 | Practice schedule, daily goal, streaks, review log, play ratings | Computed from your local attempts and reviews. |
-| Engine output | Local deterministic search (`server/bot.js`, `server/refutation.js`), labelled with `stockfish:false`. |
+| Piece sets | Lichess assets (`lichess1.org`); licences and attribution in `pieces/README.md`. |
+| Engine output | Stockfish 19 Lite WASM via `server/engine.js`, labelled with version and depth; local heuristic fallback only when the worker is unavailable. |
 
 The captured production pages themselves are kept at the repository root (`*.html`, `m/`,
 `recon/`) as design references; the React app is the primary experience. See
@@ -252,6 +261,7 @@ The captured production pages themselves are kept at the repository root (`*.htm
 | `/gap/:id` | Biggest-gap candidate finder |
 | `/learn/:id` | Training mode selector |
 | `/practice/:id` | Practice session (`?mode=…`, `?line=…`, `?session=…`) |
+| `/history`, `/history/:id` | Review-history browser, filters and recent mistakes |
 | `/model`, `/model/:id` | Model games and history |
 | `/training-games` | Training games vs the local bot (`?fen=&color=&from=`) |
 | `/blunder-puzzles`, `/intuition-builder`, `/visualization`, `/vision` | Play drills |
