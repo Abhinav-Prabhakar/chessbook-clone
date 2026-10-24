@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useBoard, START_FEN } from "../board/stage";
 import { useApi } from "../useApi";
 import type { Daily, Gap, RepertoireSummary } from "../types";
-import { ErrorNote, Icon, Progress, Row, Section, Skeleton } from "../ui";
+import { ErrorNote, Icon, Row, Section, Skeleton } from "../ui";
 import { buildPath, practicePath, repertoirePath } from "../routes";
 
 interface DashboardData {
@@ -78,8 +78,6 @@ export function Dashboard() {
         {tasks.due} due <Icon name="clock" />
       </span>
     );
-  } else if (tasks.fresh > 0) {
-    practiceRight = <span className="pill">{tasks.fresh} new</span>;
   } else {
     practiceRight = (
       <span className="pill done">
@@ -117,14 +115,9 @@ export function Dashboard() {
       >
         <div className="rows">
           <Row
-            title={tasks.due > 0 ? "Practice moves" : tasks.fresh > 0 ? "Learn new moves" : "Practice moves"}
-            meta={
-              tasks.due === 0 && tasks.fresh === 0
-                ? "Nothing is due. Build your repertoire or review early."
-                : undefined
-            }
+            title="Practice moves"
             right={practiceRight}
-            to={practiceTarget ? practicePath(practiceTarget, tasks.due > 0 ? "due" : "new") : undefined}
+            to={practiceTarget ? practicePath(practiceTarget, "daily") : undefined}
             disabled={!practiceTarget}
           />
           {tasks.gap && (
@@ -148,15 +141,7 @@ export function Dashboard() {
             />
           )}
         </div>
-        <div className="daily">
-          <div className="daily-head">
-            <span>
-              {Math.min(daily.reviewed, daily.goal)} / {daily.goal} moves today
-            </span>
-            {daily.bestStreak > 1 && <span className="muted">Best streak {daily.bestStreak} days</span>}
-          </div>
-          <Progress value={(daily.reviewed / Math.max(1, daily.goal)) * 100} tone="orange" />
-        </div>
+
       </Section>
 
       <Section title="Train">

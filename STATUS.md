@@ -76,10 +76,30 @@ Known differences that remain:
 - A wrong move is marked by a red square instead of production's small badge on the square.
 - Account-related rows and sections (connected accounts, subscription, log out, online-game review, early access, haptics) are intentionally absent.
 
+## 2c. Learning flow now follows production
+
+Practice was rebuilt to work the way production Chessbook teaches, not just look like it. The research and the full list are in `docs/learning-flow-parity.md`. In short:
+
+- Each step is a position, and every saved move there must be played.
+- New moves count as due. The first time, they're shown with arrows ("first practice", which can be skipped), and that first pass is what gets recorded. A repeat without arrows comes right after the current line ends.
+- The help ladder: the note first (it's blurred until you ask), then the arrows. After three wrong guesses, the arrows appear automatically.
+- A move that isn't in your repertoire is judged by Stockfish. A good move is an "alternative"; a real mistake gets the refutation played on the board. Badges on the square show the verdict.
+- There are three practice styles (individual moves, complete lines every time, complete lines once per session), and "Pause after playing a move" has the same four choices as production.
+- Results are reported once per position. "Difficult" means difficulty above 0.6. Mastery is the log of the review interval.
+- The practice menu adapts (recommended batch, moves due soon, resume), and the end screen matches production's.
+
 ## 3. How it was verified
 
-- `npm test` — 15 API tests on a throwaway database: starter repertoire is coherent (≤1 White move per position), builder statistics, reply ordering, gap ordering for Black (1.e4 then 1.d4), completion goes up/down with saves/removals, autofill, practice line walking (the open Sicilian asks e4, Nf3, d4, Nxd4), learning vs recall scheduling, idempotent submissions, opponent moves not reviewable, PGN variations, settings validation, puzzles, a bot game. All pass.
-- `npm run build && npm run test:e2e` — real Chrome on a throwaway database: learns 10 new moves with arrows and auto-replies, makes a deliberate mistake during recall (shown, taken back, counters unchanged), completes the session, checks the dashboard, saves a move by playing it in the builder, checks the phone layout, no console errors. It also checks the forward and back transitions. 15/15 checks pass. Screenshots in `tests/e2e/output/`.
+- `npm test` — 19 API tests on a throwaway database: the starter repertoire is coherent (at most one White move per position), builder statistics, reply ordering, gap ordering for Black (1.e4 then 1.d4), completion going up and down with saves and removals, autofill, new moves counting as due, depth-first position groups, line practice, per-group reporting (idempotent), a missed move coming back soon and becoming difficult, opponent moves not reviewable, engine judging (3.Bb5 is good; Qxf7+ is a blunder refuted by Kxf7), PGN variations, settings validation (including the line styles), puzzles and a bot game. All pass.
+- `npm run build && npm run test:e2e` — real Chrome on a throwaway database. It covers:
+  - first practice with arrows and no give-up button;
+  - leaving and resuming a session;
+  - three wrong moves judged, badged and taken back, with the incorrect counter going up once and the arrows appearing;
+  - the hint ladder;
+  - finishing on production's summary screen;
+  - the dashboard count, saving a move in the builder, forward and back transitions, the phone layout, and no console errors.
+
+  24/24 checks pass. Screenshots are in `tests/e2e/output/`.
 - Manual run in the browser of every screen at 1440×900 and 375×812.
 
 ## 4. Known limits and what's not done

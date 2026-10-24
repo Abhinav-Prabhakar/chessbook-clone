@@ -3,7 +3,7 @@ import type { MutableRefObject, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Icon } from "../ui/Icon";
-import type { Arrow, BoardMove, Mark } from "./Board";
+import type { Arrow, BoardMove, Mark, SquareFeedback } from "./Board";
 import type { Color } from "../types";
 
 export const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -15,6 +15,7 @@ export interface StageBoard {
   interactive: boolean;
   arrows: Arrow[];
   marks: Mark[];
+  feedback: SquareFeedback | null;
   /** On phones, show only the top of the board on pages that don't use it. */
   peek: boolean;
 }
@@ -42,6 +43,7 @@ const DEFAULT_BOARD: StageBoard = {
   interactive: false,
   arrows: [],
   marks: [],
+  feedback: null,
   peek: true,
 };
 

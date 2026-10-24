@@ -152,6 +152,7 @@ export function AppShell() {
                 interactive={board.interactive}
                 arrows={board.arrows}
                 marks={board.marks}
+                feedback={board.feedback}
                 onMove={(move) => onMoveRef.current?.(move)}
                 theme={settings.boardTheme}
                 pieceSet={settings.pieceSet}

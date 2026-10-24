@@ -2391,3 +2391,134 @@ button:disabled {
   color: #15181a;
   stroke-width: 3;
 }
+
+/* Move feedback badge on the destination square (production style). */
+.square-feedback {
+  position: absolute;
+  z-index: 9;
+  display: grid;
+  place-items: center;
+  width: 4.4%;
+  height: 4.4%;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 50%;
+  color: #fff;
+  transform: translate(-70%, -30%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  animation: badge-in 160ms var(--ease) both;
+  pointer-events: none;
+}
+
+.square-feedback svg {
+  width: 70%;
+  height: 70%;
+}
+
+.fb-correct {
+  background: var(--green);
+}
+
+.fb-alternative {
+  background: var(--blue);
+}
+
+.fb-inaccuracy {
+  background: #e3c14a;
+  color: #1a1c1d;
+}
+
+.fb-mistake {
+  background: var(--orange);
+  color: #1a1c1d;
+}
+
+.fb-blunder {
+  background: var(--red);
+}
+
+.fb-thinking {
+  background: #2c3134;
+}
+
+.fb-spinner {
+  width: 62%;
+  height: 62%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes badge-in {
+  from {
+    opacity: 0;
+    transform: translate(-70%, -30%) scale(0.5);
+  }
+}
+
+/* ------------------------------------------------------------- practice --- */
+
+.quiz-table {
+  margin-top: 18px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.quiz-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  min-height: 45px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.quiz-move {
+  flex-shrink: 0;
+  min-width: 64px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.quiz-note {
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 19px;
+  transition: filter 200ms ease, opacity 200ms ease;
+}
+
+/* Production keeps the note hidden until you ask for a hint. */
+.quiz-note.hidden {
+  filter: blur(6px);
+  opacity: 0.5;
+  user-select: none;
+}
+
+.prev-link {
+  position: absolute;
+  top: 74px;
+  right: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.stat-bullets {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.stat-bullets li {
+  margin-bottom: 6px;
+}
+
+.highlight {
+  color: var(--orange);
+}

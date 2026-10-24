@@ -17,16 +17,16 @@ export function PageHead({ title, sub, right }: { title: ReactNode; sub?: ReactN
   );
 }
 
-export function Back({ to, label = "Back" }: { to?: string; label?: string }) {
+export function Back({ to, label = "Back", onClick }: { to?: string; label?: string; onClick?: () => void }) {
   const navigate = useNavigate();
   return (
     <div className="back-row">
-      {to ? (
+      {to && !onClick ? (
         <Link to={to} className="back">
           <Icon name="arrow-left" /> {label}
         </Link>
       ) : (
-        <button type="button" className="back" onClick={() => navigate(-1)}>
+        <button type="button" className="back" onClick={onClick ?? (() => navigate(-1))}>
           <Icon name="arrow-left" /> {label}
         </button>
       )}

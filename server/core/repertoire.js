@@ -5,7 +5,6 @@
 import { db, nowIso, tx } from "./db.js";
 import { START_EPD, START_FEN, applyMove, epdOf, replay, sanKey, turnOf } from "./chess.js";
 
-export const MASTERED_DAYS = 21;
 
 export function httpError(status, message) {
   const error = new Error(message);
@@ -177,28 +176,40 @@ export function resolvePath(sans) {
 
 /* ---------------------------------------------------------------- stats --- */
 
-export function moveStats(repertoireId, now = nowIso()) {
-  const row = db
-    .prepare(
-      `SELECT
-         COUNT(*) AS total,
-         SUM(CASE WHEN mine = 1 THEN 1 ELSE 0 END) AS mine,
-         SUM(CASE WHEN mine = 1 AND reps = 0 THEN 1 ELSE 0 END) AS fresh,
-         SUM(CASE WHEN mine = 1 AND reps > 0 AND due_at <= ? THEN 1 ELSE 0 END) AS due,
-         SUM(CASE WHEN mine = 1 AND reps > 0 THEN 1 ELSE 0 END) AS learned,
-         SUM(CASE WHEN mine = 1 AND stability >= ? THEN 1 ELSE 0 END) AS mastered
-       FROM moves WHERE repertoire_id = ?`
-    )
-    .get(now, MASTERED_DAYS, Number(repertoireId));
-  const mine = row.mine || 0;
+/**
+ * Counts and mastery for a repertoire. Mastery follows production: each of
+ * your moves scores log(interval + 1) / log(101) (interval in days, capped at
+ * 100), and the repertoire's mastery is the average.
+ */
+export function moveStats(repertoireId) {
+  const rows = db.prepare("SELECT * FROM moves WHERE repertoire_id = ?").all(Number(repertoireId));
+  const mine = rows.filter((m) => m.mine === 1);
+  let masterySum = 0;
+  let mastered = 0;
+  let learned = 0;
+  let fresh = 0;
+  for (const m of mine) {
+    if (!m.reps) {
+      fresh += 1;
+      continue;
+    }
+    learned += 1;
+    const interval =
+      m.interval_days != null
+        ? Number(m.interval_days)
+        : m.due_at && m.last_review
+          ? Math.max(0, (Date.parse(m.due_at) - Date.parse(m.last_review)) / 86_400_000)
+          : 0;
+    masterySum += Math.log(Math.min(100, interval) + 1) / Math.log(101);
+    if (interval >= 100) mastered += 1;
+  }
   return {
-    saved: row.total || 0,
-    mine,
-    fresh: row.fresh || 0,
-    due: row.due || 0,
-    learned: row.learned || 0,
-    mastered: row.mastered || 0,
-    masteredPercent: mine ? Math.round(((row.mastered || 0) / mine) * 1000) / 10 : 0,
+    saved: rows.length,
+    mine: mine.length,
+    fresh,
+    learned,
+    mastered,
+    masteredPercent: mine.length ? Math.round((masterySum / mine.length) * 1000) / 10 : 0,
   };
 }
 

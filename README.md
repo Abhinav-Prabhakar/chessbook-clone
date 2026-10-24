@@ -19,9 +19,9 @@
 - **Find your gaps.** Completion is the share of your games where your repertoire still has an answer, down to your
   coverage goal. The biggest gap is the position you'll reach most often without a prepared move. Autofill can close
   gaps with the main lines.
-- **Learn and practice.** Sessions walk your lines from the first move. Your opponent's moves are played for you. New
-  moves are shown with an arrow, then asked again from memory. Every one of your moves has its own spaced-repetition
-  schedule (FSRS).
+- **Learn and practice**, the way Chessbook does it. Each position's line is played for you, then you play your
+  move(s). New moves are shown with an arrow first. A move outside your repertoire is judged by Stockfish: a good
+  alternative is accepted, and a mistake is refuted on the board. Every move has its own spaced-repetition schedule.
 - **Model games**: real master games that start the way your repertoire does. Guess the moves.
 - **Puzzles** from real games in your openings (Lichess puzzle database).
 - **Training games** against a bot that plays like people at a chosen rating, and tells you when the game leaves your

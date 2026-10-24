@@ -15,14 +15,18 @@ interface Task {
   alternatives: string[];
 }
 
-function pickTask(sessions: PracticeSession[], hidden: number, color: "white" | "black"): Task | null {
+function pickTask(sessions: PracticeSession[], hidden: number, _color: "white" | "black"): Task | null {
   const candidates: Task[] = [];
   for (const s of sessions) {
-    for (const line of s.lines) {
-      line.plies.forEach((p, i) => {
-        if (p.side !== color || i < hidden) return;
-        const shown = i - hidden;
-        candidates.push({ sans: line.sans, shown, hidden, answer: p.san, alternatives: p.alternatives });
+    for (const group of s.groups) {
+      if (group.line.length < hidden || !group.moves.length) continue;
+      const [first, ...rest] = group.moves;
+      candidates.push({
+        sans: [...group.line, first.san],
+        shown: group.line.length - hidden,
+        hidden,
+        answer: first.san,
+        alternatives: rest.map((m) => m.san),
       });
     }
   }
@@ -46,7 +50,7 @@ export function VisualizationPage() {
 
   useEffect(() => {
     if (repId == null) return;
-    api.get<PracticeSession>(`/practice/${repId}/session?mode=all`).then(setSession).catch(() => setSession(null));
+    api.get<PracticeSession>(`/practice/${repId}/session?filter=all`).then(setSession).catch(() => setSession(null));
   }, [repId]);
 
   const color = session?.color ?? "white";

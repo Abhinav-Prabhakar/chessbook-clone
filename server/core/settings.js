@@ -6,7 +6,9 @@ export const RATING_SYSTEMS = ["lichess", "chesscom", "fide"];
 export const COVERAGE_GOALS = [20, 50, 100, 200, 500];
 export const ANIMATIONS = ["off", "fast", "normal", "slow"];
 export const TIME_CONTROLS = ["bullet", "blitz", "rapid", "classical"];
-export const PAUSES = [0, 500, 1000, 2000];
+export const REVIEW_STYLES = ["selective", "every", "once"];
+export const PAUSE_BEHAVIORS = ["never", "always", "when-wrong", "when-annotation"];
+export const SESSION_SIZES = [10, 20, 50];
 
 export const DEFAULTS = {
   rating: 1500,
@@ -19,10 +21,10 @@ export const DEFAULTS = {
   legalMoves: true,
   sound: true,
   animation: "normal",
-  dailyGoal: 20,
-  newPerSession: 10,
-  wholeLines: false,
-  autoplayDelay: 500,
+  dailyGoal: 10,
+  reviewStyle: "selective",
+  reviewPauseBehavior: "never",
+  skipFirstPractice: false,
   onboarded: false,
   modelSide: "repertoire",
 };
@@ -38,15 +40,15 @@ const VALIDATORS = {
   legalMoves: (v) => typeof v === "boolean",
   sound: (v) => typeof v === "boolean",
   animation: (v) => ANIMATIONS.includes(v),
-  dailyGoal: (v) => [10, 20, 30, 50, 100].includes(Number(v)),
-  newPerSession: (v) => [5, 10, 20, 50].includes(Number(v)),
-  wholeLines: (v) => typeof v === "boolean",
-  autoplayDelay: (v) => PAUSES.includes(Number(v)),
+  dailyGoal: (v) => SESSION_SIZES.includes(Number(v)),
+  reviewStyle: (v) => REVIEW_STYLES.includes(v),
+  reviewPauseBehavior: (v) => PAUSE_BEHAVIORS.includes(v),
+  skipFirstPractice: (v) => typeof v === "boolean",
   onboarded: (v) => typeof v === "boolean",
   modelSide: (v) => ["repertoire", "white", "black"].includes(v),
 };
 
-const NUMERIC = new Set(["rating", "coverageGoal", "dailyGoal", "newPerSession", "autoplayDelay"]);
+const NUMERIC = new Set(["rating", "coverageGoal", "dailyGoal"]);
 
 export function readSettings() {
   const out = { ...DEFAULTS };
@@ -58,7 +60,10 @@ export function readSettings() {
       // keep default
     }
   }
-  if (!PAUSES.includes(Number(out.autoplayDelay))) out.autoplayDelay = DEFAULTS.autoplayDelay;
+  // Values saved by older versions fall back to the defaults.
+  for (const [key, valid] of Object.entries(VALIDATORS)) {
+    if (!valid(NUMERIC.has(key) ? Number(out[key]) : out[key])) out[key] = DEFAULTS[key];
+  }
   return out;
 }
 

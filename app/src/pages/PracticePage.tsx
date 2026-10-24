@@ -1,238 +1,501 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+/**
+ * Practice, following production Chessbook's flow (docs/learning-flow-parity.md).
+ *
+ * The session is a queue of quiz groups (positions where you have saved
+ * moves). For each group the board plays the line from the start, then you
+ * play every saved move. New moves ("first practice") are shown with arrows;
+ * after the line ends they come back once without help. Moves outside your
+ * repertoire are judged by the engine: a good move is an alternative, a real
+ * mistake is refuted on the board. Results are reported once per group.
+ */
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, pathQuery } from "../api";
 import { BoardCaption, Crumbs, useBoard } from "../board/stage";
-import type { Arrow, Mark } from "../board/Board";
+import type { Arrow, FeedbackKind, SquareFeedback } from "../board/Board";
 import { moveFromUci, replay } from "../chess";
 import { forget, useApi } from "../useApi";
-import type { Daily, PracticeLine, PracticeSession, RepertoireSummary } from "../types";
-import { Back, ErrorNote, Icon, PageHead, Row, Skeleton, relativeDue } from "../ui";
+import type { Daily, QuizGroup, PracticeSession, RepertoireSummary, Settings } from "../types";
+import { Back, ErrorNote, Icon, PageHead, Progress, Row, Skeleton, moveLabel, relativeDue } from "../ui";
 import { BoardStrip, MoveList } from "../ui/MoveList";
 import { buildPath, learnPath, parsePath, repertoirePath } from "../routes";
 import { useSettings } from "../settings";
 import { playSound } from "../sounds";
 
-type Pass = "learn" | "recall";
-interface Item {
-  line: PracticeLine;
-  pass: Pass;
+const START = 0;
+const HINTS = 1;
+const ARROWS = 2;
+const FULL = 3;
+const MAX_WRONG = 3;
+const PLY_MS = 280;
+
+interface Stats {
+  correct: number;
+  incorrect: number;
+  practiced: number;
 }
 
-const MODE_TITLES: Record<string, string> = {
-  due: "Practicing moves",
-  new: "Learning new moves",
-  difficult: "Practicing tricky moves",
-  early: "Reviewing early",
-  all: "Practicing every move",
-  line: "Practicing this line",
-};
-
-/** Plies asked in a pass: the learn pass asks everything scheduled; the recall pass only new moves. */
-function asks(item: Item, index: number) {
-  const ply = item.line.plies[index];
-  if (!ply?.ask) return false;
-  return item.pass === "learn" ? true : ply.fresh;
+interface State {
+  status: "loading" | "error" | "active" | "done";
+  error: string | null;
+  session: PracticeSession | null;
+  queue: QuizGroup[];
+  current: QuizGroup | null;
+  previous: QuizGroup | null;
+  viewingPrevious: boolean;
+  stage: number;
+  completed: string[];
+  failed: string[];
+  firstWrong: string | null;
+  wrongGuesses: number;
+  stats: Stats;
+  seenEpds: string[];
+  // Board
+  shownLine: string[];
+  targetLine: string[];
+  override: { fen: string; lastMove: { from: string; to: string } } | null;
+  feedback: SquareFeedback | null;
+  busy: boolean;
+  confirmSkip: boolean;
+  daily: Daily | null;
 }
 
-function firstAsk(item: Item) {
-  const i = item.line.plies.findIndex((_, k) => asks(item, k));
-  return i < 0 ? item.line.plies.length : i;
+const storageKey = (id: string) => `cb_practice_${id}`;
+
+export function savedSession(id: string): { filter: string } | null {
+  try {
+    const raw = localStorage.getItem(storageKey(id));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+const sameLine = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+const isPrefix = (a: string[], b: string[]) => a.length <= b.length && a.every((x, i) => x === b[i]);
+
+/** In "complete lines" styles, the positions before a group (from where the line split off) are asked too. */
+function expand(prev: QuizGroup | null, group: QuizGroup, style: Settings["reviewStyle"]): QuizGroup[] {
+  if (style === "selective" || !group.preceding?.length) return [group];
+  if (!prev) return [...group.preceding, group];
+  const prevEnd = [...prev.line, prev.moves[0]?.san].filter(Boolean) as string[];
+  if (sameLine(prevEnd, group.line.slice(0, -1))) return [group];
+  let common = 0;
+  while (common < prevEnd.length && common < group.line.length && prevEnd[common] === group.line[common]) common += 1;
+  return [...group.preceding.filter((p) => p.line.length >= common), group];
 }
 
 export function PracticePage() {
   const { id = "" } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { settings } = useSettings();
-  const mode = params.get("mode") || "due";
+  const { settings, update } = useSettings();
+  const filter = params.get("filter") || params.get("mode") || "due";
+  const resume = params.get("resume") === "1";
   const linePath = parsePath(params.get("path"));
-  const sessionUrl = `/practice/${id}/session?mode=${mode}${linePath.length ? `&path=${pathQuery(linePath)}` : ""}`;
   const summary = useApi<{ repertoire: RepertoireSummary }>(`/repertoires/${id}`);
 
-  const [session, setSession] = useState<PracticeSession | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [queue, setQueue] = useState<Item[]>([]);
-  const [qi, setQi] = useState(0);
-  const [pi, setPi] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
-  const [firstWrong, setFirstWrong] = useState<string | null>(null);
-  const [hint, setHint] = useState(0);
-  const [wrong, setWrong] = useState<{ fen: string; from: string; to: string; san: string } | null>(null);
-  const [feedback, setFeedback] = useState<{ tone: "good" | "bad" | "info"; text: string } | null>(null);
-  const [stats, setStats] = useState({ correct: 0, wrong: 0, learned: 0 });
-  const [daily, setDaily] = useState<Daily | null>(null);
-  const reviewed = useRef(new Set<number>());
-  const [finished, setFinished] = useState<Set<number>>(new Set());
-  const wrongTimer = useRef<number | null>(null);
+  const st = useRef<State>({
+    status: "loading",
+    error: null,
+    session: null,
+    queue: [],
+    current: null,
+    previous: null,
+    viewingPrevious: false,
+    stage: START,
+    completed: [],
+    failed: [],
+    firstWrong: null,
+    wrongGuesses: 0,
+    stats: { correct: 0, incorrect: 0, practiced: 0 },
+    seenEpds: [],
+    shownLine: [],
+    targetLine: [],
+    override: null,
+    feedback: null,
+    busy: false,
+    confirmSkip: false,
+    daily: null,
+  });
+  const [, render] = useReducer((n: number) => n + 1, 0);
+  const timers = useRef<number[]>([]);
+  const later = (ms: number, fn: () => void) => {
+    timers.current.push(window.setTimeout(fn, ms));
+  };
+  const S = st.current;
 
-  // Load the session once.
+  /* --------------------------------------------------------- persistence --- */
+
+  const persist = useCallback(() => {
+    const s = st.current;
+    try {
+      if (s.status === "active" && s.session) {
+        const queue = s.current && !s.viewingPrevious ? [s.current, ...s.queue] : s.queue;
+        localStorage.setItem(
+          storageKey(id),
+          JSON.stringify({ filter: s.session.filter, session: { ...s.session, groups: [] }, queue, stats: s.stats, seenEpds: s.seenEpds })
+        );
+      } else if (s.status === "done") {
+        localStorage.removeItem(storageKey(id));
+      }
+    } catch {
+      // Resume is a convenience.
+    }
+  }, [id]);
+
+  /* ---------------------------------------------------------- group flow --- */
+
+  const setupGroup = useCallback((group: QuizGroup | null) => {
+    const s = st.current;
+    s.current = group;
+    s.stage = START;
+    s.completed = [];
+    s.failed = [];
+    s.firstWrong = null;
+    s.wrongGuesses = 0;
+    s.feedback = null;
+    s.override = null;
+    s.confirmSkip = false;
+    if (group) {
+      s.targetLine = group.line;
+      if (group.synthetic && settings.reviewStyle === "once") s.seenEpds.push(group.epd);
+    }
+  }, [settings.reviewStyle]);
+
+  const report = async (group: QuizGroup, failed: string[], firstWrong: string | null) => {
+    if (group.retry || group.synthetic) return;
+    try {
+      const result = await api.post<{ daily: Daily }>(`/practice/${id}/reviews`, {
+        submissionId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        daily: st.current.session?.filter === "daily",
+        tzOffset: new Date().getTimezoneOffset(),
+        results: group.moves.map((m) => ({
+          moveId: m.moveId,
+          correct: !failed.includes(m.san),
+          played: failed.includes(m.san) ? firstWrong : m.san,
+        })),
+      });
+      st.current.daily = result.daily;
+    } catch {
+      // The session continues even if the write fails.
+    }
+  };
+
+  const finish = () => {
+    const s = st.current;
+    s.status = "done";
+    s.current = null;
+    persist();
+    forget(`/repertoires/${id}`);
+    forget(`/practice/${id}`);
+    forget("/dashboard");
+    render();
+  };
+
+  const nextGroup = useCallback(() => {
+    const s = st.current;
+    const style = s.session?.style ?? "selective";
+    const group = s.current;
+    if (group && s.viewingPrevious) {
+      // Coming back from looking at the previous position: nothing to score.
+      s.viewingPrevious = false;
+    } else if (group) {
+      const hasLearning = group.moves.some((m) => m.learning);
+      if (s.failed.length || hasLearning) {
+        const retry: QuizGroup = { ...group, retry: true, preceding: [], moves: group.moves.map((m) => ({ ...m, learning: false })) };
+        if (hasLearning) {
+          // Comes back once the current line ends (where the walk steps back up the tree).
+          let at = s.queue.findIndex((g, i) => {
+            const before = i === 0 ? group : s.queue[i - 1];
+            return !g.retry && !g.synthetic && g.line.length < before.line.length;
+          });
+          if (at === -1) s.queue.push(retry);
+          else {
+            while (at < s.queue.length && s.queue[at].retry) at += 1;
+            s.queue.splice(at, 0, retry);
+          }
+        } else {
+          const last = s.queue[s.queue.length - 1] ?? group;
+          s.queue.push(...expand(last, retry, style));
+        }
+      }
+      if (!group.retry && !group.synthetic) s.stats.practiced += group.moves.length;
+      void report(group, s.failed, s.firstWrong);
+      s.previous = group;
+    }
+    // "Once per session": don't ask a line position twice.
+    while (s.queue[0]?.synthetic && style === "once" && s.seenEpds.includes(s.queue[0].epd)) s.queue.shift();
+    const next = s.queue.shift() ?? null;
+    if (!next) {
+      finish();
+      return;
+    }
+    setupGroup(next);
+    persist();
+    render();
+  }, [setupGroup, persist]);
+
+  /* ---------------------------------------------------------------- load --- */
+
   useEffect(() => {
     let cancelled = false;
-    setSession(null);
-    setLoadError(null);
+    const s = st.current;
+    const start = (session: PracticeSession, queue: QuizGroup[], stats?: Stats, seen?: string[]) => {
+      s.session = session;
+      s.queue = queue;
+      s.stats = stats ?? { correct: 0, incorrect: 0, practiced: 0 };
+      s.seenEpds = seen ?? [];
+      s.status = "active";
+      const first = s.queue.shift() ?? null;
+      if (!first) {
+        s.status = "done";
+        s.session = { ...session, groups: [] };
+        render();
+        return;
+      }
+      setupGroup(first);
+      persist();
+      render();
+    };
+    if (resume) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey(id)) || "null");
+        if (saved?.queue?.length) {
+          start(saved.session, saved.queue, saved.stats, saved.seenEpds);
+          return;
+        }
+      } catch {
+        // fall through to a fresh session
+      }
+    }
     api
-      .get<PracticeSession>(sessionUrl)
-      .then((s) => {
+      .get<PracticeSession>(`/practice/${id}/session?filter=${filter}${linePath.length ? `&path=${pathQuery(linePath)}` : ""}`)
+      .then((session) => {
         if (cancelled) return;
-        const items: Item[] = s.lines.map((line) => ({ line, pass: "learn" as Pass }));
-        setSession(s);
-        setQueue(items);
-        setQi(0);
-        setPi(items[0] ? firstAsk(items[0]) : 0);
-        reviewed.current = new Set();
-        setFinished(new Set());
-        setStats({ correct: 0, wrong: 0, learned: 0 });
+        if (!session.groups.length) {
+          s.session = session;
+          s.status = "done";
+          render();
+          return;
+        }
+        const queue: QuizGroup[] = [];
+        session.groups.forEach((g, i) => queue.push(...expand(i ? session.groups[i - 1] : null, g, session.style)));
+        start(session, queue);
       })
-      .catch((e) => !cancelled && setLoadError((e as Error).message));
+      .catch((e) => {
+        if (cancelled) return;
+        s.status = "error";
+        s.error = (e as Error).message;
+        render();
+      });
     return () => {
       cancelled = true;
+      timers.current.forEach((t) => window.clearTimeout(t));
+      timers.current = [];
     };
-  }, [sessionUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, filter, resume, params.get("path")]);
 
-  const item = queue[qi] || null;
-  const done = Boolean(session) && qi >= queue.length;
-  const ply = item && pi < item.line.plies.length ? item.line.plies[pi] : null;
-  const asking = Boolean(item && ply && asks(item, pi));
-  const teaching = asking && item!.pass === "learn" && ply!.fresh;
-  const color = session?.color ?? summary.data?.repertoire.color ?? "white";
+  /* ------------------------------------------------------- line playback --- */
 
-  const position = useMemo(() => (item ? replay(item.line.sans.slice(0, pi)) : null), [item, pi]);
-
-  // Auto-play moves that are not being asked, then move on to the next line.
   useEffect(() => {
-    if (!item || asking || wrong) return;
-    if (pi >= item.line.plies.length) {
+    const s = st.current;
+    if (s.override) return;
+    const { shownLine, targetLine } = s;
+    if (sameLine(shownLine, targetLine)) return;
+    if (!isPrefix(shownLine, targetLine)) {
+      // Jump back to where the lines split, then play forward.
+      let common = 0;
+      while (common < shownLine.length && common < targetLine.length && shownLine[common] === targetLine[common]) common += 1;
       const t = window.setTimeout(() => {
-        const next = qi + 1;
-        setQi(next);
-        setPi(queue[next] ? firstAsk(queue[next]) : 0);
-        setMistakes(0);
-        setFirstWrong(null);
-        setHint(0);
-        setFeedback(null);
-      }, 700);
+        s.shownLine = targetLine.slice(0, common);
+        render();
+      }, 120);
       return () => window.clearTimeout(t);
     }
-    const mineToMove = item.line.plies[pi].side === color;
-    const delay = mineToMove ? 260 : Math.max(180, settings.autoplayDelay);
     const t = window.setTimeout(() => {
-      setPi((p) => p + 1);
-      if (!mineToMove) setFeedback(null);
-    }, Math.max(120, delay));
+      s.shownLine = targetLine.slice(0, shownLine.length + 1);
+      render();
+    }, PLY_MS);
     return () => window.clearTimeout(t);
-  }, [item, pi, asking, wrong, qi, queue, color, settings.autoplayDelay]);
+  });
 
-  const record = useCallback(
-    async (body: Record<string, unknown>) => {
-      try {
-        const result = await api.post<{ daily: Daily }>(`/practice/${id}/review`, {
-          ...body,
-          submissionId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-          tzOffset: new Date().getTimezoneOffset(),
-        });
-        setDaily(result.daily);
-      } catch {
-        // The answer still counts in this session; the server copy is best effort.
-      }
-    },
-    [id]
-  );
+  const group = S.current;
+  const playing = Boolean(group) && !sameLine(S.shownLine, S.targetLine);
+  const learningGroup = Boolean(group?.moves.some((m) => m.learning));
+  const hasNotes = Boolean(group?.moves.some((m) => m.note));
+  const remainingMoves = group ? group.moves.filter((m) => !S.completed.includes(m.san)) : [];
 
-  const advance = () => {
-    setPi((p) => p + 1);
-    setMistakes(0);
-    setFirstWrong(null);
-    setHint(0);
+  /* --------------------------------------------------------------- moves --- */
+
+  const markFailed = () => {
+    const s = st.current;
+    if (!s.failed.length) s.stats.incorrect += 1;
+    for (const m of remainingMoves) if (!s.failed.includes(m.san)) s.failed.push(m.san);
   };
 
-  const onMove = (move: { san: string; uci: string; from: string; to: string }) => {
-    if (!item || !ply || !asking || wrong) return;
-    const accepted = move.san === ply.san || ply.alternatives.includes(move.san);
-    if (accepted) {
-      const clean = mistakes === 0 && hint === 0;
-      if (teaching) {
-        if (ply.moveId) void record({ moveId: ply.moveId, correct: true, kind: "learn" });
-        setStats((s) => ({ ...s, learned: s.learned + 1 }));
-        // Ask it again, without help, at the end of the session.
-        setQueue((q) => (q.some((x, k) => k > qi && x.line === item.line && x.pass === "recall") ? q : [...q, { line: item.line, pass: "recall" }]));
-        setFeedback({ tone: "good", text: "Got it. You'll be asked this again at the end." });
-      } else {
-        if (ply.moveId) {
-          const doneId = ply.moveId;
-          setFinished((f) => new Set(f).add(doneId));
+  const onMove = async (move: { san: string; uci: string; from: string; to: string }) => {
+    const s = st.current;
+    const g = s.current;
+    if (!g || playing || s.stage === FULL || s.busy || s.override) return;
+    const hit = g.moves.find((m) => m.san === move.san);
+    if (hit && !s.completed.includes(hit.san)) {
+      if (!hit.learning) s.stats.correct += 1;
+      s.completed.push(hit.san);
+      s.shownLine = [...g.line, hit.san];
+      s.targetLine = s.shownLine;
+      s.feedback = { square: move.to, kind: "correct" };
+      if (!hit.learning && !s.failed.length) playSound("correct");
+      const remaining = g.moves.filter((m) => !s.completed.includes(m.san));
+      const pause = s.session?.pause ?? "never";
+      const shouldPause =
+        pause === "always" || (pause === "when-annotation" && hasNotes) || (pause === "when-wrong" && s.wrongGuesses > 0);
+      render();
+      later(550, () => {
+        s.feedback = null;
+        if (remaining.length) {
+          // More saved moves here: step back and ask for the next one.
+          s.shownLine = g.line;
+          s.targetLine = g.line;
+          render();
+        } else if (shouldPause) {
+          s.stage = FULL;
+          render();
+        } else {
+          nextGroup();
         }
-        if (ply.moveId && !reviewed.current.has(ply.moveId)) {
-          reviewed.current.add(ply.moveId);
-          void record({ moveId: ply.moveId, correct: clean, played: firstWrong ?? move.san, hinted: hint > 0, kind: "review" });
-          setStats((s) => ({ ...s, correct: s.correct + (clean ? 1 : 0), wrong: s.wrong + (clean ? 0 : 1) }));
-        }
-        setFeedback(
-          move.san !== ply.san
-            ? { tone: "good", text: `${move.san} is also in your repertoire. This line continues with ${ply.san}.` }
-            : clean
-              ? { tone: "good", text: "Correct" }
-              : { tone: "info", text: "That's it." }
-        );
-        if (clean) playSound("correct");
-      }
-      advance();
+      });
       return;
     }
-    if (teaching) {
-      setFeedback({ tone: "info", text: `Play ${ply.san}, the move shown by the arrow.` });
-      return;
+    if (hit) return;
+
+    // Not in the repertoire: let the engine judge it.
+    const played = moveFromUci(g.fen, move.uci);
+    if (!played) return;
+    s.busy = true;
+    s.firstWrong = s.firstWrong ?? move.san;
+    s.override = { fen: played.fen, lastMove: { from: move.from, to: move.to } };
+    s.feedback = { square: move.to, kind: "thinking" };
+    render();
+    let kind: FeedbackKind = "mistake";
+    let refutation: { from: string; to: string; uci: string } | null = null;
+    try {
+      const verdict = await api.post<{ classification: string; refutation: { from: string; to: string; uci: string } | null }>(
+        "/practice/judge",
+        { fen: g.fen, uci: move.uci }
+      );
+      kind = verdict.classification === "good" ? "alternative" : (verdict.classification as FeedbackKind);
+      refutation = verdict.refutation;
+    } catch {
+      kind = "mistake";
     }
-    // Wrong: show it briefly, then take it back.
-    const shown = moveFromUci(ply.fen, move.uci);
-    setMistakes((m) => m + 1);
-    setFirstWrong((w) => w ?? move.san);
-    if (shown) setWrong({ fen: shown.fen, from: move.from, to: move.to, san: move.san });
-    playSound("wrong");
-    setFeedback({ tone: "bad", text: `${move.san} isn't your move here. Try again.` });
-    if (mistakes + 1 >= 2 && hint === 0) setHint(1);
-    if (wrongTimer.current) window.clearTimeout(wrongTimer.current);
-    wrongTimer.current = window.setTimeout(() => setWrong(null), 650);
+    if (st.current.current !== g) return;
+    const alternative = kind === "alternative" || kind === "inaccuracy";
+    s.feedback = { square: move.to, kind: alternative ? "alternative" : kind };
+    // An alternative is only forgiven when your line ends here.
+    const lineEnds = g.moves.every((m) => m.leaf);
+    if (!alternative || !lineEnds) {
+      markFailed();
+      s.wrongGuesses += 1;
+    }
+    playSound(alternative ? "notify" : "wrong");
+    render();
+
+    const takeBack = () => {
+      s.feedback = null;
+      s.override = null;
+      s.busy = false;
+      if (s.wrongGuesses >= MAX_WRONG && s.stage < ARROWS) s.stage = ARROWS;
+      render();
+    };
+    if (!alternative && refutation) {
+      later(500, () => {
+        const reply = moveFromUci(played.fen, refutation!.uci);
+        if (reply) {
+          s.feedback = { square: move.to, kind };
+          s.override = { fen: reply.fen, lastMove: { from: reply.from, to: reply.to } };
+          render();
+        }
+        later(1100, takeBack);
+      });
+    } else {
+      later(1100, takeBack);
+    }
   };
 
-  useEffect(() => () => {
-    if (wrongTimer.current) window.clearTimeout(wrongTimer.current);
-  }, []);
+  const giveUp = () => {
+    const s = st.current;
+    s.stage = hasNotes && s.stage !== HINTS ? HINTS : ARROWS;
+    markFailed();
+    render();
+  };
 
-  // Board.
+  const backToPrevious = () => {
+    const s = st.current;
+    if (!s.previous || !s.current || s.viewingPrevious) return;
+    s.queue.unshift(s.current);
+    const prev = s.previous;
+    s.current = prev;
+    s.viewingPrevious = true;
+    s.stage = FULL;
+    s.completed = prev.moves.map((m) => m.san);
+    s.failed = [];
+    s.feedback = null;
+    s.override = null;
+    s.targetLine = [...prev.line, prev.moves[0].san];
+    render();
+  };
+
+  const skipFirstPractice = async () => {
+    const s = st.current;
+    const clear = (g: QuizGroup) => ({ ...g, moves: g.moves.map((m) => ({ ...m, learning: false })) });
+    s.queue = s.queue.map(clear);
+    if (s.current) s.current = clear(s.current);
+    s.confirmSkip = false;
+    render();
+    try {
+      await update({ skipFirstPractice: true });
+    } catch {
+      // The session already continues without first practice.
+    }
+  };
+
+  const exit = () => {
+    persist();
+    forget(`/practice/${id}`);
+    forget(`/repertoires/${id}`);
+    forget("/dashboard");
+    navigate(learnPath(id));
+  };
+
+  /* --------------------------------------------------------------- board --- */
+
   const arrows: Arrow[] = [];
-  const marks: Mark[] = [];
-  if (asking && ply && !wrong) {
-    if (teaching || hint >= 2) arrows.push({ from: ply.from, to: ply.to, color: teaching ? "green" : "orange" });
-    else if (hint === 1) marks.push({ square: ply.from, color: "hint" });
+  if (group && !playing && !S.override && (S.stage === ARROWS || learningGroup || S.viewingPrevious) && S.stage !== FULL) {
+    for (const m of group.moves) {
+      arrows.push({ from: m.from, to: m.to, color: S.completed.includes(m.san) ? "gray" : learningGroup ? "green" : "orange" });
+    }
   }
-  if (wrong) marks.push({ square: wrong.to, color: "bad" });
-  const boardFen = wrong ? wrong.fen : position?.fen ?? replay([]).fen;
-  const lastMove = wrong ? { from: wrong.from, to: wrong.to } : position?.lastMove ?? null;
-
+  const shown = replay(S.shownLine);
+  const color = S.session?.color ?? summary.data?.repertoire.color ?? "white";
+  const atPosition = group && sameLine(S.shownLine, group.line);
   useBoard(
-    session
+    S.status === "active" || S.status === "done"
       ? {
-          fen: boardFen,
+          fen: S.override?.fen ?? shown.fen,
+          lastMove: S.override?.lastMove ?? shown.lastMove,
           orientation: color,
-          lastMove,
-          interactive: asking && !wrong,
+          interactive: S.status === "active" && Boolean(atPosition) && !playing && !S.busy && S.stage !== FULL,
           arrows,
-          marks,
+          feedback: S.feedback,
           peek: false,
-          onMove,
+          onMove: (m) => void onMove(m),
         }
       : null
   );
 
-  // Counter: distinct moves of yours still to finish in this session.
-  const remaining = useMemo(() => {
-    if (!session) return 0;
-    const ids = new Set<number>();
-    for (const line of session.lines) for (const p of line.plies) if (p.ask && p.moveId) ids.add(p.moveId);
-    let n = 0;
-    for (const id of ids) if (!finished.has(id)) n += 1;
-    return n;
-  }, [session, finished]);
+  /* -------------------------------------------------------------- render --- */
 
   const repName = summary.data?.repertoire.name ?? "Repertoire";
   const crumbs = (
@@ -245,16 +508,16 @@ export function PracticePage() {
     />
   );
 
-  if (loadError) {
+  if (S.status === "error") {
     return (
       <>
         {crumbs}
         <Back to={learnPath(id)} />
-        <ErrorNote error={loadError} />
+        <ErrorNote error={S.error || "Couldn't start practice"} />
       </>
     );
   }
-  if (!session) {
+  if (S.status === "loading") {
     return (
       <>
         {crumbs}
@@ -263,162 +526,211 @@ export function PracticePage() {
       </>
     );
   }
-
-  if (session.lines.length === 0) {
+  if (S.status === "done") {
     return (
       <>
         {crumbs}
+        <BoardCaption>
+          <BoardStrip title={group?.opening?.name ?? ""} />
+        </BoardCaption>
         <Back to={learnPath(id)} />
-        <PageHead title="Nothing to practice" sub={mode === "due" ? "No moves are due right now." : "There are no moves for this kind of practice."} />
-        <div className="rows actions">
-          <Row title="Back to practice options" to={learnPath(id)} chevron />
-          <Row title="Continue building" to={buildPath(id)} chevron />
+        <SessionComplete id={id} filter={S.session?.filter ?? filter} stats={S.stats} daily={S.daily} empty={!S.stats.practiced} />
+      </>
+    );
+  }
+
+  const g = group!;
+  const due = (() => {
+    let n = 0;
+    const count = (x: QuizGroup) => (x.retry || x.synthetic ? 0 : x.moves.length);
+    for (const x of S.queue) n += count(x);
+    if (!S.viewingPrevious && !g.retry && !g.synthetic) n += remainingMoves.length;
+    return n;
+  })();
+
+  let prompt: string;
+  if (S.stage === FULL) prompt = g.moves.length > 1 ? "You have multiple saved moves for this position." : "This is your saved move.";
+  else if (learningGroup && g.moves.length > 1) prompt = `You have ${g.moves.length} saved moves for this position. Play them all on the board.`;
+  else if (g.moves.length > 1 && S.completed.length > 0) prompt = "You have another response. Play it on the board.";
+  else if (g.line.length === 0) prompt = "Play your first move on the board.";
+  else prompt = "Play the correct move on the board.";
+
+  if (S.confirmSkip) {
+    return (
+      <>
+        {crumbs}
+        <Back onClick={() => ((S.confirmSkip = false), render())} />
+        <PageHead title="Skip first practice?" />
+        <div className="game-text tight">
+          <p>This will skip the first practice mode for all moves.</p>
+        </div>
+        <div className="rows list">
+          <Row variant="accent" title="Yes, skip first practice" onClick={() => void skipFirstPractice()} />
+          <Row title="Cancel" onClick={() => ((S.confirmSkip = false), render())} />
         </div>
       </>
     );
   }
 
-  if (done) {
-    return (
-      <>
-        {crumbs}
-        <BoardCaption>
-          <BoardStrip title="Session complete" />
-        </BoardCaption>
-        <Back to={learnPath(id)} />
-        <SessionDone
-          id={id}
-          stats={stats}
-          daily={daily}
-          onAgain={() => navigate(0)}
-          onExit={() => {
-            forget(`/repertoires/${id}`);
-            forget(`/practice/${id}`);
-            forget("/dashboard");
-            navigate(repertoirePath(id));
-          }}
-        />
-      </>
-    );
-  }
-
-  const sansShown = item ? item.line.sans.slice(0, pi) : [];
-  const askLabel = ply ? `${Math.floor(pi / 2) + 1}${pi % 2 === 0 ? "." : "…"}` : "";
+  // The moves table: the move number, then each saved move once it's revealed.
+  const rows = g.moves
+    .filter((m, i) => S.completed.includes(m.san) || m.learning || S.stage >= ARROWS || i === g.moves.findIndex((x) => !S.completed.includes(x.san)))
+    .map((m) => {
+      const revealed = S.completed.includes(m.san) || m.learning || S.stage >= ARROWS;
+      const noteVisible = m.learning || S.completed.includes(m.san) || S.stage >= HINTS;
+      return { m, revealed, noteVisible };
+    });
 
   return (
     <>
       {crumbs}
       <BoardCaption>
-        <BoardStrip title={item?.line.opening?.name} fen={boardFen} orientation={color}>
-          <MoveList sans={sansShown} pending={asking ? "＿" : null} />
+        <BoardStrip title={g.opening?.name} fen={shown.fen} orientation={color}>
+          <MoveList sans={S.shownLine} pending={atPosition && S.stage !== FULL && !playing ? "＿" : null} />
         </BoardStrip>
       </BoardCaption>
       <Back to={learnPath(id)} />
+      {S.previous && !S.viewingPrevious && (
+        <button type="button" className="text-action prev-link" onClick={backToPrevious}>
+          <Icon name="chevron-left" /> Previous position
+        </button>
+      )}
       <PageHead
-        title={MODE_TITLES[mode] || "Practicing moves"}
+        title="Practicing moves"
         right={
           <span className="counters">
             <span className="counter">
-              {remaining} Due <span className="badge orange"><Icon name="clock" /></span>
+              {due} Due <span className="badge orange"><Icon name="clock" /></span>
             </span>
             <span className="counter">
-              {stats.correct} <span className="badge green"><Icon name="check" /></span>
+              {S.stats.correct} <span className="badge green"><Icon name="check" /></span>
             </span>
             <span className="counter">
-              {stats.wrong} <span className="badge red"><Icon name="x" /></span>
+              {S.stats.incorrect} <span className="badge red"><Icon name="x" /></span>
             </span>
           </span>
         }
-        sub={
-          teaching
-            ? `New move: play ${ply!.san}, shown by the arrow.`
-            : asking
-              ? "Play the correct move on the board."
-              : item?.pass === "recall" && pi === 0
-                ? "Now from memory."
-                : " "
-        }
+        sub={prompt}
       />
-      <div className="prompt">
-        <div className="prompt-line">
-          <span className={`prompt-move${asking ? "" : " dim"}`}>
-            {asking
-              ? `${askLabel} ${teaching ? ply!.san : "＿"}`
-              : pi > 0 && item
-                ? `${Math.floor((pi - 1) / 2) + 1}${(pi - 1) % 2 === 0 ? "." : "…"} ${item.line.sans[pi - 1]}`
-                : "\u00a0"}
-          </span>
-          {teaching && <span className="tag new">New</span>}
-          {asking && !teaching && item?.pass === "recall" && <span className="tag">From memory</span>}
-        </div>
-        <p className="prompt-note">{asking && (teaching || hint > 0) && ply?.note ? ply.note : "\u00a0"}</p>
-        {feedback && <p className={`feedback ${feedback.tone}`}>{feedback.text}</p>}
+      <div className="quiz-table">
+        {rows.map(({ m, revealed, noteVisible }) => (
+          <div className="quiz-row" key={m.san}>
+            <span className="quiz-move">{revealed ? moveLabel(g.line.length, m.san) : `${moveLabel(g.line.length, "").trim()} ＿`}</span>
+            <span className={`quiz-note${noteVisible ? "" : " hidden"}`}>{m.note || "No notes added"}</span>
+          </div>
+        ))}
       </div>
 
-      <div className="rows actions">
-        {asking && !teaching && hint < 2 && (
-          <Row
-            title={hint === 0 ? "I don't know, give me a hint" : "Show me the move"}
-            onClick={() => setHint((h) => h + 1)}
-          />
+      <div className="rows list spaced-sm">
+        {S.stage === FULL ? (
+          <Row variant="accent" title="Got it, continue practicing" onClick={nextGroup} />
+        ) : (
+          !learningGroup &&
+          S.stage !== ARROWS && (
+            <Row
+              variant="accent"
+              title={hasNotes && S.stage < HINTS ? "I don't know, give me a hint" : "I don't know, show me the answer"}
+              onClick={giveUp}
+              disabled={playing || S.busy}
+            />
+          )
         )}
-        <Row title="View in build mode" to={buildPath(id, item ? item.line.sans.slice(0, pi) : [])} />
-        <Row title="Exit practice" onClick={() => {
-          forget(`/practice/${id}`);
-          forget(`/repertoires/${id}`);
-          forget("/dashboard");
-          navigate(learnPath(id));
-        }} />
+        {learningGroup && S.stage !== FULL && <Row title="Skip first practice" onClick={() => ((S.confirmSkip = true), render())} />}
+        <Row title="View in build mode" to={buildPath(id, g.line)} />
+        <Row title="Exit practice" onClick={exit} />
       </div>
     </>
   );
 }
 
-function SessionDone({
+/* --------------------------------------------------------- end of session --- */
+
+function SessionComplete({
   id,
+  filter,
   stats,
   daily,
-  onAgain,
-  onExit,
+  empty,
 }: {
   id: string;
-  stats: { correct: number; wrong: number; learned: number };
+  filter: string;
+  stats: Stats;
   daily: Daily | null;
-  onAgain: () => void;
-  onExit: () => void;
+  empty: boolean;
 }) {
-  const { data } = useApi<{ counts: { due: number; fresh: number; nextDue: string | null } }>(`/practice/${id}?after=${stats.correct + stats.wrong + stats.learned}`);
-  const total = stats.correct + stats.wrong;
+  const navigate = useNavigate();
+  const { data } = useApi<{ repertoire: RepertoireSummary; counts: { due: number; nextDue: string | null } }>(`/practice/${id}?done=1`);
+  if (empty) {
+    return (
+      <>
+        <PageHead title="Nothing to practice" sub="No moves match this kind of practice right now." />
+        <div className="rows list spaced-sm">
+          <Row title="Back to practice options" to={learnPath(id)} />
+          <Row title="Continue building" to={buildPath(id)} />
+        </div>
+      </>
+    );
+  }
+  const perfect = stats.incorrect === 0 && stats.correct > 0;
+  const header =
+    filter === "daily" ? "Daily practice complete!" : filter === "due" && data?.counts.due === 0 ? "Review complete!" : perfect ? "Perfect practice!" : "Practice complete!";
+  const bullets: React.ReactNode[] = [
+    <>
+      You practiced <strong className="highlight">{stats.practiced} move{stats.practiced === 1 ? "" : "s"}</strong>
+    </>,
+    perfect ? (
+      <>
+        You got <strong className="highlight">all</strong> of your moves right
+      </>
+    ) : (
+      <>
+        You played the correct move <strong className="highlight">{stats.correct} time{stats.correct === 1 ? "" : "s"}</strong>
+      </>
+    ),
+  ];
+  if (filter === "daily" && daily && daily.streak > 0) {
+    bullets.push(
+      <>
+        You now have a <strong className="highlight">{daily.streak} day streak</strong>
+      </>
+    );
+  } else if (data && data.counts.due > 0) {
+    bullets.push(
+      <>
+        You have <strong className="highlight">{data.counts.due} move{data.counts.due === 1 ? "" : "s"}</strong> due for review now
+      </>
+    );
+  } else if (data?.counts.nextDue) {
+    bullets.push(
+      <>
+        Your next practice will be due <strong className="highlight">{relativeDue(data.counts.nextDue)}</strong>
+      </>
+    );
+  }
+  const mastery = data?.repertoire.stats.masteredPercent ?? 0;
   return (
     <>
-      <PageHead title="Session complete" sub={total ? `${Math.round((stats.correct / total) * 100)}% correct on the first try.` : "Nice work."} />
-      <div className="summary-grid">
-        <div className="summary-cell">
-          <strong>{stats.learned}</strong>
-          <span>new moves learned</span>
+      <PageHead title={header} />
+      <div className="stat-block tight">
+        <div className="stat-line">
+          <strong>{mastery.toFixed(1)}% mastered</strong>
         </div>
-        <div className="summary-cell">
-          <strong className="good-text">{stats.correct}</strong>
-          <span>correct</span>
-        </div>
-        <div className="summary-cell">
-          <strong className="bad-text">{stats.wrong}</strong>
-          <span>to review again soon</span>
-        </div>
+        <Progress value={mastery} tone="orange" />
       </div>
-      {daily && (
-        <p className="context-line">
-          {Math.min(daily.reviewed, daily.goal)} of {daily.goal} moves today
-          {daily.streak > 0 ? ` · ${daily.streak} day streak` : ""}.
-          {data?.counts.nextDue && data.counts.due === 0 ? ` Next review ${relativeDue(data.counts.nextDue)}.` : ""}
-        </p>
-      )}
-      <div className="rows actions">
-        {data && data.counts.due + data.counts.fresh > 0 && (
-          <Row variant="accent" title="Keep going" meta={`${data.counts.due} due · ${data.counts.fresh} new`} onClick={onAgain} chevron />
+      <div className="game-text">
+        <p className="lead">Your stats from {filter === "daily" ? "today" : "this session"}:</p>
+        <ul className="stat-bullets">
+          {bullets.map((b, i) => (
+            <li key={i}>{b}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="rows list">
+        {data && data.counts.due > 0 && (
+          <Row variant="accent" title="Continue practicing" onClick={() => navigate(`/repertoires/${id}/practice?filter=due&t=${Date.now()}`)} />
         )}
-        <Row title="Continue building" to={buildPath(id)} chevron />
-        <Row title="Done" onClick={onExit} />
+        <Row title="Continue building" to={buildPath(id)} />
+        <Row title="Done" to={repertoirePath(id)} />
       </div>
     </>
   );

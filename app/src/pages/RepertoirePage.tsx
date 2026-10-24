@@ -78,14 +78,12 @@ export function RepertoirePage() {
         variant="accent"
         className="block-row"
         title="Continue learning"
-        meta={rep.due === 0 && rep.fresh === 0 && rep.nextDue ? `Next review ${relativeDue(rep.nextDue)}` : undefined}
+        meta={rep.due === 0 && rep.nextDue ? `Next review ${relativeDue(rep.nextDue)}` : undefined}
         right={
           rep.due > 0 ? (
             <span className="pill due">
               {rep.due} due <Icon name="clock" />
             </span>
-          ) : rep.fresh > 0 ? (
-            <span className="pill">{rep.fresh} new</span>
           ) : (
             <span className="pill done">
               Up to date <Icon name="check" />

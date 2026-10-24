@@ -12,9 +12,9 @@ export interface Settings {
   sound: boolean;
   animation: "off" | "fast" | "normal" | "slow";
   dailyGoal: number;
-  newPerSession: number;
-  wholeLines: boolean;
-  autoplayDelay: number;
+  reviewStyle: "selective" | "every" | "once";
+  reviewPauseBehavior: "never" | "always" | "when-wrong" | "when-annotation";
+  skipFirstPractice: boolean;
   onboarded: boolean;
   modelSide: string;
 }
@@ -123,34 +123,40 @@ export interface PositionView {
   gameOver: boolean;
 }
 
-export interface PracticePly {
+export interface QuizMove {
+  moveId: number;
   san: string;
   uci: string;
   from: string;
   to: string;
-  fen: string;
-  side: Color;
-  ask: boolean;
-  moveId: number | null;
-  fresh: boolean;
   note: string | null;
-  alternatives: string[];
+  /** First practice: shown with an arrow. */
+  learning: boolean;
+  due: boolean;
+  /** No saved continuation after this move. */
+  leaf: boolean;
 }
 
-export interface PracticeLine {
-  sans: string[];
-  plies: PracticePly[];
-  start: number;
+export interface QuizGroup {
+  epd: string;
+  fen: string;
+  line: string[];
+  side: Color;
+  synthetic: boolean;
   opening: Opening | null;
-  color: Color;
+  moves: QuizMove[];
+  preceding: QuizGroup[];
+  /** A repeat of a group already scored this session (never reported). */
+  retry?: boolean;
 }
 
 export interface PracticeSession {
   repertoireId: number;
   color: Color;
-  mode: string;
-  lines: PracticeLine[];
-  total: number;
+  filter: string;
+  style: Settings["reviewStyle"];
+  pause: Settings["reviewPauseBehavior"];
+  groups: QuizGroup[];
 }
 
 export interface ModelGame {

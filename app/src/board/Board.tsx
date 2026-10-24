@@ -24,6 +24,13 @@ export interface Mark {
   color: "good" | "bad" | "hint" | "focus";
 }
 
+export type FeedbackKind = "correct" | "alternative" | "inaccuracy" | "mistake" | "blunder" | "thinking";
+
+export interface SquareFeedback {
+  square: string;
+  kind: FeedbackKind;
+}
+
 export interface BoardProps {
   fen: string;
   orientation?: Color;
@@ -32,6 +39,7 @@ export interface BoardProps {
   onMove?: (move: BoardMove) => void;
   arrows?: Arrow[];
   marks?: Mark[];
+  feedback?: SquareFeedback | null;
   showLegal?: boolean;
   coordinates?: boolean;
   theme?: string;
@@ -144,6 +152,7 @@ export function Board({
   onMove,
   arrows = [],
   marks = [],
+  feedback = null,
   showLegal = true,
   coordinates = true,
   theme = "green",
@@ -365,6 +374,7 @@ export function Board({
         {leaving.map((p) => renderPiece(p, " leaving"))}
         {pieces.map((p) => renderPiece(p))}
       </div>
+      {feedback && <FeedbackBadge feedback={feedback} orientation={orientation} />}
       {arrows.length > 0 && (
         <svg className="arrows" viewBox="0 0 8 8">
           {arrows.map((a, i) => {
@@ -405,6 +415,36 @@ export function Board({
             ))}
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+const FEEDBACK_ICONS: Record<FeedbackKind, string> = {
+  correct: "M5 12l5 5L20 7",
+  alternative: "M5 12l5 5L20 7",
+  inaccuracy: "M12 6v7M12 17h.01",
+  mistake: "M9 9a3 3 0 115 2c-1 1-2 1.5-2 3M12 17h.01",
+  blunder: "M6 6l12 12M18 6L6 18",
+  thinking: "",
+};
+
+/** Small round badge on the destination square, as in production. */
+function FeedbackBadge({ feedback, orientation }: { feedback: SquareFeedback; orientation: Color }) {
+  const { x, y } = squareXY(feedback.square, orientation);
+  return (
+    <div
+      key={`${feedback.square}-${feedback.kind}`}
+      className={`square-feedback fb-${feedback.kind}`}
+      style={{ left: `${(x + 1) * 12.5}%`, top: `${y * 12.5}%` }}
+      aria-label={feedback.kind}
+    >
+      {feedback.kind === "thinking" ? (
+        <span className="fb-spinner" />
+      ) : (
+        <svg viewBox="0 0 24 24" aria-hidden>
+          <path d={FEEDBACK_ICONS[feedback.kind]} fill="none" stroke="currentColor" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       )}
     </div>
   );

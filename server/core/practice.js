@@ -1,267 +1,346 @@
 /**
- * Practice: which of your moves to train, and recording each answer.
+ * Practice, modelled on production Chessbook (see docs/learning-flow-parity.md).
  *
- * A session is a list of lines. Each line is a path from the start; the
- * client plays it out, auto-playing the opponent and any of your moves that
- * are not being trained, and asks for the moves listed in `ask`.
+ * The unit is a quiz group: one position where you have saved move(s), with
+ * the line that leads to it. Every saved move in the group has to be played.
+ * Groups are collected by walking the repertoire depth-first from the start;
+ * at your opponent's turns, common replies tend to come first (weighted by
+ * how often they are played at your level, with some randomness).
+ *
+ * A move is "due" when its due date is today or earlier, or when it has never
+ * been practised. Never-practised moves are in first practice ("learning"):
+ * the client shows them with arrows, and that first pass is what gets
+ * recorded.
  */
 import { db, nowIso } from "./db.js";
-import { allMoves, getRepertoire, graphOf, pathsOf, httpError, MASTERED_DAYS } from "./repertoire.js";
-import { readSettings } from "./settings.js";
+import { getRepertoire, graphOf, httpError } from "./repertoire.js";
+import { readSettings, userBand } from "./settings.js";
 import { schedule } from "./srs.js";
 import { computeStreak, localDay, parseOffset, todayLocal } from "./dates.js";
-import { applyMove, START_FEN, epdOf, turnOf } from "./chess.js";
-import { openingAt, openingForPath } from "./explorer.js";
+import { applyMove, epdOf, START_FEN, turnOf } from "./chess.js";
+import { openingAt, openingForPath, replyDistribution } from "./explorer.js";
 import { builtinNote } from "./notes.js";
 
-export const MODES = ["due", "new", "difficult", "all", "line", "early"];
+export const FILTERS = ["due", "daily", "recommended", "difficult-due", "difficult", "early", "all", "line"];
 
-function isDue(move, now) {
-  return move.reps > 0 && move.due_at && move.due_at <= now;
+/* ------------------------------------------------------------ move state --- */
+
+/** Scheduled interval in days (0 for a move never practised). */
+export function intervalOf(move) {
+  if (move.interval_days != null) return Number(move.interval_days);
+  if (!move.due_at || !move.last_review) return 0;
+  return Math.max(0, (Date.parse(move.due_at) - Date.parse(move.last_review)) / 86_400_000);
 }
 
-function isDifficult(move) {
-  return move.reps > 0 && (move.lapses >= 1 || Number(move.difficulty) >= 7);
+/** 0–1 mastery from the interval, on a log scale capped at 100 days. */
+export function masteryOf(move) {
+  if (!move.reps) return 0;
+  const i = Math.min(100, Math.max(0, intervalOf(move)));
+  return Math.log(i + 1) / Math.log(101);
 }
 
-/** Every one of your moves that is reachable from the start, with its path. */
-function reachableMine(repertoireId) {
-  const graph = graphOf(repertoireId);
-  const paths = pathsOf(repertoireId, graph);
-  const out = [];
-  for (const [epd, moves] of graph) {
-    const path = paths.get(epd);
-    if (!path) continue;
-    for (const move of moves) {
-      if (move.mine === 1) out.push({ move, path: [...path, move.san] });
-    }
-  }
-  // Depth-first order: lines group together, shallow moves first.
-  out.sort((a, b) => {
-    const n = Math.min(a.path.length, b.path.length);
-    for (let i = 0; i < n; i += 1) {
-      if (a.path[i] !== b.path[i]) return a.path[i] < b.path[i] ? -1 : 1;
-    }
-    return a.path.length - b.path.length;
-  });
-  return { graph, paths, items: out };
+export function statusOf(move) {
+  const i = move.reps ? intervalOf(move) : 0;
+  return i <= 1 ? "new" : i <= 15 ? "learning" : i < 100 ? "solid" : "mastered";
 }
 
-export function queueCounts(repertoireId, now = nowIso()) {
-  const { items } = reachableMine(repertoireId);
-  const counts = { due: 0, fresh: 0, difficult: 0, all: items.length, scheduled: 0 };
-  let nextDue = null;
-  for (const { move } of items) {
-    if (move.reps === 0) counts.fresh += 1;
-    else if (isDue(move, now)) counts.due += 1;
-    else {
-      counts.scheduled += 1;
-      if (!nextDue || move.due_at < nextDue) nextDue = move.due_at;
-    }
-    if (isDifficult(move)) counts.difficult += 1;
-  }
-  return { ...counts, nextDue };
+/** FSRS difficulty (1–10) as 0–1, as production reports it. */
+export function difficultyOf(move) {
+  if (!move.reps || move.difficulty == null) return null;
+  return Math.max(0, Math.min(1, (Number(move.difficulty) - 1) / 9));
 }
+
+export function isDue(move, today, offset) {
+  if (!move.reps || !move.due_at) return true;
+  return localDay(move.due_at, offset) <= today;
+}
+
+export function isDifficult(move) {
+  const d = difficultyOf(move);
+  return d != null && d > 0.6;
+}
+
+/* ----------------------------------------------------------------- walk --- */
 
 /**
- * Build a practice session.
- * mode: due (due + some new), new, difficult, all, early (not yet due), line (moves along `path`).
+ * Every one of your positions, depth-first from `startPath`, as quiz groups.
+ * `random` makes the opponent-reply order vary from session to session.
  */
-export function buildSession(repertoireId, { mode = "due", path = null, limit = null } = {}) {
+function walkGroups(repertoire, { startPath = [], random = Math.random } = {}) {
+  const graph = graphOf(repertoire.id);
+  const band = userBand();
+  const groups = [];
+  const seen = new Set();
+  let fen = START_FEN;
+  for (const san of startPath) {
+    const next = applyMove(fen, san);
+    if (!next) throw httpError(400, "That line is not legal");
+    fen = next.fen;
+  }
+
+  const visit = (fen, line, preceding, reach) => {
+    const epd = epdOf(fen);
+    const saved = graph.get(epd) || [];
+    if (!saved.length) return;
+    const myTurn = turnOf(fen) === repertoire.color;
+    if (myTurn) {
+      const mine = saved.filter((m) => m.mine === 1);
+      if (!mine.length) return;
+      const group = { epd, fen, line, side: repertoire.color, moves: mine, reach };
+      groups.push({ ...group, preceding });
+      const nextPreceding = [...preceding, group];
+      for (const move of mine) {
+        const next = applyMove(fen, move.san);
+        if (!next || seen.has(next.epd)) continue;
+        seen.add(next.epd);
+        visit(next.fen, [...line, next.san], nextPreceding, reach);
+      }
+      return;
+    }
+    // Opponent's turn: common replies tend to come first.
+    const shares = new Map(replyDistribution(epd, band).map((r) => [r.san, r.p]));
+    const ordered = saved
+      .map((m) => ({ m, key: 1 - random() * (shares.get(m.san) ?? 0) }))
+      .sort((a, b) => a.key - b.key)
+      .map((x) => x.m);
+    for (const move of ordered) {
+      const next = applyMove(fen, move.san);
+      if (!next || seen.has(next.epd)) continue;
+      seen.add(next.epd);
+      visit(next.fen, [...line, next.san], preceding, reach * (shares.get(move.san) ?? 0));
+    }
+  };
+  seen.add(epdOf(fen));
+  visit(fen, [...startPath], [], 1);
+  return groups;
+}
+
+/* ---------------------------------------------------------------- counts --- */
+
+export function queueCounts(repertoireId, tzOffset = null) {
   const repertoire = getRepertoire(repertoireId);
+  const offset = parseOffset(tzOffset);
+  const today = todayLocal(offset);
+  const groups = walkGroups(repertoire, { random: () => 0.5 });
+  const counts = { due: 0, fresh: 0, difficultDue: 0, difficult: 0, early: 0, all: 0 };
+  let nextDue = null;
+  for (const group of groups) {
+    for (const move of group.moves) {
+      counts.all += 1;
+      const due = isDue(move, today, offset);
+      if (!move.reps) counts.fresh += 1;
+      if (due) counts.due += 1;
+      else {
+        counts.early += 1;
+        if (!nextDue || move.due_at < nextDue) nextDue = move.due_at;
+      }
+      if (isDifficult(move)) {
+        counts.difficult += 1;
+        if (due) counts.difficultDue += 1;
+      }
+    }
+  }
   const settings = readSettings();
-  const now = nowIso();
-  const { graph, items } = reachableMine(repertoireId);
-  const newLimit = Number(limit) || Number(settings.newPerSession) || 10;
+  return { ...counts, nextDue, batch: Number(settings.dailyGoal) || 10 };
+}
 
-  let targets;
-  if (mode === "due") {
-    const due = items.filter((i) => isDue(i.move, now));
-    const fresh = items.filter((i) => i.move.reps === 0).slice(0, newLimit);
-    targets = [...due, ...fresh];
-  } else if (mode === "new") {
-    targets = items.filter((i) => i.move.reps === 0).slice(0, newLimit);
-  } else if (mode === "difficult") {
-    targets = items
-      .filter((i) => isDifficult(i.move))
-      .sort((a, b) => b.move.lapses - a.move.lapses || Number(b.move.difficulty) - Number(a.move.difficulty))
-      .slice(0, 40);
-  } else if (mode === "early") {
-    targets = items
-      .filter((i) => i.move.reps > 0 && !isDue(i.move, now))
-      .sort((a, b) => String(a.move.due_at).localeCompare(String(b.move.due_at)))
-      .slice(0, 30);
-  } else if (mode === "line") {
-    const prefix = Array.isArray(path) ? path : [];
-    targets = items.filter((i) => prefix.every((san, k) => i.path[k] === san) || i.path.every((san, k) => prefix[k] === san));
-  } else if (mode === "all") {
-    targets = items;
-  } else {
-    throw httpError(400, "Unknown practice mode");
-  }
+/* --------------------------------------------------------------- session --- */
 
-  // Keep depth-first order so related moves are practised together.
-  const order = new Map(items.map((item, index) => [item.move.id, index]));
-  targets = [...new Map(targets.map((t) => [t.move.id, t])).values()].sort(
-    (a, b) => order.get(a.move.id) - order.get(b.move.id)
-  );
-
-  const lines = [];
-  for (const target of targets) {
-    const current = lines[lines.length - 1];
-    if (current && target.path.length > current.sans.length && current.sans.every((s, i) => target.path[i] === s)) {
-      current.sans = target.path;
-      current.ask.push(target.path.length - 1);
-      current.moveIds.push(target.move.id);
-      continue;
-    }
-    lines.push({ sans: [...target.path], ask: [target.path.length - 1], moveIds: [target.move.id] });
-  }
-
-  if (settings.wholeLines || mode === "line") {
-    // Continue each line to its end along saved moves and ask every one of your moves.
-    for (const line of lines) {
-      extendToLeaf(line, graph, repertoire.color);
-    }
-  }
-
-  const byEpd = new Map();
-  for (const m of allMoves(repertoireId)) {
-    if (!byEpd.has(m.epd)) byEpd.set(m.epd, []);
-    byEpd.get(m.epd).push(m);
+function serializeGroup(group, { learning, offset, today, synthetic = false }) {
+  const epds = [epdOf(START_FEN)];
+  let fen = START_FEN;
+  for (const san of group.line) {
+    fen = applyMove(fen, san).fen;
+    epds.push(epdOf(fen));
   }
   return {
-    repertoireId: repertoire.id,
-    color: repertoire.color,
-    mode,
-    lines: lines.map((line) => decorateLine(line, byEpd, repertoire.color)),
-    total: targets.length,
+    epd: group.epd,
+    fen: group.fen,
+    line: group.line,
+    side: group.side,
+    synthetic,
+    opening: openingForPath(epds),
+    moves: group.moves.map((m) => {
+      const applied = applyMove(group.fen, m.san);
+      return {
+        moveId: m.id,
+        san: applied.san,
+        uci: applied.uci,
+        from: applied.from,
+        to: applied.to,
+        note: m.note || builtinNote(group.epd, applied.san),
+        // Learning = first practice; synthetic groups never teach.
+        learning: synthetic ? false : learning && !m.reps,
+        due: isDue(m, today, offset),
+        // A move with no saved continuation ends the line.
+        leaf: false,
+      };
+    }),
   };
 }
 
-function extendToLeaf(line, graph, color) {
-  let fen = START_FEN;
-  for (const san of line.sans) fen = applyMove(fen, san).fen;
-  for (let guard = 0; guard < 40; guard += 1) {
-    const moves = graph.get(epdOf(fen)) || [];
-    const next = moves.find((m) => m.mine === 1) || moves[0];
-    if (!next) break;
-    const applied = applyMove(fen, next.san);
-    if (!applied) break;
-    line.sans.push(applied.san);
-    if (next.mine === 1) {
-      line.ask.push(line.sans.length - 1);
-      line.moveIds.push(next.id);
-    }
-    fen = applied.fen;
-  }
-  // Ask every one of your moves in the line, not just the scheduled ones.
-  const ask = new Set(line.ask);
-  let f = START_FEN;
-  line.sans.forEach((san, index) => {
-    if (turnOf(f) === color) ask.add(index);
-    f = applyMove(f, san).fen;
-  });
-  line.ask = [...ask].sort((a, b) => a - b);
-}
+/**
+ * Build a session.
+ *  filter: due | daily | recommended | difficult-due | difficult | early | all | line
+ *  path:   for "line" (and "Practice from here"), the start of the line.
+ */
+export function buildSession(repertoireId, { filter = "due", path = [], tzOffset = null } = {}) {
+  if (!FILTERS.includes(filter)) throw httpError(400, "Unknown practice filter");
+  const repertoire = getRepertoire(repertoireId);
+  const settings = readSettings();
+  const offset = parseOffset(tzOffset);
+  const today = todayLocal(offset);
+  const style = settings.reviewStyle;
+  const batch = Number(settings.dailyGoal) || 10;
+  const learning = !settings.skipFirstPractice;
+  const graph = graphOf(repertoire.id);
 
-function decorateLine(line, byEpd, color) {
-  let fen = START_FEN;
-  const plies = [];
-  const epds = [epdOf(fen)];
-  for (const [index, san] of line.sans.entries()) {
-    const epd = epdOf(fen);
-    const applied = applyMove(fen, san);
-    const saved = byEpd.get(epd) || [];
-    const move = saved.find((m) => m.san === applied.san);
-    const asked = line.ask.includes(index);
-    plies.push({
-      san: applied.san,
-      uci: applied.uci,
-      from: applied.from,
-      to: applied.to,
-      fen,
-      side: turnOf(fen),
-      ask: asked,
-      moveId: move?.id ?? null,
-      fresh: asked && move ? move.reps === 0 : false,
-      note: move?.note || builtinNote(epd, applied.san),
-      // Other saved moves of yours from this position are accepted too.
-      alternatives: asked ? saved.filter((m) => m.mine === 1 && m.san !== applied.san).map((m) => m.san) : [],
-    });
-    fen = applied.fen;
-    epds.push(epdOf(fen));
+  const groups = walkGroups(repertoire);
+
+  const due = (g) => g.moves.some((m) => isDue(m, today, offset));
+  const difficult = (g) => g.moves.some((m) => isDifficult(m));
+  let selected;
+  switch (filter) {
+    case "due":
+      selected = groups.filter(due);
+      break;
+    case "daily":
+    case "recommended": {
+      // The most frequently reached due positions, kept in walk order.
+      const pool = groups.filter(due);
+      const keep = new Set([...pool].sort((a, b) => b.reach - a.reach).slice(0, batch));
+      selected = pool.filter((g) => keep.has(g));
+      break;
+    }
+    case "difficult-due":
+      selected = groups.filter((g) => due(g) && difficult(g));
+      break;
+    case "difficult":
+      selected = groups.filter(difficult);
+      break;
+    case "early": {
+      const pool = groups.filter((g) => !due(g));
+      const firstDue = (g) => g.moves.map((m) => m.due_at || "").sort()[0] || "";
+      const keep = new Set([...pool].sort((a, b) => firstDue(a).localeCompare(firstDue(b))).slice(0, batch));
+      selected = pool.filter((g) => keep.has(g));
+      break;
+    }
+    case "line": {
+      // The positions along the line and everything after its end.
+      const prefix = Array.isArray(path) ? path : [];
+      const isPrefix = (a, b) => a.length <= b.length && a.every((san, i) => b[i] === san);
+      selected = groups.filter((g) => isPrefix(g.line, prefix) || isPrefix(prefix, g.line));
+      break;
+    }
+    default:
+      selected = groups;
   }
-  const firstAsk = plies.findIndex((p) => p.ask);
+
+  const ended = (group, san) => {
+    const next = applyMove(group.fen, san);
+    return !next || !(graph.get(next.epd) || []).length;
+  };
+  const serialize = (g, opts) => {
+    const out = serializeGroup(g, { learning, offset, today, ...opts });
+    out.moves.forEach((m) => {
+      m.leaf = ended(g, m.san);
+    });
+    return out;
+  };
+
+  const lineStyle = style === "every" || style === "once";
   return {
-    sans: line.sans,
-    plies,
-    start: Math.max(0, firstAsk),
-    opening: openingForPath(epds),
-    color,
+    repertoireId: repertoire.id,
+    color: repertoire.color,
+    filter,
+    style,
+    pause: settings.reviewPauseBehavior,
+    groups: selected.map((g) => ({
+      ...serialize(g, {}),
+      // In "complete lines" styles the positions before this one are asked too, unscored.
+      preceding: lineStyle ? g.preceding.map((p) => serialize({ ...p, moves: p.moves }, { synthetic: true })) : [],
+    })),
   };
 }
 
 /* --------------------------------------------------------------- reviews --- */
 
 /**
- * Record an answer for one of your moves.
- * kind "learn": first time you were shown the move (no scheduling yet).
- * kind "review": you recalled it; `correct` is false if you needed more than one try.
+ * Record the results of one quiz group. Each result: { moveId, correct, played }.
+ * Mirrors production's moves_reviewed: one call per group, idempotent by
+ * submissionId, returning each move's new schedule.
  */
-export function recordReview(repertoireId, { moveId, correct, played = null, kind = "review", hinted = false, submissionId = null, tzOffset = null }) {
-  const move = db.prepare("SELECT * FROM moves WHERE id = ? AND repertoire_id = ?").get(Number(moveId), Number(repertoireId));
-  if (!move) throw httpError(404, "Move not found");
-  if (move.mine !== 1) throw httpError(400, "Only your own moves are reviewed");
-  if (submissionId) {
-    const existing = db.prepare("SELECT * FROM reviews WHERE submission_id = ?").get(String(submissionId));
-    if (existing) return { duplicate: true, move: serializeMove(move) };
-  }
+export function recordGroup(repertoireId, { submissionId, results = [], daily = false, tzOffset = null }) {
+  getRepertoire(repertoireId);
+  if (!Array.isArray(results) || !results.length) throw httpError(400, "No results");
   const at = nowIso();
   const day = localDay(at, parseOffset(tzOffset));
-  let next = move;
-  let grade = null;
-  if (kind === "learn") {
-    db.prepare("UPDATE moves SET state = 'learning' WHERE id = ?").run(move.id);
-  } else {
-    grade = correct ? (hinted ? 2 : 3) : 1;
-    const result = schedule(move, grade, at);
-    db.prepare(
-      `UPDATE moves SET state = ?, stability = ?, difficulty = ?, reps = ?, lapses = ?, due_at = ?, last_review = ?
-       WHERE id = ?`
-    ).run(result.state, result.stability, result.difficulty, result.reps, result.lapses, result.dueAt, result.lastReview, move.id);
-    next = db.prepare("SELECT * FROM moves WHERE id = ?").get(move.id);
+  const out = [];
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    for (const [index, result] of results.entries()) {
+      const move = db
+        .prepare("SELECT * FROM moves WHERE id = ? AND repertoire_id = ?")
+        .get(Number(result.moveId), Number(repertoireId));
+      if (!move) throw httpError(404, "Move not found");
+      if (move.mine !== 1) throw httpError(400, "Only your own moves are reviewed");
+      const key = submissionId ? `${String(submissionId).slice(0, 64)}:${index}` : null;
+      if (key && db.prepare("SELECT 1 FROM reviews WHERE submission_id = ?").get(key)) {
+        out.push(srsView(move));
+        continue;
+      }
+      const firstReview = !move.reps;
+      const grade = result.correct ? 3 : 1;
+      const next = schedule(move, grade, at);
+      db.prepare(
+        `UPDATE moves SET state = ?, stability = ?, difficulty = ?, reps = ?, lapses = ?, due_at = ?,
+           last_review = ?, interval_days = ? WHERE id = ?`
+      ).run(next.state, next.stability, next.difficulty, next.reps, next.lapses, next.dueAt, next.lastReview, next.intervalDays, move.id);
+      db.prepare(
+        `INSERT INTO reviews (repertoire_id, move_id, epd, san, played, correct, grade, kind, submission_id, at, day)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(
+        move.repertoire_id,
+        move.id,
+        move.epd,
+        move.san,
+        result.played ? String(result.played).slice(0, 12) : null,
+        result.correct ? 1 : 0,
+        grade,
+        firstReview ? "first" : daily ? "daily" : "review",
+        key,
+        at,
+        day
+      );
+      out.push(srsView(db.prepare("SELECT * FROM moves WHERE id = ?").get(move.id)));
+    }
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
   }
-  db.prepare(
-    `INSERT INTO reviews (repertoire_id, move_id, epd, san, played, correct, grade, kind, submission_id, at, day)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(move.repertoire_id, move.id, move.epd, move.san, played, correct ? 1 : 0, grade, kind, submissionId, at, day);
-  return { duplicate: false, move: serializeMove(next) };
+  return out;
 }
 
-export function serializeMove(move) {
+export function srsView(move) {
   return {
-    id: move.id,
-    san: move.san,
-    epd: move.epd,
-    state: move.state,
-    reps: move.reps,
-    lapses: move.lapses,
+    moveId: move.id,
     dueAt: move.due_at,
-    stability: move.stability,
-    mastered: Number(move.stability) >= MASTERED_DAYS,
-    note: move.note,
+    firstReview: !move.reps,
+    difficulty: difficultyOf(move),
+    interval: Math.round(intervalOf(move) * 10) / 10,
+    mastery: masteryOf(move),
+    status: statusOf(move),
   };
 }
+
+/* ------------------------------------------------------------ progress --- */
 
 export function dailyProgress(tzOffset = null) {
   const offset = parseOffset(tzOffset);
   const today = todayLocal(offset);
   const settings = readSettings();
-  // Only graded answers count; being shown a new move is not a review.
-  const rows = db
-    .prepare("SELECT day, COUNT(*) AS n, SUM(correct) AS ok FROM reviews WHERE kind = 'review' GROUP BY day")
-    .all();
+  const rows = db.prepare("SELECT day, COUNT(*) AS n, SUM(correct) AS ok FROM reviews GROUP BY day").all();
   const days = rows.map((r) => r.day);
   const todayRow = rows.find((r) => r.day === today);
   const streak = computeStreak(days, offset, today);
@@ -269,7 +348,7 @@ export function dailyProgress(tzOffset = null) {
     today,
     reviewed: todayRow?.n || 0,
     correct: todayRow?.ok || 0,
-    goal: Number(settings.dailyGoal) || 20,
+    goal: Number(settings.dailyGoal) || 10,
     streak: streak.current,
     bestStreak: streak.highest,
     practicedToday: Boolean(todayRow),
@@ -280,7 +359,7 @@ export function recentMistakes(repertoireId, limit = 20) {
   return db
     .prepare(
       `SELECT r.*, m.note FROM reviews r LEFT JOIN moves m ON m.id = r.move_id
-       WHERE r.repertoire_id = ? AND r.correct = 0 AND r.kind = 'review'
+       WHERE r.repertoire_id = ? AND r.correct = 0
        ORDER BY r.at DESC LIMIT ?`
     )
     .all(Number(repertoireId), limit);
@@ -290,9 +369,5 @@ export function reviewHistory({ repertoireId = null, limit = 100 } = {}) {
   const rows = repertoireId
     ? db.prepare("SELECT * FROM reviews WHERE repertoire_id = ? ORDER BY at DESC LIMIT ?").all(Number(repertoireId), limit)
     : db.prepare("SELECT * FROM reviews ORDER BY at DESC LIMIT ?").all(limit);
-  return rows.map((r) => ({
-    ...r,
-    correct: r.correct === 1,
-    opening: openingAt(r.epd),
-  }));
+  return rows.map((r) => ({ ...r, correct: r.correct === 1, opening: openingAt(r.epd) }));
 }

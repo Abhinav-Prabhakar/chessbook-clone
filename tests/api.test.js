@@ -134,48 +134,81 @@ describe("coverage and gaps", () => {
 });
 
 describe("practice", () => {
-  test("a due session walks lines and asks only your moves", async () => {
-    const { body } = await get("/practice/1/session?mode=due");
-    assert.ok(body.lines.length > 0);
-    const first = body.lines[0];
-    for (const ply of first.plies) {
-      if (ply.ask) assert.equal(ply.side, "white");
-    }
-    // The open Sicilian line: e4 c5 Nf3 Nc6 d4 cxd4 Nxd4.
-    const sicilian = body.lines.find((l) => l.sans.slice(0, 4).join(" ") === "e4 c5 Nf3 Nc6");
-    assert.ok(sicilian);
-    assert.deepEqual(
-      sicilian.plies.filter((p) => p.ask).map((p) => p.san),
-      ["e4", "Nf3", "d4", "Nxd4"]
-    );
+  test("new moves count as due and are in first practice", async () => {
+    const { body } = await get("/practice/1");
+    assert.equal(body.counts.due, body.counts.fresh, "every never-practised move is due");
+    assert.ok(body.counts.due > 0);
+    assert.equal(body.counts.batch, 10);
   });
 
-  test("learning does not schedule; recall does; mistakes come back soon", async () => {
-    const { body } = await get("/practice/1/session?mode=new");
-    const ask = body.lines[0].plies.find((p) => p.ask);
-    const learn = await post("/practice/1/review", { moveId: ask.moveId, correct: true, kind: "learn" });
-    assert.equal(learn.body.move.reps, 0);
+  test("a session is a depth-first queue of position groups", async () => {
+    const { body } = await get("/practice/1/session?filter=due");
+    assert.equal(body.style, "selective");
+    assert.deepEqual(body.groups[0].line, [], "starts with your first move");
+    assert.deepEqual(body.groups[0].moves.map((m) => m.san), ["e4"]);
+    for (const group of body.groups) {
+      assert.equal(group.side, "white");
+      for (const m of group.moves) assert.equal(m.learning, true);
+    }
+    // Every position of the open Sicilian with ...Nc6 is a group.
+    const lines = body.groups.map((g) => g.line.join(" "));
+    for (const line of ["e4 c5", "e4 c5 Nf3 Nc6", "e4 c5 Nf3 Nc6 d4 cxd4"]) assert.ok(lines.includes(line), line);
+    const leaf = body.groups.find((g) => g.line.join(" ") === "e4 c5 Nf3 Nc6 d4 cxd4");
+    assert.equal(leaf.moves[0].san, "Nxd4");
+    assert.equal(leaf.moves[0].leaf, true);
+  });
 
-    const good = await post("/practice/1/review", { moveId: ask.moveId, correct: true, kind: "review", submissionId: "t-1" });
-    assert.equal(good.body.move.reps, 1);
-    const days = (Date.parse(good.body.move.dueAt) - Date.now()) / 86400000;
-    assert.ok(days > 1 && days < 10, `first interval ${days} days`);
+  test("practising a line covers the positions along and after it", async () => {
+    const { body } = await get("/practice/1/session?filter=line&path=e4,c5");
+    const lines = body.groups.map((g) => g.line.join(" "));
+    assert.ok(lines.includes("") && lines.includes("e4 c5"));
+    assert.ok(lines.every((l) => l === "" || l.startsWith("e4 c5")));
+  });
 
-    const again = await post("/practice/1/review", { moveId: ask.moveId, correct: true, kind: "review", submissionId: "t-1" });
-    assert.equal(again.body.duplicate, true, "same submission is ignored");
+  test("results are reported once per group, idempotently", async () => {
+    const { body } = await get("/practice/1/session?filter=due");
+    const group = body.groups[0];
+    const results = group.moves.map((m) => ({ moveId: m.moveId, correct: true }));
+    const first = await post("/practice/1/reviews", { submissionId: "group-1", results });
+    assert.equal(first.status, 200);
+    const srs = first.body.srs[0];
+    assert.equal(srs.firstReview, false);
+    assert.ok(srs.interval > 1 && srs.interval < 10, `first interval ${srs.interval}`);
+    assert.ok(srs.mastery > 0 && srs.mastery < 1);
+    const again = await post("/practice/1/reviews", { submissionId: "group-1", results });
+    assert.deepEqual(again.body.srs, first.body.srs, "same submission is ignored");
+    const counts = (await get("/practice/1")).body.counts;
+    assert.equal(counts.fresh, counts.all - group.moves.length);
+  });
 
-    const other = body.lines[0].plies.filter((p) => p.ask)[1];
-    const miss = await post("/practice/1/review", { moveId: other.moveId, correct: false, played: "Nc3", kind: "review" });
-    const hours = (Date.parse(miss.body.move.dueAt) - Date.now()) / 3600000;
-    assert.ok(hours < 24, "a missed move is due again within a day");
-    assert.equal(miss.body.move.lapses, 1);
+  test("a missed move comes back soon and counts as difficult after repeated misses", async () => {
+    const { body } = await get("/practice/1/session?filter=due");
+    const move = body.groups[1].moves[0];
+    let res;
+    for (let i = 0; i < 3; i += 1) {
+      res = await post("/practice/1/reviews", { submissionId: `miss-${i}`, results: [{ moveId: move.moveId, correct: false, played: "Nc3" }] });
+    }
+    const srs = res.body.srs[0];
+    assert.ok(srs.interval < 1, "due again within a day");
+    assert.ok(srs.difficulty > 0.6, `difficulty ${srs.difficulty}`);
+    const counts = (await get("/practice/1")).body.counts;
+    assert.ok(counts.difficult >= 1);
   });
 
   test("opponent moves cannot be reviewed", async () => {
-    const { body } = await get("/practice/1/session?mode=all");
-    const theirs = body.lines[0].plies.find((p) => !p.ask && p.moveId && p.side === "black");
-    const res = await post("/practice/1/review", { moveId: theirs.moveId, correct: true });
+    // The starter repertoire saves 1.e4 first, then Black's 1...c5 (id 2).
+    const res = await post("/practice/1/reviews", { results: [{ moveId: 2, correct: true }] });
     assert.equal(res.status, 400);
+  });
+
+  test("moves outside the repertoire are judged by the engine", async () => {
+    const fen = "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3";
+    const good = await post("/practice/judge", { fen, uci: "f1b5" });
+    assert.equal(good.body.classification, "good");
+    assert.equal(good.body.refutation, null);
+    const blunder = await post("/practice/judge", { fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5Q2/PPPP1PPP/RNB1KBNR w KQkq - 2 3", uci: "f3f7" });
+    assert.equal(blunder.body.classification, "blunder");
+    assert.equal(blunder.body.refutation.san, "Kxf7");
   });
 
   test("daily progress counts today's reviews", async () => {
@@ -199,6 +232,13 @@ describe("import, settings, puzzles", () => {
 
   test("settings are validated", async () => {
     assert.equal((await call("PATCH", "/settings", { coverageGoal: 7 })).status, 400);
+    assert.equal((await call("PATCH", "/settings", { reviewStyle: "sometimes" })).status, 400);
+    assert.equal((await call("PATCH", "/settings", { reviewStyle: "every", reviewPauseBehavior: "when-wrong" })).status, 200);
+    const lineStyle = await get("/practice/1/session?filter=all");
+    const deep = lineStyle.body.groups.find((g) => g.line.length > 4);
+    assert.ok(deep.preceding.length > 0, "complete-lines style includes the positions before");
+    assert.ok(deep.preceding.every((p) => p.synthetic));
+    await call("PATCH", "/settings", { reviewStyle: "selective", reviewPauseBehavior: "never" });
     const ok = await call("PATCH", "/settings", { rating: 1900, ratingSystem: "lichess" });
     assert.equal(ok.body.band, "1800-1999");
     await call("PATCH", "/settings", { rating: 1500, ratingSystem: "chesscom" });

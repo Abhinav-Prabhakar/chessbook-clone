@@ -22,17 +22,21 @@ const TIME_CONTROLS: Choice<Settings["timeControl"]>[] = [
   { value: "classical", label: "Classical" },
 ];
 const COVERAGE: Choice<number>[] = [20, 50, 100, 200, 500].map((n) => ({ value: n, label: `1 in ${n} games` }));
-const GOALS: Choice<number>[] = [10, 20, 30, 50, 100].map((n) => ({ value: n, label: `${n} moves` }));
-const NEW_MOVES: Choice<number>[] = [5, 10, 20, 50].map((n) => ({ value: n, label: `${n} moves` }));
-const PAUSES: Choice<number>[] = [
-  { value: 0, label: "Never" },
-  { value: 500, label: "Half a second" },
-  { value: 1000, label: "One second" },
-  { value: 2000, label: "Two seconds" },
+const GOALS: Choice<number>[] = [10, 20, 50].map((n) => ({ value: n, label: `${n} moves` }));
+const PAUSES: Choice<Settings["reviewPauseBehavior"]>[] = [
+  { value: "never", label: "Never" },
+  { value: "always", label: "Always" },
+  { value: "when-wrong", label: "When you get it wrong" },
+  { value: "when-annotation", label: "When there's a note" },
 ];
-const PRACTICE: Choice<boolean>[] = [
-  { value: false, label: "Individual moves", meta: "Only the moves that are due" },
-  { value: true, label: "Whole lines", meta: "Every one of your moves in a line, from the first move" },
+const PRACTICE: Choice<Settings["reviewStyle"]>[] = [
+  { value: "selective", label: "Individual moves", meta: "Only the positions you're practising" },
+  { value: "every", label: "Complete lines (every time)", meta: "Play each line from the first move, every time" },
+  { value: "once", label: "Complete lines (once per session)", meta: "Play each line from the first move, without repeating positions" },
+];
+const FIRST_PRACTICE: Choice<boolean>[] = [
+  { value: false, label: "On", meta: "New moves are shown with an arrow the first time" },
+  { value: true, label: "Off", meta: "New moves are asked like any other move" },
 ];
 const ANIMATIONS: Choice<Settings["animation"]>[] = [
   { value: "off", label: "None" },
@@ -101,19 +105,24 @@ export function SettingsPage() {
           choices={COVERAGE}
         />
       )}
-      {page === "practice" && <ChoicePage title="Practice" sub="What practice asks you to play." setting="wholeLines" choices={PRACTICE} />}
-      {page === "goal" && <ChoicePage title="Daily practice goal" setting="dailyGoal" choices={GOALS} />}
-      {page === "new-moves" && (
+      {page === "practice" && <ChoicePage title="Practice" setting="reviewStyle" choices={PRACTICE} />}
+      {page === "goal" && (
         <ChoicePage
-          title="New moves per session"
-          sub="New moves are shown with an arrow first, then asked again from memory at the end of the session."
-          setting="newPerSession"
-          choices={NEW_MOVES}
+          title="Daily practice goal"
+          sub="The number of moves in each daily practice session, and in each batch of recommended moves."
+          setting="dailyGoal"
+          choices={GOALS}
         />
       )}
-      {page === "pause" && (
-        <ChoicePage title="Pause after playing a move" sub="How long to wait before your opponent's reply is played." setting="autoplayDelay" choices={PAUSES} />
+      {page === "first-practice" && (
+        <ChoicePage
+          title="First practice"
+          sub="The first time you practise a move, it's shown on the board with an arrow."
+          setting="skipFirstPractice"
+          choices={FIRST_PRACTICE}
+        />
       )}
+      {page === "pause" && <ChoicePage title="Pause after playing a move" setting="reviewPauseBehavior" choices={PAUSES} />}
       {page === "appearance" && <AppearancePage />}
       {page === "appearance/board" && <ChoicePage title="Board" setting="boardTheme" choices={THEMES} back="/settings/appearance" swatches />}
       {page === "appearance/pieces" && <ChoicePage title="Pieces" setting="pieceSet" choices={PIECES} back="/settings/appearance" pieces />}
@@ -137,10 +146,10 @@ function SettingsList() {
         <Row title="Cover positions seen in" right={<Value>{`1 in ${settings.coverageGoal} games`}</Value>} to="/settings/coverage" />
       </div>
       <SettingsGroup title="Review settings">
-        <Row title="Practice" right={<Value>{labelOf(PRACTICE, settings.wholeLines)}</Value>} to="/settings/practice" />
+        <Row title="Practice" right={<Value>{labelOf(PRACTICE, settings.reviewStyle)}</Value>} to="/settings/practice" />
         <Row title="Daily practice goal" right={<Value>{`${settings.dailyGoal} moves`}</Value>} to="/settings/goal" />
-        <Row title="New moves per session" right={<Value>{`${settings.newPerSession} moves`}</Value>} to="/settings/new-moves" />
-        <Row title="Pause after playing a move" right={<Value>{labelOf(PAUSES, settings.autoplayDelay)}</Value>} to="/settings/pause" />
+        <Row title="Pause after playing a move" right={<Value>{labelOf(PAUSES, settings.reviewPauseBehavior)}</Value>} to="/settings/pause" />
+        <Row title="First practice" right={<Value>{labelOf(FIRST_PRACTICE, settings.skipFirstPractice)}</Value>} to="/settings/first-practice" />
       </SettingsGroup>
       <SettingsGroup title="Board settings">
         <Row title="Appearance" right={<Value>{labelOf(THEMES, settings.boardTheme)}</Value>} to="/settings/appearance" />

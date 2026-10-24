@@ -91,55 +91,94 @@ try {
   const fen = () => page.locator(".board").getAttribute("data-fen");
 
   /* ---------------------------------------------------------- practice --- */
-  const freshBefore = (await (await fetch(`${base}/api/practice/1`)).json()).counts.fresh;
-  const session = await (await fetch(`${base}/api/practice/1/session?mode=new`)).json();
-  const askedByFen = new Map();
-  for (const line of session.lines) for (const p of line.plies) if (p.ask) askedByFen.set(p.fen, p);
-  check("session has lines to learn", session.lines.length > 0, `${session.lines.length} lines`);
+  const before = (await (await fetch(`${base}/api/practice/1`)).json()).counts;
+  check("new moves count as due", before.due === before.fresh && before.due > 0, `${before.due} due, ${before.fresh} new`);
+  const session = await (await fetch(`${base}/api/practice/1/session?filter=due`)).json();
+  const groupsByFen = new Map(session.groups.map((g) => [g.fen, g]));
+  check("session is a queue of position groups", session.groups.length > 0, `${session.groups.length} groups`);
 
-  await page.goto(`${base}/repertoires/1/practice?mode=new`);
-  await page.waitForSelector(".board.interactive");
-  await page.screenshot({ path: join(out, "01-learn.png") });
-  check("first new move is taught with an arrow", (await page.locator(".board .arrows").count()) === 1);
-
-  let mistakeTested = false;
-  let answered = 0;
-  for (let guard = 0; guard < 200; guard += 1) {
-    const state = await waitFor(async () => {
-      if ((await page.locator("h1", { hasText: "Session complete" }).count()) > 0) return "done";
+  const state = () =>
+    waitFor(async () => {
+      if ((await page.locator("h1", { hasText: /complete!|Perfect practice/ }).count()) > 0) return "done";
       if ((await page.locator(".board.interactive").count()) > 0) return "ask";
+      if ((await page.getByText("Got it, continue practicing").count()) > 0) return "pause";
       return null;
     }, 20000, "next question");
-    if (state === "done") break;
-    const current = await fen();
-    const ply = askedByFen.get(current);
-    if (!ply) throw new Error(`Asked at an unexpected position ${current}`);
-    const recall = (await page.locator(".tag", { hasText: "From memory" }).count()) > 0;
-    if (recall && !mistakeTested) {
-      // Play a legal move that is not the answer.
-      const chess = new Chess(current);
-      const wrong = chess.moves({ verbose: true }).find((m) => m.san !== ply.san && !ply.alternatives.includes(m.san));
-      const counters = await page.locator(".counters").innerText();
-      await play(wrong.from, wrong.to);
-      await page.waitForSelector(".feedback.bad");
-      await page.screenshot({ path: join(out, "02-wrong-move.png") });
-      await waitFor(async () => (await fen()) === current, 3000, "wrong move taken back");
-      check("a wrong move is shown, then taken back", true, `${wrong.san} instead of ${ply.san}`);
-      check("a wrong move does not change the counters", (await page.locator(".counters").innerText()) === counters);
-      await page.waitForSelector(".board.interactive");
-      mistakeTested = true;
-    }
-    await play(ply.from, ply.to);
-    answered += 1;
-    await waitFor(async () => (await fen()) !== current, 5000, "move accepted");
-  }
-  check("every question was answered", answered > 0, `${answered} answers`);
-  check("recall pass happened", mistakeTested);
-  await page.screenshot({ path: join(out, "03-complete.png") });
-  check("session completes", (await page.locator("h1", { hasText: "Session complete" }).count()) === 1);
+  const counter = async (i) => Number((await page.locator(".counters .counter").nth(i).innerText()).match(/\d+/)[0]);
 
-  const counts = await (await fetch(`${base}/api/practice/1`)).json();
-  check("learned moves are no longer new", counts.counts.fresh === freshBefore - session.total, `${freshBefore} → ${counts.counts.fresh} new`);
+  await page.goto(`${base}/repertoires/1/practice?filter=due`);
+  await page.waitForSelector(".board.interactive");
+  await page.screenshot({ path: join(out, "01-learn.png") });
+  check("first practice shows the move with an arrow", (await page.locator(".board .arrows").count()) === 1);
+  check("first practice has no 'I don't know' button", (await page.getByText("I don't know").count()) === 0);
+  check("first practice offers to skip it", (await page.getByText("Skip first practice").count()) === 1);
+
+  let answered = 0;
+  let resumed = false;
+  let wrongTested = false;
+  let hintTested = false;
+  for (let guard = 0; guard < 300; guard += 1) {
+    const now = await state();
+    if (now === "done") break;
+    if (now === "pause") {
+      await page.getByText("Got it, continue practicing").click();
+      continue;
+    }
+    const fen = await page.locator(".board").getAttribute("data-fen");
+    const group = groupsByFen.get(fen);
+    if (!group) throw new Error(`Asked at an unexpected position ${fen}`);
+    const recall = (await page.getByText(/I don't know/).count()) > 0;
+
+    if (recall && !wrongTested) {
+      // Three wrong moves: each is judged, shown with a badge and taken back; then the arrows appear.
+      const chess = new Chess(fen);
+      const wrongs = chess.moves({ verbose: true }).filter((m) => !group.moves.some((x) => x.san === m.san));
+      const incorrectBefore = await counter(2);
+      for (let k = 0; k < 3; k += 1) {
+        const w = wrongs[k * 3 % wrongs.length];
+        await play(w.from, w.to);
+        await page.waitForSelector(".square-feedback");
+        if (k === 0) await page.screenshot({ path: join(out, "02-wrong-move.png") });
+        await waitFor(async () => (await page.locator(".square-feedback").count()) === 0 && (await page.locator(".board").getAttribute("data-fen")) === fen, 8000, "take back");
+        await page.waitForSelector(".board.interactive");
+      }
+      check("a wrong move is judged, shown with a badge and taken back", true);
+      check("the incorrect counter goes up once per position", (await counter(2)) === incorrectBefore + 1, `${incorrectBefore} → ${await counter(2)}`);
+      check("arrows appear after three wrong guesses", (await page.locator(".board .arrows").count()) === 1);
+      wrongTested = true;
+    } else if (recall && !hintTested && group.moves.some((m) => m.note)) {
+      await page.getByText("I don't know, give me a hint").click();
+      check("the first hint reveals the note", (await page.locator(".quiz-note.hidden").count()) === 0);
+      await page.getByText("I don't know, show me the answer").click();
+      check("the second shows the answer with an arrow", (await page.locator(".board .arrows").count()) === 1);
+      hintTested = true;
+    }
+
+    const move = group.moves[0];
+    await play(move.from, move.to);
+    answered += 1;
+    await waitFor(async () => (await page.locator(".board").getAttribute("data-fen")) !== fen, 5000, "move accepted");
+
+    if (answered === 3 && !resumed) {
+      // Leave mid-session and come back to it.
+      await page.getByText("Exit practice").click();
+      await page.waitForSelector("text=Continue your practice session");
+      check("the practice menu offers to resume", true);
+      await page.getByText("Continue your practice session").click();
+      await page.waitForSelector(".board.interactive");
+      resumed = true;
+    }
+  }
+  check("every position was answered", answered > 0, `${answered} answers`);
+  check("first-practice moves came back once without arrows", wrongTested);
+  check("the hint ladder works", hintTested);
+  await page.screenshot({ path: join(out, "03-complete.png") });
+  const header = await page.locator("h1").first().innerText();
+  check("session ends with production's summary", /complete!|Perfect practice/.test(header), header);
+  check("the summary lists the session's stats", (await page.getByText("Your stats from").count()) === 1);
+
+  const after = (await (await fetch(`${base}/api/practice/1`)).json()).counts;
+  check("practised moves are no longer new", after.fresh < before.fresh, `${before.fresh} → ${after.fresh} new`);
   const dash = await (await fetch(`${base}/api/dashboard`)).json();
   check("dashboard counts today's reviews", dash.daily.reviewed > 0, `${dash.daily.reviewed} today`);
 
@@ -148,7 +187,7 @@ try {
   await page.waitForSelector(".board.interactive");
   await page.waitForSelector(".cand");
   const repBefore = (await (await fetch(`${base}/api/repertoires/2`)).json()).repertoire;
-  const before = repBefore.stats.saved;
+  const savedBefore = repBefore.stats.saved;
   // Black repertoire: the opponent moves first. Explore 1.e4, then answer 1...c5 on the board.
   const urlHas = (text) => waitFor(async () => decodeURIComponent(page.url()).includes(text), 8000, `URL with ${text}`);
   await play("e2", "e4");
@@ -160,7 +199,7 @@ try {
   await page.waitForTimeout(300);
   await page.screenshot({ path: join(out, "04-builder.png") });
   const afterSave = (await (await fetch(`${base}/api/repertoires/2`)).json()).repertoire;
-  check("a move played in the builder is saved", afterSave.stats.saved === before + 2, `${before} → ${afterSave.stats.saved}`);
+  check("a move played in the builder is saved", afterSave.stats.saved === savedBefore + 2, `${savedBefore} → ${afterSave.stats.saved}`);
   check("completion rises after answering 1.e4", afterSave.completion > repBefore.completion, `${repBefore.completion}% → ${afterSave.completion}%`);
 
   /* ------------------------------------------------------- transitions --- */

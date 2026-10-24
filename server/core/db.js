@@ -252,6 +252,13 @@ db.exec(`
 `);
 db.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('schema', ?)").run(String(SCHEMA_VERSION));
 
+// Additive columns (no data loss on existing databases).
+function addColumn(table, column, type) {
+  const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
+  if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+}
+addColumn("moves", "interval_days", "REAL");
+
 export function getMeta(key) {
   return db.prepare("SELECT value FROM meta WHERE key = ?").get(key)?.value ?? null;
 }

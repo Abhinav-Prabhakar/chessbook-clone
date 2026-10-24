@@ -19,7 +19,8 @@ import {
   setMoveNote,
 } from "./repertoire.js";
 import { autofill, computeCoverage, coverageContext, reachOf } from "./coverage.js";
-import { buildSession, dailyProgress, queueCounts, recordReview, recentMistakes, reviewHistory } from "./practice.js";
+import { buildSession, dailyProgress, queueCounts, recordGroup, recentMistakes, reviewHistory } from "./practice.js";
+import { judgeMove } from "./judge.js";
 import { readSettings, writeSettings, userBand, lichessEquivalent, BANDS } from "./settings.js";
 import { positionEval, cachedEval } from "./engine-cache.js";
 import * as models from "./model-games.js";
@@ -65,9 +66,9 @@ function touch(repertoireId) {
   db.prepare("UPDATE repertoires SET updated_at = ? WHERE id = ?").run(nowIso(), Number(repertoireId));
 }
 
-function summary(repertoire) {
+function summary(repertoire, tz = null) {
   const stats = moveStats(repertoire.id);
-  const counts = queueCounts(repertoire.id);
+  const counts = queueCounts(repertoire.id, tz);
   const coverage = coverageFor(repertoire.id);
   const gap = coverage.gaps[0] || null;
   return {
@@ -79,7 +80,8 @@ function summary(repertoire) {
     due: counts.due,
     fresh: counts.fresh,
     difficult: counts.difficult,
-    scheduled: counts.scheduled,
+    difficultDue: counts.difficultDue,
+    scheduled: counts.early,
     nextDue: counts.nextDue,
     biggestGap: gap ? gapView(gap) : null,
     gapCount: coverage.gaps.length,
@@ -126,7 +128,7 @@ api.patch(
 api.get(
   "/dashboard",
   wrap((req) => {
-    const repertoires = listRepertoires().map(summary);
+    const repertoires = listRepertoires().map((r) => summary(r, req.query.tz));
     const daily = dailyProgress(req.query.tz);
     const due = repertoires.reduce((s, r) => s + r.due, 0);
     const fresh = repertoires.reduce((s, r) => s + r.fresh, 0);
@@ -146,7 +148,7 @@ api.get(
       tasks: {
         due,
         fresh,
-        practiceRepertoire: repertoires.find((r) => r.due > 0)?.id ?? repertoires.find((r) => r.fresh > 0)?.id ?? null,
+        practiceRepertoire: repertoires.find((r) => r.due > 0)?.id ?? null,
         gap: gapRep ? { repertoireId: gapRep.id, repertoireName: gapRep.name, ...gapRep.biggestGap } : null,
         model,
       },
@@ -157,7 +159,7 @@ api.get(
 
 /* ----------------------------------------------------------- repertoires --- */
 
-api.get("/repertoires", wrap(() => ({ repertoires: listRepertoires().map(summary) })));
+api.get("/repertoires", wrap((req) => ({ repertoires: listRepertoires().map((r) => summary(r, req.query.tz)) })));
 
 api.post(
   "/repertoires",
@@ -171,7 +173,7 @@ api.get(
   "/repertoires/:id",
   wrap((req) => {
     const repertoire = getRepertoire(req.params.id);
-    return { repertoire: summary(repertoire), daily: dailyProgress(req.query.tz) };
+    return { repertoire: summary(repertoire, req.query.tz), daily: dailyProgress(req.query.tz) };
   })
 );
 
@@ -431,8 +433,8 @@ api.get(
   wrap((req) => {
     const repertoire = getRepertoire(req.params.id);
     return {
-      repertoire: summary(repertoire),
-      counts: queueCounts(repertoire.id),
+      repertoire: summary(repertoire, req.query.tz),
+      counts: queueCounts(repertoire.id, req.query.tz),
       daily: dailyProgress(req.query.tz),
       mistakes: recentMistakes(repertoire.id, 8).map((r) => ({ san: r.san, played: r.played, epd: r.epd, at: r.at, opening: openingAt(r.epd) })),
     };
@@ -443,27 +445,32 @@ api.get(
   "/practice/:id/session",
   wrap((req) =>
     buildSession(req.params.id, {
-      mode: String(req.query.mode || "due"),
-      path: req.query.path ? pathParam(req.query.path) : null,
+      filter: String(req.query.filter || req.query.mode || "due"),
+      path: req.query.path ? pathParam(req.query.path) : [],
+      tzOffset: req.query.tz,
     })
   )
 );
 
+/** One quiz group's results, like production's moves_reviewed. */
 api.post(
-  "/practice/:id/review",
+  "/practice/:id/reviews",
   wrap((req) => {
     const body = req.body || {};
-    const result = recordReview(req.params.id, {
-      moveId: body.moveId,
-      correct: Boolean(body.correct),
-      played: body.played ? String(body.played).slice(0, 12) : null,
-      kind: body.kind === "learn" ? "learn" : "review",
-      hinted: Boolean(body.hinted),
-      submissionId: body.submissionId ? String(body.submissionId).slice(0, 64) : null,
+    const srs = recordGroup(req.params.id, {
+      submissionId: body.submissionId ? String(body.submissionId) : null,
+      results: Array.isArray(body.results) ? body.results : [],
+      daily: Boolean(body.daily),
       tzOffset: body.tzOffset,
     });
-    return { ...result, daily: dailyProgress(body.tzOffset) };
+    return { srs, daily: dailyProgress(body.tzOffset) };
   })
+);
+
+/** Judge a move that isn't in the repertoire (alternative / inaccuracy / mistake / blunder). */
+api.post(
+  "/practice/judge",
+  wrap(async (req) => judgeMove(String(req.body?.fen || ""), String(req.body?.uci || "")))
 );
 
 api.get(
