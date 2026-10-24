@@ -1,7 +1,7 @@
 {
   "name": "chessbook",
   "version": "1.0.0",
-  "description": "Chessbook — full-stack opening repertoire trainer (React + Express + SQLite)",
+  "description": "Chessbook \u2014 full-stack opening repertoire trainer (React + Express + SQLite)",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -15,7 +15,8 @@
     "start": "node server/index.js",
     "preview": "vite preview --config app/vite.config.ts",
     "db:reset": "node server/reset.js",
-    "serve:static": "python3 -m http.server 4173"
+    "serve:static": "python3 -m http.server 4173",
+    "test": "node --test tests/server"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,83 @@
+{
+  "url": "http://localhost:5173/learn/white",
+  "text": "White openings\nLearn\n8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nNothing due\nAnalyze \nSettings\nBack\nWhat do you want to practice?\n34.0% mastered\nEverything that's due for review\n4 due \nJust the moves I often get wrong\n4 due \nAll moves, even if they're not due\n50 moves\nA specific opening…",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "Everything that's due for review 4 due",
+      "vis": true
+    },
+    {
+      "t": "Just the moves I often get wrong 4 due",
+      "vis": true
+    },
+    {
+      "t": "All moves, even if they're not due 50 moves",
+      "vis": true
+    },
+    {
+      "t": "A specific opening…",
+      "vis": true
+    }
+  ],
+  "inputs": []
+}

@@ -1,0 +1,303 @@
+{
+  "url": "http://localhost:5173/build/white",
+  "text": "White openings\nBuild\n8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nWhite openings\nStart position\nPlans\nAnalyze \nSettings\nBack\nContinue building\n4% complete\nAutofill remaining gaps\nYour first move\nMasters\nEval\nPeer results\n1. e4\nKing's Pawn Game\nRemove\nDisable\n31%\n+0.3\nAdd an alternative move\nGo to your biggest gap\nAdd a line\nOpening database\nImport PGN\nShowing openings that continue from the start.\nAmar Opening\nA00 · 1. Nh3\nAmar Opening: Paris Gambit\nA00 · 1. Nh3 d5 2. g3 e5 3. f4\nAmar Opening: Paris Gambit, Gent Gambit\nA00 · 1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4 5. O-O fxg3 6. hxg3\nAnderssen's Opening\nA00 · 1. a3\nAnderssen's Opening: Polish Gambit\nA00 · 1. a3 a5 2. b4\nBarnes Opening\nA00 · 1. f3\nBarnes Opening: Gedult Gambit\nA00 · 1. f3 d5 2. e4 g6 3. d4 dxe4 4. c3\nBarnes Opening: Gedult Gambit\nA00 · 1. f3 f5 2. e4 fxe4 3. Nc3\nBarnes Opening: Hammerschlag\nA00 · 1. f3 e5 2. Kf2\nClemenz Opening\nA00 · 1. h3\nClemenz Opening: Spike Lee Gambit\nA00 · 1. h3 h5 2. g4\nFormation: Hippopotamus Attack\nA00 · 1. a3 e5 2. b3 d5 3. c3 Nf6 4. d3 Nc6 5. e3 Bd6 6. f3 O-O 7. g3\nFormation: Shy Attack\nA00 · 1. a3 e5 2. g3 d5 3. Bg2 Nf6 4. d3 Nc6 5. Nd2 Bd6 6. e3 O-O 7. h3\nGlobal Opening\nA00 · 1. h3 e5 2. a3\nGrob Opening\nA00 · 1. g4\nGrob Opening: Double Grob, Coca-Cola Gambit\nA00 · 1. g4 g5 2. f4\nGrob Opening: Grob Gambit\nA00 · 1. g4 d5 2. Bg2\nGrob Opening: Grob Gambit, Basman Gambit\nA00 · 1. g4 d5 2. Bg2 h5 3. gxh5\nGrob Opening: Grob Gambit, Fritz Gambit\nA00 · 1. g4 d5 2. Bg2 Bxg4 3. c4\nGrob Opening: Grob Gambit, Keres Gambit\nA00 · 1. g4 d5 2. Bg2 e5 3. d4 exd4 4. c3\nGrob Opening: Grob Gambit, Richter-Grob Gambit\nA00 · 1. g4 d5 2. Bg2 c6 3. c4 dxc4 4. b3\nGrob Opening: Spike Attack\nA00 · 1. g4 d5 2. Bg2 c6 3. g5\nGrob Opening: Spike, Hurst Attack\nA00 · 1. g4 e5 2. Bg2 d5 3. c4\nGrob Opening: Zilbermints Gambit\nA00 · 1. g4 d5 2. e4 dxe4 3. Nc3\nGrob Opening: Zilbermints Gambit, Zilbermints-Hartlaub Gambit\nA00 · 1. g4 d5 2. e4 dxe4 3. Nc3 e5 4. d3\nHungarian Opening\nA00 · 1. g3\nHungarian Opening: Burk Gambit\nA00 · 1. g3 e5 2. a3 d5 3. Nf3 e4 4. Nh4 Be7 5. d3\nHungarian Opening: Bücker Gambit\nA00 · 1. g3 d5 2. Bg2 e5 3. b4\nHungarian Opening: Paris Gambit\nA00 · 1. g3 e5 2. Nh3 d5 3. f4 Bxh3 4. Bxh3 exf4 5. O-O\nHungarian Opening: Reversed Alekhine\nA00 · 1. g3 e5 2. Nf3\nHungarian Opening: Reversed Brooklyn Defense, Brooklyn Benko Gambit\nA00 · 1. g3 e5 2. Nf3 e4 3. Ng1 Nf6 4. b4\nHungarian Opening: Reversed Norwegian Defense\nA00 · 1. g3 e5 2. Nf3 e4 3. Nh4\nHungarian Opening: Winterberg Gambit\nA00 · 1. g3 d5 2. Bg2 e5 3. c4 dxc4 4. b3\nKádas Opening\nA00 · 1. h4\nKádas Opening: Beginner's Trap\nA00 · 1. h4 d5 2. Rh3\nKádas Opening: Kádas Gambit\nA00 · 1. h4 c5 2. b4\nKádas Opening: Kádas Gambit\nA00 · 1. h4 d5 2. d4 c5 3. Nf3 cxd4 4. c3\nKádas Opening: Kádas Gambit\nA00 · 1. h4 e5 2. d4 exd4 3. c3\nKádas Opening: Myers Variation\nA00 · 1. h4 d5 2. d4 c5 3. e4\nKádas Opening: Steinbok Gambit\nA00 · 1. h4 f5 2. e4 fxe4 3. d3\nMieses Opening\nA00 · 1. d3\nMieses Opening: Myers Spike Attack\nA00 · 1. d3 g6 2. g4\nMieses Opening: Venezolana Variation\nA00 · 1. d3 c5 2. Nc3 Nc6 3. g3\nPolish Opening\nA00 · 1. b4\nPolish Opening, with d5\nA00 · 1. b4 d5 2. Bb2 Nf6 3. Nf3\nPolish Opening: Bugayev Advance Variation\nA00 · 1. b4 e5 2. Bb2 f6 3. b5\nPolish Opening: Bugayev Attack\nA00 · 1. b4 e5 2. a3\nPolish Opening: King's Indian Variation, Schiffler Attack\nA00 · 1. b4 Nf6 2. Bb2 g6 3. e4\nPolish Opening: King's Indian Variation, Sokolsky Attack\nA00 · 1. b4 Nf6 2. Bb2 g6 3. c4 Bg7 4. e3 d6 5. Nf3 O-O 6. d4\nPolish Opening: Myers Variation\nA00 · 1. b4 d5 2. Bb2 c6 3. a4",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "Plans",
+      "vis": true
+    },
+    {
+      "t": "Autofill remaining gaps",
+      "vis": true
+    },
+    {
+      "t": "1. e4 King's Pawn Game Remove Disable 31% +0.3",
+      "vis": true
+    },
+    {
+      "t": "Add an alternative move",
+      "vis": true
+    },
+    {
+      "t": "Go to your biggest gap",
+      "vis": true
+    },
+    {
+      "t": "Opening database",
+      "vis": true
+    },
+    {
+      "t": "Import PGN",
+      "vis": true
+    },
+    {
+      "t": "Amar Opening A00 · 1. Nh3",
+      "vis": true
+    },
+    {
+      "t": "Amar Opening: Paris Gambit A00 · 1. Nh3 d5 2. g3 e5 3. f4",
+      "vis": true
+    },
+    {
+      "t": "Amar Opening: Paris Gambit, Gent Gambit A00 · 1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4 5. O-O fxg3 6. hxg3",
+      "vis": true
+    },
+    {
+      "t": "Anderssen's Opening A00 · 1. a3",
+      "vis": true
+    },
+    {
+      "t": "Anderssen's Opening: Polish Gambit A00 · 1. a3 a5 2. b4",
+      "vis": true
+    },
+    {
+      "t": "Barnes Opening A00 · 1. f3",
+      "vis": true
+    },
+    {
+      "t": "Barnes Opening: Gedult Gambit A00 · 1. f3 d5 2. e4 g6 3. d4 dxe4 4. c3",
+      "vis": true
+    },
+    {
+      "t": "Barnes Opening: Gedult Gambit A00 · 1. f3 f5 2. e4 fxe4 3. Nc3",
+      "vis": true
+    },
+    {
+      "t": "Barnes Opening: Hammerschlag A00 · 1. f3 e5 2. Kf2",
+      "vis": true
+    },
+    {
+      "t": "Clemenz Opening A00 · 1. h3",
+      "vis": true
+    },
+    {
+      "t": "Clemenz Opening: Spike Lee Gambit A00 · 1. h3 h5 2. g4",
+      "vis": true
+    },
+    {
+      "t": "Formation: Hippopotamus Attack A00 · 1. a3 e5 2. b3 d5 3. c3 Nf6 4. d3 Nc6 5. e3 Bd6 6. f3 O-O 7. g3",
+      "vis": true
+    },
+    {
+      "t": "Formation: Shy Attack A00 · 1. a3 e5 2. g3 d5 3. Bg2 Nf6 4. d3 Nc6 5. Nd2 Bd6 6. e3 O-O 7. h3",
+      "vis": true
+    },
+    {
+      "t": "Global Opening A00 · 1. h3 e5 2. a3",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening A00 · 1. g4",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Double Grob, Coca-Cola Gambit A00 · 1. g4 g5 2. f4",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Grob Gambit A00 · 1. g4 d5 2. Bg2",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Grob Gambit, Basman Gambit A00 · 1. g4 d5 2. Bg2 h5 3. gxh5",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Grob Gambit, Fritz Gambit A00 · 1. g4 d5 2. Bg2 Bxg4 3. c4",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Grob Gambit, Keres Gambit A00 · 1. g4 d5 2. Bg2 e5 3. d4 exd4 4. c3",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Grob Gambit, Richter-Grob Gambit A00 · 1. g4 d5 2. Bg2 c6 3. c4 dxc4 4. b3",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Spike Attack A00 · 1. g4 d5 2. Bg2 c6 3. g5",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Spike, Hurst Attack A00 · 1. g4 e5 2. Bg2 d5 3. c4",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Zilbermints Gambit A00 · 1. g4 d5 2. e4 dxe4 3. Nc3",
+      "vis": true
+    },
+    {
+      "t": "Grob Opening: Zilbermints Gambit, Zilbermints-Hartlaub Gambit A00 · 1. g4 d5 2. e4 dxe4 3. Nc3 e5 4. d3",
+      "vis": true
+    },
+    {
+      "t": "Hungarian Opening A00 · 1. g3",
+      "vis": true
+    },
+    {
+      "t": "Hungarian Opening: Burk Gambit A00 · 1. g3 e5 2. a3 d5 3. Nf3 e4 4. Nh4 Be7 5. d3",
+      "vis": true
+    },
+    {
+      "t": "Hungarian Opening: Bücker Gambit A00 · 1. g3 d5 2. Bg2 e5 3. b4",
+      "vis": true
+    },
+    {
+      "t": "Hungarian Opening: Paris Gambit A00 · 1. g3 e5 2. Nh3 d5 3. f4 Bxh3 4. Bxh3 exf4 5. O-O",
+      "vis": true
+    },
+    {
+      "t": "Hungarian Opening: Reversed Alekhine A00 · 1. g3 e5 2. Nf3",
+      "vis": true
+    },
+    {
+      "t": "Hungarian Opening: Reversed Brooklyn Defense, Brooklyn Benko Gambit A00 · 1. g3 e5 2. Nf3 e4 3. Ng1 Nf6 4. b4",
+      "vis": true
+    },
+    {
+      "t": "Hungarian Opening: Reversed Norwegian Defense A00 · 1. g3 e5 2. Nf3 e4 3. Nh4",
+      "vis": true
+    },
+    {
+      "t": "Hungarian Opening: Winterberg Gambit A00 · 1. g3 d5 2. Bg2 e5 3. c4 dxc4 4. b3",
+      "vis": true
+    },
+    {
+      "t": "Kádas Opening A00 · 1. h4",
+      "vis": true
+    },
+    {
+      "t": "Kádas Opening: Beginner's Trap A00 · 1. h4 d5 2. Rh3",
+      "vis": true
+    },
+    {
+      "t": "Kádas Opening: Kádas Gambit A00 · 1. h4 c5 2. b4",
+      "vis": true
+    },
+    {
+      "t": "Kádas Opening: Kádas Gambit A00 · 1. h4 d5 2. d4 c5 3. Nf3 cxd4 4. c3",
+      "vis": true
+    },
+    {
+      "t": "Kádas Opening: Kádas Gambit A00 · 1. h4 e5 2. d4 exd4 3. c3",
+      "vis": true
+    },
+    {
+      "t": "Kádas Opening: Myers Variation A00 · 1. h4 d5 2. d4 c5 3. e4",
+      "vis": true
+    },
+    {
+      "t": "Kádas Opening: Steinbok Gambit A00 · 1. h4 f5 2. e4 fxe4 3. d3",
+      "vis": true
+    },
+    {
+      "t": "Mieses Opening A00 · 1. d3",
+      "vis": true
+    },
+    {
+      "t": "Mieses Opening: Myers Spike Attack A00 · 1. d3 g6 2. g4",
+      "vis": true
+    },
+    {
+      "t": "Mieses Opening: Venezolana Variation A00 · 1. d3 c5 2. Nc3 Nc6 3. g3",
+      "vis": true
+    },
+    {
+      "t": "Polish Opening A00 · 1. b4",
+      "vis": true
+    },
+    {
+      "t": "Polish Opening, with d5 A00 · 1. b4 d5 2. Bb2 Nf6 3. Nf3",
+      "vis": true
+    },
+    {
+      "t": "Polish Opening: Bugayev Advance Variation A00 · 1. b4 e5 2. Bb2 f6 3. b5",
+      "vis": true
+    },
+    {
+      "t": "Polish Opening: Bugayev Attack A00 · 1. b4 e5 2. a3",
+      "vis": true
+    },
+    {
+      "t": "Polish Opening: King's Indian Variation, Schiffler Attack A00 · 1. b4 Nf6 2. Bb2 g6 3. e4",
+      "vis": true
+    },
+    {
+      "t": "Polish Opening: King's Indian Variation, Sokolsky Attack A00 · 1. b4 Nf6 2. Bb2 g6 3. c4 Bg7 4. e3 d6 5. Nf3 O-O 6. d4",
+      "vis": true
+    },
+    {
+      "t": "Polish Opening: Myers Variation A00 · 1. b4 d5 2. Bb2 c6 3. a4",
+      "vis": true
+    }
+  ],
+  "inputs": [
+    {
+      "type": "text",
+      "ph": "Search by name or ECO (e.g. Sicilian, B90)",
+      "name": "",
+      "id": "",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "url": "http://localhost:5173/settings",
+  "text": "8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nSettings\nBack\nSettings\nYour rating\n1800-2000 Chess.com\nCover positions seen in\n1 in 200 games\nConnected to\nLichess\nChess.com\nModel games source\nOnline and master games\nEarly access features\nNone enabled\nReview settings\nPractice\nIndividual moves\nDaily practice goal\n50 moves\nPause after playing a move\nNever\nBoard settings\nAppearance\nChessbook\nPiece animation\nFast\nSound effects\nEnabled\nHaptics\nEnabled\nSubscription\nUpgrade to add unlimited moves\nAccount\nReset all learning\nReset board preferences",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "Your rating 1800-2000 Chess.com",
+      "vis": true
+    },
+    {
+      "t": "Cover positions seen in 1 in 200 games",
+      "vis": true
+    },
+    {
+      "t": "Connected to Lichess Chess.com",
+      "vis": true
+    },
+    {
+      "t": "Model games source Online and master games",
+      "vis": true
+    },
+    {
+      "t": "Early access features None enabled",
+      "vis": true
+    },
+    {
+      "t": "Practice Individual moves",
+      "vis": true
+    },
+    {
+      "t": "Daily practice goal 50 moves",
+      "vis": true
+    },
+    {
+      "t": "Pause after playing a move Never",
+      "vis": true
+    },
+    {
+      "t": "Appearance Chessbook",
+      "vis": true
+    },
+    {
+      "t": "Piece animation Fast",
+      "vis": true
+    },
+    {
+      "t": "Sound effects Enabled",
+      "vis": true
+    },
+    {
+      "t": "Haptics Enabled",
+      "vis": true
+    },
+    {
+      "t": "Upgrade to add unlimited moves",
+      "vis": true
+    },
+    {
+      "t": "Reset all learning",
+      "vis": true
+    },
+    {
+      "t": "Reset board preferences",
+      "vis": true
+    }
+  ],
+  "inputs": []
+}

@@ -1,0 +1,79 @@
+{
+  "url": "http://localhost:5173/repertoire/white",
+  "text": "White openings\n8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nStart position\nAnalyze \nSettings\nBack\nWhite openings\n4% complete\nAutofill remaining gaps\nContinue building\n7 Saved\n34% mastered\nContinue learning\n4 due \nStats\nEffectiveness\n2\nSoundness\n34\nLearnability\n66\nTotal\n26\n/ 150\nSettings",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "Autofill remaining gaps",
+      "vis": true
+    },
+    {
+      "t": "Continue building 7 Saved",
+      "vis": true
+    },
+    {
+      "t": "Continue learning 4 due",
+      "vis": true
+    }
+  ],
+  "inputs": []
+}

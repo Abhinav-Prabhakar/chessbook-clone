@@ -1,15 +1,32 @@
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chess } from "chess.js";
+import { migrate } from "./schema.js";
+import { rebuildRepertoireMoves } from "./repertoire.js";
+import { lineSans, pgnFromSans } from "./positions.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataDir = join(__dirname, "data");
-mkdirSync(dataDir, { recursive: true });
 
-export const db = new DatabaseSync(join(dataDir, "chessbook.db"));
+/**
+ * Local SQLite is the source of truth. `CHESSBOOK_DB` lets tests (and anyone
+ * who wants a second profile) point at a different file; the default stays
+ * `server/data/chessbook.db` so existing installs keep working.
+ */
+const dbPath = process.env.CHESSBOOK_DB
+  ? process.env.CHESSBOOK_DB === ":memory:"
+    ? ":memory:"
+    : resolve(process.env.CHESSBOOK_DB)
+  : join(dataDir, "chessbook.db");
+if (dbPath !== ":memory:") mkdirSync(dirname(dbPath), { recursive: true });
 
+export const db = new DatabaseSync(dbPath);
+export const databasePath = dbPath;
+
+// Legacy base tables. Migrations below add the per-position engine on top of
+// any existing database (audit D198).
 db.exec(`
   PRAGMA journal_mode = WAL;
   PRAGMA foreign_keys = ON;
@@ -28,7 +45,7 @@ db.exec(`
     color TEXT NOT NULL CHECK (color IN ('white', 'black')),
     name TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
-    total_lines INTEGER NOT NULL DEFAULT 50,
+    total_lines INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
   );
 
@@ -105,9 +122,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_openings_eco ON openings(eco);
 `);
 
+const migration = migrate(db);
+if (migration.applied > 0) {
+  console.log(`[db] migrated schema ${migration.from} -> ${migration.to}`);
+}
+
 const iso = (d = new Date()) => d.toISOString();
-const days = (n) => new Date(Date.now() + n * 86400000).toISOString();
-const mins = (n) => new Date(Date.now() + n * 60000).toISOString();
 
 function openingInfo(pgn) {
   const chess = new Chess();
@@ -126,8 +146,10 @@ function openingInfo(pgn) {
 }
 
 function loadOpenings() {
+  if (process.env.CHESSBOOK_SKIP_OPENINGS === "1") return;
   const count = db.prepare("SELECT COUNT(*) AS n FROM openings").get().n;
   if (count > 0) return;
+  if (!readable(join(dataDir, "a.tsv"))) return;
 
   const insert = db.prepare(
     "INSERT INTO openings (eco, name, pgn, sans, fen, expected_san, side, family) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
@@ -168,110 +190,108 @@ function loadOpenings() {
   console.log(`[db] loaded ${inserted} openings`);
 }
 
+function readable(path) {
+  try {
+    readFileSync(path, "utf8");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function pgnFromMoves(sans) {
-  const chess = new Chess();
-  let out = "";
-  sans.forEach((san, i) => {
-    if (i % 2 === 0) out += `${i / 2 + 1}. `;
-    chess.move(san);
-    out += `${san} `;
-  });
-  return out.trim();
+  return pgnFromSans(sans);
 }
 
-function pickOpenings(color, requiredPgns) {
-  const side = color;
-  const picked = [];
-  const seen = new Set();
+/**
+ * Curated demo repertoire. Every line is a real, legal opening line that ends
+ * on the repertoire colour's move. All of them are `saved=1` and none is
+ * scheduled: a fresh install is a repertoire with nothing learned yet, so the
+ * trainer has honest zeroes rather than invented progress (D224).
+ */
+export const SEED_LINES = {
+  white: [
+    ["Sicilian Defense: Najdorf Variation", "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 h3"],
+    ["Sicilian Defense: Open", "e4 c5 Nf3 Nc6 d4 cxd4 Nxd4"],
+    ["Sicilian Defense: Kan Variation", "e4 c5 Nf3 e6 d4 cxd4 Nxd4 a6 c4"],
+    ["Sicilian Defense: Closed", "e4 c5 Nc3 Nc6 g3 g6 Bg2 Bg7 d3"],
+    ["Italian Game: Classical Variation", "e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4"],
+    ["Ruy Lopez: Morphy Defense", "e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7 Re1 b5 Bb3 d6 c3"],
+    ["French Defense: Classical Variation", "e4 e6 d4 d5 Nc3 Nf6 e5 Nfd7 f4"],
+    ["Caro-Kann Defense: Classical Variation", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4"],
+    ["Scandinavian Defense: Main Line", "e4 d5 exd5 Qxd5 Nc3 Qa5 d4 Nf6 Nf3"],
+    ["Queen's Gambit Declined: Harrwitz Attack", "d4 d5 c4 e6 Nc3 Nf6 Bf4 Be7 e3"],
+    ["King's Indian Defense: Normal Variation", "d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3 O-O Be2"],
+    ["Queen's Indian Defense: Petrosian Variation", "d4 Nf6 c4 e6 Nf3 b6 a3 Bb7 Nc3"],
+    ["English Opening: Four Knights System", "c4 e5 Nc3 Nf6 Nf3 Nc6 e4 Bb4 d3"],
+    ["Catalan Opening: Closed", "Nf3 d5 g3 Nf6 Bg2 e6 O-O Be7 c4 O-O b3"],
+    ["Bishop's Opening", "e4 e5 Bc4 Nf6 d3 c6 Nf3"],
+    ["London System", "d4 d5 Nf3 Nf6 Bf4 e6 e3 c5 c3"],
+  ],
+  black: [
+    ["Sicilian Defense: Najdorf Variation", "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6"],
+    ["Sicilian Defense: Accelerated Dragon", "e4 c5 Nf3 Nc6 d4 cxd4 Nxd4 g6 Nc3 Bg7"],
+    ["Sicilian Defense: Taimanov Variation", "e4 c5 Nf3 e6 d4 cxd4 Nxd4 Nc6 Nc3 Qc7"],
+    ["Italian Game: Classical Variation", "e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4 exd4"],
+    ["Ruy Lopez: Brix Variation", "e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O g6"],
+    ["French Defense: Classical Variation", "e4 e6 d4 d5 Nc3 Nf6 e5 Nfd7 f4 c5"],
+    ["Caro-Kann Defense: Classical Variation", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6"],
+    ["Scandinavian Defense: Gubinsky-Melts Defense", "e4 d5 exd5 Qxd5 Nc3 Qd6 d4 Nf6 Nf3 c6"],
+    ["Queen's Gambit Declined: Normal Defense", "d4 d5 c4 e6 Nc3 Nf6 Bg5 Be7 e3 O-O"],
+    ["King's Indian Defense: Normal Variation", "d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3 O-O Be2 e5"],
+    ["Nimzo-Indian Defense: Normal Line", "d4 Nf6 c4 e6 Nc3 Bb4 e3 O-O Bd3 d5"],
+    ["English Opening: Four Knights Variation", "c4 e5 Nc3 Nf6 Nf3 Nc6 e4 Bb4 d3 d6"],
+    ["Dutch Defense: Classical Variation", "d4 f5 g3 Nf6 Bg2 e6 Nf3 Be7 O-O O-O"],
+    ["Slav Defense: Modern Line", "d4 d5 c4 c6 Nf3 Nf6 Nc3 dxc4 a4 Bf5"],
+  ],
+};
 
-  const byPgn = db.prepare(
-    "SELECT * FROM openings WHERE side = ? AND pgn = ? LIMIT 1"
-  );
-  for (const pgn of requiredPgns) {
-    const row = byPgn.get(side, pgn);
-    if (row && !seen.has(row.id)) {
-      picked.push(row);
-      seen.add(row.id);
-    }
-  }
-
-  const pool = db
+function findOpeningId(sans, side) {
+  const joined = sans.join(" ");
+  const exact = db
+    .prepare("SELECT id FROM openings WHERE side = ? AND sans = ? LIMIT 1")
+    .get(side, joined);
+  if (exact) return exact.id;
+  const longer = db
     .prepare(
-      "SELECT * FROM openings WHERE side = ? AND LENGTH(sans) BETWEEN 2 AND 80 ORDER BY (id * 1103515245 + 12345) % 997, id"
+      "SELECT id FROM openings WHERE side = ? AND sans LIKE ? ORDER BY LENGTH(sans) ASC LIMIT 1"
     )
-    .all(side);
-  for (const row of pool) {
-    if (picked.length >= 50) break;
-    if (seen.has(row.id)) continue;
-    // Keep the repertoire varied: no more than two lines with the same name.
-    const same = picked.filter((p) => p.name === row.name).length;
-    if (same >= 2) continue;
-    picked.push(row);
-    seen.add(row.id);
-  }
-  return picked;
+    .get(side, `${joined} %`);
+  return longer?.id ?? null;
 }
 
-function seedRepertoireLines(repertoireId, color) {
-  const required =
-    color === "white"
-      ? [
-          "1. e4 c5 2. Nf3",
-          "1. e4 e5 2. Nf3",
-          "1. d4 d5 2. c4",
-          "1. e4 c6 2. d4",
-          "1. e4 e6 2. d4",
-          "1. d4 Nf6 2. c4",
-          "1. e4 d5 2. exd5",
-          "1. c4 e5 2. Nc3",
-          "1. Nf3 d5 2. g3",
-          "1. e4 g6 2. d4",
-        ]
-      : [
-          "1. e4 c5",
-          "1. e4 e5",
-          "1. e4 c6",
-          "1. e4 e6",
-          "1. e4 d5",
-          "1. d4 d5",
-          "1. d4 Nf6",
-          "1. d4 e6",
-          "1. d4 c5",
-          "1. c4 e5",
-        ];
-
-  const openings = pickOpenings(color, required);
+function seedRepertoireLines(userId, repertoireId, color, entries) {
   const insert = db.prepare(`
     INSERT INTO lines
       (repertoire_id, opening_id, name, moves, pgn, fen, side, expected_san,
        learned, mastered, saved, due_at, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, NULL, ?)
   `);
 
-  openings.forEach((opening, i) => {
-    const learned = color === "white" && i < 2 ? 1 : 0;
-    const mastered = color === "white" && i < 17 ? 100 : 0;
-    const saved = color === "white" && i < 7 ? 1 : 0;
-    const dueAt =
-      color === "white" && i < 6
-        ? mins(-300 + i * 30)
-        : days(3 + (i % 14));
+  for (const [name, sansText] of entries) {
+    const sans = sansText.split(/\s+/).filter(Boolean);
+    const chess = new Chess();
+    for (const san of sans) chess.move(san);
+    const fen = new Chess();
+    for (const san of sans.slice(0, -1)) fen.move(san);
     insert.run(
       repertoireId,
-      opening.id,
-      opening.name,
-      opening.sans,
-      pgnFromMoves(opening.sans.split(" ")),
-      opening.fen,
+      findOpeningId(sans, color),
+      name,
+      sans.join(" "),
+      pgnFromMoves(sans),
+      fen.fen(),
       color,
-      opening.expected_san,
-      learned,
-      mastered,
-      saved,
-      dueAt,
+      sans[sans.length - 1],
       iso()
     );
-  });
+  }
+
+  rebuildRepertoireMoves(db, repertoireId);
+  db.prepare(
+    "UPDATE repertoires SET total_lines = (SELECT COUNT(*) FROM lines WHERE repertoire_id = ?) WHERE id = ?"
+  ).run(repertoireId, repertoireId);
+  return entries.length;
 }
 
 export function seed() {
@@ -282,9 +302,7 @@ export function seed() {
 
   const userId = Number(
     db
-      .prepare(
-        "INSERT INTO users (email, name, plan, created_at) VALUES (?, ?, ?, ?)"
-      )
+      .prepare("INSERT INTO users (email, name, plan, created_at) VALUES (?, ?, ?, ?)")
       .run("local@chessbook.local", "Alex", "pro", iso()).lastInsertRowid
   );
 
@@ -295,35 +313,35 @@ export function seed() {
   const whiteId = Number(
     db
       .prepare(
-        "INSERT INTO repertoires (user_id, color, name, description, total_lines, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO repertoires (user_id, color, name, description, total_lines, created_at) VALUES (?, ?, ?, ?, 0, ?)"
       )
-      .run(userId, "white", "White openings", "Build a confident 1.e4 and 1.d4 repertoire.", 50, iso())
-      .lastInsertRowid
+      .run(
+        userId,
+        "white",
+        "White openings",
+        "Build a confident 1.e4 and 1.d4 repertoire.",
+        iso()
+      ).lastInsertRowid
   );
   const blackId = Number(
     db
       .prepare(
-        "INSERT INTO repertoires (user_id, color, name, description, total_lines, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO repertoires (user_id, color, name, description, total_lines, created_at) VALUES (?, ?, ?, ?, 0, ?)"
       )
-      .run(userId, "black", "Black openings", "Answer 1.e4 and 1.d4 with a plan.", 50, iso())
-      .lastInsertRowid
+      .run(
+        userId,
+        "black",
+        "Black openings",
+        "Answer 1.e4 and 1.d4 with a plan.",
+        iso()
+      ).lastInsertRowid
   );
 
-  seedRepertoireLines(whiteId, "white");
-  seedRepertoireLines(blackId, "black");
+  seedRepertoireLines(userId, whiteId, "white", SEED_LINES.white);
+  seedRepertoireLines(userId, blackId, "black", SEED_LINES.black);
 
-  // Give the demo a small set of past mistakes so "moves I often get wrong"
-  // has real training content without affecting the current streak.
-  const weakLines = db
-    .prepare("SELECT id, expected_san FROM lines WHERE repertoire_id = ? ORDER BY id LIMIT 4")
-    .all(whiteId);
-  const insertAttempt = db.prepare(
-    "INSERT INTO attempts (user_id, line_id, expected_san, played_san, correct, created_at) VALUES (?, ?, ?, ?, 0, ?)"
-  );
-  for (const line of weakLines) {
-    insertAttempt.run(userId, line.id, line.expected_san, "e4", days(-2));
-  }
-
+  // No seeded attempts and no seeded review state: "7 saved / 34% mastered"
+  // was fabricated (D224). A fresh install honestly has nothing reviewed yet.
   db.prepare(
     "INSERT INTO model_games (white, black, event, year, result, pgn, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
   ).run(
@@ -341,9 +359,9 @@ export function createRepertoire(userId, color, name, description = "") {
   return Number(
     db
       .prepare(
-        "INSERT INTO repertoires (user_id, color, name, description, total_lines, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO repertoires (user_id, color, name, description, total_lines, created_at) VALUES (?, ?, ?, ?, 0, ?)"
       )
-      .run(userId, color, name, description, 50, iso()).lastInsertRowid
+      .run(userId, color, name, description, iso()).lastInsertRowid
   );
 }
 
@@ -363,5 +381,19 @@ export function searchOpenings(q, limit = 20) {
     )
     .all(term, term, limit);
 }
+
+/** Update a repertoire's denominator after adding/removing lines. */
+export function syncRepertoireTotals(repertoireId) {
+  db.prepare(
+    "UPDATE repertoires SET total_lines = (SELECT COUNT(*) FROM lines WHERE repertoire_id = ?) WHERE id = ?"
+  ).run(repertoireId, repertoireId);
+  return db.prepare("SELECT COUNT(*) AS n FROM lines WHERE repertoire_id = ?").get(repertoireId).n;
+}
+
+export function lineMovesFor(lineId) {
+  return db.prepare("SELECT * FROM line_moves WHERE line_id = ? ORDER BY ply").all(lineId);
+}
+
+export { lineSans, pgnFromMoves };
 
 seed();

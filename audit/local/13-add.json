@@ -1,0 +1,87 @@
+{
+  "url": "http://localhost:5173/add",
+  "text": "8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nSettings\nBack\nAdd new repertoire\nA repertoire is a collection of openings for a particular color.\nYou should only create a new repertoire if you want something entirely different (e.g. moves for bullet vs blitz). Otherwise we recommend adding alternate moves to an existing one.\nColor\nWhite\nBlack\nName\nCreate repertoire",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "White",
+      "vis": true
+    },
+    {
+      "t": "Black",
+      "vis": true
+    },
+    {
+      "t": "Create repertoire",
+      "vis": true
+    }
+  ],
+  "inputs": [
+    {
+      "type": "text",
+      "ph": "Blitz",
+      "name": "",
+      "id": "new-repertoire-name",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "url": "http://localhost:5173/model",
+  "text": "Model games\n8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nKamsky vs. Anand · Dortmund 1992\nAnalyze \nSettings\nBack\nKamsky vs. Anand\n+0.3\nPlay next move\nGive me a hint\nThis game matches your saved moves. Move the pieces on the board to guess the move at any point.\nA model Caro-Kann game. Watch how Black trades pieces, completes development, and neutralises White's space advantage.\nChoose another random game\nView previous model games\nModel games source\nOnline and master games",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "Play next move",
+      "vis": true
+    },
+    {
+      "t": "Give me a hint",
+      "vis": true
+    },
+    {
+      "t": "Choose another random game",
+      "vis": true
+    },
+    {
+      "t": "View previous model games",
+      "vis": true
+    },
+    {
+      "t": "Model games source Online and master games",
+      "vis": true
+    }
+  ],
+  "inputs": []
+}

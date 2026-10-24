@@ -1,0 +1,95 @@
+{
+  "url": "http://localhost:5173/gap/white",
+  "text": "White openings\nBuild\nFill gap\n8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nScandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation\n1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7\nAnalyze \nSettings\nBack\nChoose a response to 5... Nbd7\nPotential moves\nMasters\nEval\nPeer results\n6. c4\nScandinavian Defense: Portuguese Gambit, Jadoul Variation\nAdd this opening to your repertoire\nAdd to repertoire\n0%\n+0.3\n6. Nc3\nScandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation\n1 line in your repertoire\nOpen in build\n0%\n-0.2\nAutofill this gap\nPick a style, undo anytime\nOpen in build mode\nSee the whole branch\nPractice this line\nFind the move on the board\nRepertoire health\n4%\nCOMPLETE\n34%\nMASTERED\n4\nDUE\nMore\nBack to the builder\nEdit lines and add alternatives\nOpen the practice queue\n4 lines due now",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "6. c4 Scandinavian Defense: Portuguese Gambit, Jadoul Variation Add this opening to your repertoire Add to repertoire 0% +0.3",
+      "vis": true
+    },
+    {
+      "t": "6. Nc3 Scandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation 1 line in your repertoire Open in build 0% -0.2",
+      "vis": true
+    },
+    {
+      "t": "Autofill this gap Pick a style, undo anytime",
+      "vis": true
+    },
+    {
+      "t": "Open in build mode See the whole branch",
+      "vis": true
+    },
+    {
+      "t": "Practice this line Find the move on the board",
+      "vis": true
+    },
+    {
+      "t": "Back to the builder Edit lines and add alternatives",
+      "vis": true
+    },
+    {
+      "t": "Open the practice queue 4 lines due now",
+      "vis": true
+    }
+  ],
+  "inputs": []
+}

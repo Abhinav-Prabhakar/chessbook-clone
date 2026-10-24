@@ -1,0 +1,87 @@
+{
+  "url": "http://localhost:5173/",
+  "text": "8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nStart position\nAnalyze \nSettings\nRepertoires\nAdd new \nWhite openings\n4% complete\nBlack openings\nNot started\nDaily tasks\nNo streak \nPractice moves\n6 due \nPlay through a model game\nKamsky vs. Anand \nReview your online games\nConnect account \nCorrect your opening mistakes\nNot connected\nView performance by opening\nNot connected\nContact us\nJoin the Chessbook Discord\nShare your feedback\nHelp us spread the word",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "Correct your opening mistakes Not connected",
+      "vis": true
+    },
+    {
+      "t": "View performance by opening Not connected",
+      "vis": true
+    },
+    {
+      "t": "Join the Chessbook Discord",
+      "vis": true
+    },
+    {
+      "t": "Share your feedback",
+      "vis": true
+    },
+    {
+      "t": "Help us spread the word",
+      "vis": true
+    }
+  ],
+  "inputs": []
+}

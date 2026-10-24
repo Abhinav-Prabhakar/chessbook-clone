@@ -1,0 +1,365 @@
+[
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/dashboard",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"},\"repertoires\":[{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":6,\"completion\":4,\"mastery\":34},{\"id\":2,\"color\":\"black\",\"name\":\"Black openings\",\"description\":\"Answer 1.e4 and 1.d4 with a plan.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":0,\"mastered\":0,\"saved\":0,\"due\":0,\"completion\":0,\"mastery\":0}],\"tasks\":{\"due\":6,\"saved\":7,\"mastered\":17,\"streak\":0},\"modelGame\":{\"id\":1,\"white\":\"Kamsky\",\"black\":\"Anand\",\"event\":\"Dortmund\",\"year\":\"1992\",\"result\":\"1/2-1/2\"},\"connected\":false}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/dashboard",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"},\"repertoires\":[{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":6,\"completion\":4,\"mastery\":34},{\"id\":2,\"color\":\"black\",\"name\":\"Black openings\",\"description\":\"Answer 1.e4 and 1.d4 with a plan.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":0,\"mastered\":0,\"saved\":0,\"due\":0,\"completion\":0,\"mastery\":0}],\"tasks\":{\"due\":6,\"saved\":7,\"mastered\":17,\"streak\":0},\"modelGame\":{\"id\":1,\"white\":\"Kamsky\",\"black\":\"Anand\",\"event\":\"Dortmund\",\"year\":\"1992\",\"result\":\"1/2-1/2\"},\"connected\":false}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/practice/next?repertoire=1&mode=due",
+    "status": 200,
+    "body": "{\"line\":{\"id\":1,\"openingId\":1312,\"name\":\"Sicilian Defense\",\"moves\":[\"e4\",\"c5\",\"Nf3\"],\"pgn\":\"1. e4 c5 2. Nf3\",\"fen\":\"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T11:17:51.977Z\",\"due\":true,\"wrong\":0},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":6,\"completion\":4,\"mastery\":34},\"remaining\":6,\"complete\":false}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/practice/next?repertoire=1&mode=due",
+    "status": 200,
+    "body": "{\"line\":{\"id\":1,\"openingId\":1312,\"name\":\"Sicilian Defense\",\"moves\":[\"e4\",\"c5\",\"Nf3\"],\"pgn\":\"1. e4 c5 2. Nf3\",\"fen\":\"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T11:17:51.977Z\",\"due\":true,\"wrong\":0},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":6,\"completion\":4,\"mastery\":34},\"remaining\":6,\"complete\":false}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/practice/next?repertoire=white&mode=due",
+    "status": 200,
+    "body": "{\"line\":{\"id\":1,\"openingId\":1312,\"name\":\"Sicilian Defense\",\"moves\":[\"e4\",\"c5\",\"Nf3\"],\"pgn\":\"1. e4 c5 2. Nf3\",\"fen\":\"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T11:17:51.977Z\",\"due\":true,\"wrong\":0},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":6,\"completion\":4,\"mastery\":34},\"remaining\":6,\"complete\":false}"
+  },
+  {
+    "method": "POST",
+    "url": "/api/practice/attempt",
+    "post": "{\"lineId\":1,\"san\":\"Nf3\",\"mode\":\"due\"}",
+    "status": 200,
+    "body": "{\"correct\":true,\"expectedSan\":\"Nf3\",\"playedSan\":\"Nf3\",\"line\":{\"id\":1,\"openingId\":1312,\"name\":\"Sicilian Defense\",\"moves\":[\"e4\",\"c5\",\"Nf3\"],\"pgn\":\"1. e4 c5 2. Nf3\",\"fen\":\"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-11-22T16:58:30.902Z\",\"due\":false,\"wrong\":0},\"next\":{\"line\":{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T11:47:51.978Z\",\"due\":true,\"wrong\":0},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":5,\"completion\":4,\"mastery\":34},\"remaining\":5,\"complete\":false},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":5,\"completion\":4,\"mastery\":34}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/practice/next?repertoire=white&mode=due",
+    "status": 200,
+    "body": "{\"line\":{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T11:47:51.978Z\",\"due\":true,\"wrong\":0},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":5,\"completion\":4,\"mastery\":34},\"remaining\":5,\"complete\":false}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/practice/next?repertoire=white&mode=due",
+    "status": 200,
+    "body": "{\"line\":{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T11:47:51.978Z\",\"due\":true,\"wrong\":0},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":5,\"completion\":4,\"mastery\":34},\"remaining\":5,\"complete\":false}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/practice/next?repertoire=white&mode=due",
+    "status": 200,
+    "body": "{\"line\":{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T11:47:51.978Z\",\"due\":true,\"wrong\":0},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":5,\"completion\":4,\"mastery\":34},\"remaining\":5,\"complete\":false}"
+  },
+  {
+    "method": "POST",
+    "url": "/api/practice/attempt",
+    "post": "{\"lineId\":2,\"san\":\"a3\",\"mode\":\"due\"}",
+    "status": 200,
+    "body": "{\"correct\":false,\"expectedSan\":\"Nf3\",\"playedSan\":\"a3\",\"line\":{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T17:08:34.677Z\",\"due\":false,\"wrong\":0},\"next\":{\"line\":{\"id\":3,\"openingId\":2991,\"name\":\"Queen's Gambit\",\"moves\":[\"d4\",\"d5\",\"c4\"],\"pgn\":\"1. d4 d5 2. c4\",\"fen\":\"rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:17:51.978Z\",\"due\":true,\"wrong\":0},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"remaining\":4,\"complete\":false},\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/repertoires/white/learn",
+    "status": 200,
+    "body": "{\"repertoire\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"queue\":[{\"id\":3,\"openingId\":2991,\"name\":\"Queen's Gambit\",\"moves\":[\"d4\",\"d5\",\"c4\"],\"pgn\":\"1. d4 d5 2. c4\",\"fen\":\"rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:17:51.978Z\",\"due\":true,\"wrong\":1},{\"id\":4,\"openingId\":1118,\"name\":\"Caro-Kann Defense\",\"moves\":[\"e4\",\"c6\",\"d4\"],\"pgn\":\"1. e4 c6 2. d4\",\"fen\":\"rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:47:51.978Z\",\"due\":true,\"wrong\":1},{\"id\":5,\"openingId\":1630,\"name\":\"French Defense: Normal Variation\",\"moves\":[\"e4\",\"e6\",\"d4\"],\"pgn\":\"1. e4 e6 2. d4\",\"fen\":\"rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T13:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":6,\"openingId\":652,\"name\":\"Indian Defense: Normal Variation\",\"moves\":[\"d4\",\"Nf6\",\"c4\"],\"pgn\":\"1. d4 Nf6 2. c4\",\"fen\":\"rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T13:47:51.979Z\",\"due\":true,\"wrong\":0},{\"id\":18,\"openingId\":942,\"name\":\"Scandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation\",\"moves\":[\"e4\",\"d5\",\"exd5\",\"Nf6\",\"d4\",\"Bg4\",\"f3\",\"Bf5\",\"Bb5+\",\"Nbd7\",\"Nc3\"],\"pgn\":\"1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7 6. Nc3\",\"fen\":\"r2qkb1r/pppnpppp/5n2/1B1P1b2/3P4/5P2/PPP3PP/RNBQK1NR w KQkq - 3 6\",\"side\":\"white\",\"expectedSan\":\"Nc3\",\"learned\":false,\"mastered\":0,\"saved\":false,\"dueAt\":\"2026-10-29T16:17:51.983Z\",\"due\":false,\"wrong\":0},{\"id\":19,\"openingId\":2936"
+  },
+  {
+    "method": "GET",
+    "url": "/api/repertoires/white/learn",
+    "status": 200,
+    "body": "{\"repertoire\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"queue\":[{\"id\":3,\"openingId\":2991,\"name\":\"Queen's Gambit\",\"moves\":[\"d4\",\"d5\",\"c4\"],\"pgn\":\"1. d4 d5 2. c4\",\"fen\":\"rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:17:51.978Z\",\"due\":true,\"wrong\":1},{\"id\":4,\"openingId\":1118,\"name\":\"Caro-Kann Defense\",\"moves\":[\"e4\",\"c6\",\"d4\"],\"pgn\":\"1. e4 c6 2. d4\",\"fen\":\"rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:47:51.978Z\",\"due\":true,\"wrong\":1},{\"id\":5,\"openingId\":1630,\"name\":\"French Defense: Normal Variation\",\"moves\":[\"e4\",\"e6\",\"d4\"],\"pgn\":\"1. e4 e6 2. d4\",\"fen\":\"rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T13:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":6,\"openingId\":652,\"name\":\"Indian Defense: Normal Variation\",\"moves\":[\"d4\",\"Nf6\",\"c4\"],\"pgn\":\"1. d4 Nf6 2. c4\",\"fen\":\"rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T13:47:51.979Z\",\"due\":true,\"wrong\":0},{\"id\":18,\"openingId\":942,\"name\":\"Scandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation\",\"moves\":[\"e4\",\"d5\",\"exd5\",\"Nf6\",\"d4\",\"Bg4\",\"f3\",\"Bf5\",\"Bb5+\",\"Nbd7\",\"Nc3\"],\"pgn\":\"1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7 6. Nc3\",\"fen\":\"r2qkb1r/pppnpppp/5n2/1B1P1b2/3P4/5P2/PPP3PP/RNBQK1NR w KQkq - 3 6\",\"side\":\"white\",\"expectedSan\":\"Nc3\",\"learned\":false,\"mastered\":0,\"saved\":false,\"dueAt\":\"2026-10-29T16:17:51.983Z\",\"due\":false,\"wrong\":0},{\"id\":19,\"openingId\":2936"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/repertoires/white",
+    "status": 200,
+    "body": "{\"repertoire\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"lines\":[{\"id\":1,\"openingId\":1312,\"name\":\"Sicilian Defense\",\"moves\":[\"e4\",\"c5\",\"Nf3\"],\"pgn\":\"1. e4 c5 2. Nf3\",\"fen\":\"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-11-22T16:58:30.902Z\",\"due\":false,\"wrong\":0},{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T17:08:34.677Z\",\"due\":false,\"wrong\":0},{\"id\":3,\"openingId\":2991,\"name\":\"Queen's Gambit\",\"moves\":[\"d4\",\"d5\",\"c4\"],\"pgn\":\"1. d4 d5 2. c4\",\"fen\":\"rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":4,\"openingId\":1118,\"name\":\"Caro-Kann Defense\",\"moves\":[\"e4\",\"c6\",\"d4\"],\"pgn\":\"1. e4 c6 2. d4\",\"fen\":\"rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:47:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":5,\"openingId\":1630,\"name\":\"French Defense: Normal Variation\",\"moves\":[\"e4\",\"e6\",\"d4\"],\"pgn\":\"1. e4 e6 2. d4\",\"fen\":\"rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T13:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":6,\"openingId\":652,\"name\":\"Indian Defense: Normal Variation\",\"moves\":[\"d4\",\"Nf6\",\"c4\"],\"pgn\":\"1. d4 Nf6 2. c4\",\"fen\":\"rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 2\","
+  },
+  {
+    "method": "GET",
+    "url": "/api/repertoires/white",
+    "status": 200,
+    "body": "{\"repertoire\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"lines\":[{\"id\":1,\"openingId\":1312,\"name\":\"Sicilian Defense\",\"moves\":[\"e4\",\"c5\",\"Nf3\"],\"pgn\":\"1. e4 c5 2. Nf3\",\"fen\":\"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-11-22T16:58:30.902Z\",\"due\":false,\"wrong\":0},{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T17:08:34.677Z\",\"due\":false,\"wrong\":0},{\"id\":3,\"openingId\":2991,\"name\":\"Queen's Gambit\",\"moves\":[\"d4\",\"d5\",\"c4\"],\"pgn\":\"1. d4 d5 2. c4\",\"fen\":\"rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":4,\"openingId\":1118,\"name\":\"Caro-Kann Defense\",\"moves\":[\"e4\",\"c6\",\"d4\"],\"pgn\":\"1. e4 c6 2. d4\",\"fen\":\"rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:47:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":5,\"openingId\":1630,\"name\":\"French Defense: Normal Variation\",\"moves\":[\"e4\",\"e6\",\"d4\"],\"pgn\":\"1. e4 e6 2. d4\",\"fen\":\"rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T13:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":6,\"openingId\":652,\"name\":\"Indian Defense: Normal Variation\",\"moves\":[\"d4\",\"Nf6\",\"c4\"],\"pgn\":\"1. d4 Nf6 2. c4\",\"fen\":\"rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 2\","
+  },
+  {
+    "method": "GET",
+    "url": "/api/openings?q=&side=white&prefix=&limit=50",
+    "status": 200,
+    "body": "{\"openings\":[{\"id\":1,\"eco\":\"A00\",\"name\":\"Amar Opening\",\"pgn\":\"1. Nh3\",\"moves\":[\"Nh3\"],\"fen\":\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\",\"expectedSan\":\"Nh3\",\"side\":\"white\",\"family\":\"Amar Opening\"},{\"id\":2,\"eco\":\"A00\",\"name\":\"Amar Opening: Paris Gambit\",\"pgn\":\"1. Nh3 d5 2. g3 e5 3. f4\",\"moves\":[\"Nh3\",\"d5\",\"g3\",\"e5\",\"f4\"],\"fen\":\"rnbqkbnr/ppp2ppp/8/3pp3/8/6PN/PPPPPP1P/RNBQKB1R w KQkq - 0 3\",\"expectedSan\":\"f4\",\"side\":\"white\",\"family\":\"Amar Opening\"},{\"id\":3,\"eco\":\"A00\",\"name\":\"Amar Opening: Paris Gambit, Gent Gambit\",\"pgn\":\"1. Nh3 d5 2. g3 e5 3. f4 Bxh3 4. Bxh3 exf4 5. O-O fxg3 6. hxg3\",\"moves\":[\"Nh3\",\"d5\",\"g3\",\"e5\",\"f4\",\"Bxh3\",\"Bxh3\",\"exf4\",\"O-O\",\"fxg3\",\"hxg3\"],\"fen\":\"rn1qkbnr/ppp2ppp/8/3p4/8/6pB/PPPPP2P/RNBQ1RK1 w kq - 0 6\",\"expectedSan\":\"hxg3\",\"side\":\"white\",\"family\":\"Amar Opening\"},{\"id\":5,\"eco\":\"A00\",\"name\":\"Anderssen's Opening\",\"pgn\":\"1. a3\",\"moves\":[\"a3\"],\"fen\":\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\",\"expectedSan\":\"a3\",\"side\":\"white\",\"family\":\"Anderssen's Opening\"},{\"id\":6,\"eco\":\"A00\",\"name\":\"Anderssen's Opening: Polish Gambit\",\"pgn\":\"1. a3 a5 2. b4\",\"moves\":[\"a3\",\"a5\",\"b4\"],\"fen\":\"rnbqkbnr/1ppppppp/8/p7/8/P7/1PPPPPPP/RNBQKBNR w KQkq - 0 2\",\"expectedSan\":\"b4\",\"side\":\"white\",\"family\":\"Anderssen's Opening\"},{\"id\":7,\"eco\":\"A00\",\"name\":\"Barnes Opening\",\"pgn\":\"1. f3\",\"moves\":[\"f3\"],\"fen\":\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\",\"expectedSan\":\"f3\",\"side\":\"white\",\"family\":\"Barnes Opening\"},{\"id\":9,\"eco\":\"A00\",\"name\":\"Barnes Opening: Gedult Gambit\",\"pgn\":\"1. f3 d5 2. e4 g6 3. d4 dxe4 4. c3\",\"moves\":[\"f3\",\"d5\",\"e4\",\"g6\",\"d4\",\"dxe4\",\"c3\"],\"fen\":\"rnbqkbnr/ppp1pp1p/6p1/8/3Pp3/5P2/PPP3PP/RNBQKBNR w KQkq - 0 4\",\"expectedSan\":\"c3\",\"side\":\"white\",\"family\":\"Barnes Opening\"},{\"id\":10,\"eco\":\"A00\",\"name\":\"Barnes Opening: Gedult Gambit\",\"pgn\":\"1. f3 f5 2. e4 fxe4 3. Nc3\",\"moves\":[\"f3\",\"f5\",\"e4\",\"fxe4\",\"Nc3\"],\"fen\":\"rnbqkbnr/ppppp1pp/8/8/4p3/5P2/PPPP2PP/RNBQKBNR w KQkq - 0 3\",\"expectedSan\":\"Nc3\",\"side\":\"white\",\"family\":\"Barnes Opening"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/repertoires/white/gap",
+    "status": 200,
+    "body": "{\"repertoire\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"gap\":{\"id\":18,\"openingId\":942,\"name\":\"Scandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation\",\"moves\":[\"e4\",\"d5\",\"exd5\",\"Nf6\",\"d4\",\"Bg4\",\"f3\",\"Bf5\",\"Bb5+\",\"Nbd7\",\"Nc3\"],\"pgn\":\"1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7 6. Nc3\",\"fen\":\"r2qkb1r/pppnpppp/5n2/1B1P1b2/3P4/5P2/PPP3PP/RNBQK1NR w KQkq - 3 6\",\"side\":\"white\",\"expectedSan\":\"Nc3\",\"learned\":false,\"mastered\":0,\"saved\":false,\"dueAt\":\"2026-10-29T16:17:51.983Z\",\"due\":false,\"wrong\":0},\"position\":{\"fen\":\"r2qkb1r/pppnpppp/5n2/1B1P1b2/3P4/5P2/PPP3PP/RNBQK1NR w KQkq - 3 6\",\"side\":\"white\",\"prefixMoves\":[\"e4\",\"d5\",\"exd5\",\"Nf6\",\"d4\",\"Bg4\",\"f3\",\"Bf5\",\"Bb5+\",\"Nbd7\"],\"moveNumber\":6},\"candidates\":[{\"san\":\"c4\",\"openingId\":940,\"name\":\"Scandinavian Defense: Portuguese Gambit, Jadoul Variation\",\"eco\":\"B01\",\"pgn\":\"1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7 6. c4\",\"mastery\":0,\"lineCount\":0,\"lineId\":null,\"inRepertoire\":false},{\"san\":\"Nc3\",\"openingId\":942,\"name\":\"Scandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation\",\"eco\":\"B01\",\"pgn\":\"1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7 6. Nc3\",\"mastery\":0,\"lineCount\":1,\"lineId\":18,\"inRepertoire\":true}],\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/repertoires/white/gap",
+    "status": 200,
+    "body": "{\"repertoire\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"gap\":{\"id\":18,\"openingId\":942,\"name\":\"Scandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation\",\"moves\":[\"e4\",\"d5\",\"exd5\",\"Nf6\",\"d4\",\"Bg4\",\"f3\",\"Bf5\",\"Bb5+\",\"Nbd7\",\"Nc3\"],\"pgn\":\"1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7 6. Nc3\",\"fen\":\"r2qkb1r/pppnpppp/5n2/1B1P1b2/3P4/5P2/PPP3PP/RNBQK1NR w KQkq - 3 6\",\"side\":\"white\",\"expectedSan\":\"Nc3\",\"learned\":false,\"mastered\":0,\"saved\":false,\"dueAt\":\"2026-10-29T16:17:51.983Z\",\"due\":false,\"wrong\":0},\"position\":{\"fen\":\"r2qkb1r/pppnpppp/5n2/1B1P1b2/3P4/5P2/PPP3PP/RNBQK1NR w KQkq - 3 6\",\"side\":\"white\",\"prefixMoves\":[\"e4\",\"d5\",\"exd5\",\"Nf6\",\"d4\",\"Bg4\",\"f3\",\"Bf5\",\"Bb5+\",\"Nbd7\"],\"moveNumber\":6},\"candidates\":[{\"san\":\"c4\",\"openingId\":940,\"name\":\"Scandinavian Defense: Portuguese Gambit, Jadoul Variation\",\"eco\":\"B01\",\"pgn\":\"1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7 6. c4\",\"mastery\":0,\"lineCount\":0,\"lineId\":null,\"inRepertoire\":false},{\"san\":\"Nc3\",\"openingId\":942,\"name\":\"Scandinavian Defense: Portuguese Gambit, Melbourne Shuffle Variation\",\"eco\":\"B01\",\"pgn\":\"1. e4 d5 2. exd5 Nf6 3. d4 Bg4 4. f3 Bf5 5. Bb5+ Nbd7 6. Nc3\",\"mastery\":0,\"lineCount\":1,\"lineId\":18,\"inRepertoire\":true}],\"stats\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/model-games",
+    "status": 200,
+    "body": "{\"games\":[{\"id\":1,\"white\":\"Kamsky\",\"black\":\"Anand\",\"event\":\"Dortmund\",\"year\":\"1992\",\"result\":\"1/2-1/2\",\"pgn\":\"1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nd7 5. Ng5 Ngf6 6. Bd3 e6 7. N1f3 Bd6 8. Qe2 h6 9. Ne4 Nxe4 10. Qxe4\",\"description\":\"A model Caro-Kann game. Watch how Black trades pieces, completes development, and neutralises White's space advantage.\",\"progress\":0}]}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/model-games",
+    "status": 200,
+    "body": "{\"games\":[{\"id\":1,\"white\":\"Kamsky\",\"black\":\"Anand\",\"event\":\"Dortmund\",\"year\":\"1992\",\"result\":\"1/2-1/2\",\"pgn\":\"1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nd7 5. Ng5 Ngf6 6. Bd3 e6 7. N1f3 Bd6 8. Qe2 h6 9. Ne4 Nxe4 10. Qxe4\",\"description\":\"A model Caro-Kann game. Watch how Black trades pieces, completes development, and neutralises White's space advantage.\",\"progress\":0}]}"
+  },
+  {
+    "method": "POST",
+    "url": "/api/model-games/1/progress",
+    "post": "{\"ply\":0}",
+    "status": 200,
+    "body": "{\"ok\":true,\"ply\":0}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/me",
+    "status": 200,
+    "body": "{\"user\":{\"id\":1,\"email\":\"local@chessbook.local\",\"name\":\"Alex\",\"plan\":\"pro\"}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/settings",
+    "status": 200,
+    "body": "{\"settings\":{\"boardTheme\":\"green\",\"coordinates\":true,\"legalMoves\":true,\"sound\":true,\"showHints\":true,\"dailyGoal\":50}}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/repertoires/white",
+    "status": 200,
+    "body": "{\"repertoire\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"lines\":[{\"id\":1,\"openingId\":1312,\"name\":\"Sicilian Defense\",\"moves\":[\"e4\",\"c5\",\"Nf3\"],\"pgn\":\"1. e4 c5 2. Nf3\",\"fen\":\"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-11-22T16:58:30.902Z\",\"due\":false,\"wrong\":0},{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T17:08:34.677Z\",\"due\":false,\"wrong\":0},{\"id\":3,\"openingId\":2991,\"name\":\"Queen's Gambit\",\"moves\":[\"d4\",\"d5\",\"c4\"],\"pgn\":\"1. d4 d5 2. c4\",\"fen\":\"rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":4,\"openingId\":1118,\"name\":\"Caro-Kann Defense\",\"moves\":[\"e4\",\"c6\",\"d4\"],\"pgn\":\"1. e4 c6 2. d4\",\"fen\":\"rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:47:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":5,\"openingId\":1630,\"name\":\"French Defense: Normal Variation\",\"moves\":[\"e4\",\"e6\",\"d4\"],\"pgn\":\"1. e4 e6 2. d4\",\"fen\":\"rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T13:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":6,\"openingId\":652,\"name\":\"Indian Defense: Normal Variation\",\"moves\":[\"d4\",\"Nf6\",\"c4\"],\"pgn\":\"1. d4 Nf6 2. c4\",\"fen\":\"rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 2\","
+  },
+  {
+    "method": "GET",
+    "url": "/api/repertoires/white",
+    "status": 200,
+    "body": "{\"repertoire\":{\"id\":1,\"color\":\"white\",\"name\":\"White openings\",\"description\":\"Build a confident 1.e4 and 1.d4 repertoire.\",\"totalLines\":50,\"createdAt\":\"2026-10-23T16:17:51.973Z\",\"lineCount\":50,\"learned\":2,\"mastered\":17,\"saved\":7,\"due\":4,\"completion\":4,\"mastery\":34},\"lines\":[{\"id\":1,\"openingId\":1312,\"name\":\"Sicilian Defense\",\"moves\":[\"e4\",\"c5\",\"Nf3\"],\"pgn\":\"1. e4 c5 2. Nf3\",\"fen\":\"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-11-22T16:58:30.902Z\",\"due\":false,\"wrong\":0},{\"id\":2,\"openingId\":2166,\"name\":\"King's Knight Opening\",\"moves\":[\"e4\",\"e5\",\"Nf3\"],\"pgn\":\"1. e4 e5 2. Nf3\",\"fen\":\"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"Nf3\",\"learned\":true,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T17:08:34.677Z\",\"due\":false,\"wrong\":0},{\"id\":3,\"openingId\":2991,\"name\":\"Queen's Gambit\",\"moves\":[\"d4\",\"d5\",\"c4\"],\"pgn\":\"1. d4 d5 2. c4\",\"fen\":\"rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"c4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":4,\"openingId\":1118,\"name\":\"Caro-Kann Defense\",\"moves\":[\"e4\",\"c6\",\"d4\"],\"pgn\":\"1. e4 c6 2. d4\",\"fen\":\"rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T12:47:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":5,\"openingId\":1630,\"name\":\"French Defense: Normal Variation\",\"moves\":[\"e4\",\"e6\",\"d4\"],\"pgn\":\"1. e4 e6 2. d4\",\"fen\":\"rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2\",\"side\":\"white\",\"expectedSan\":\"d4\",\"learned\":false,\"mastered\":100,\"saved\":true,\"dueAt\":\"2026-10-23T13:17:51.978Z\",\"due\":true,\"wrong\":0},{\"id\":6,\"openingId\":652,\"name\":\"Indian Defense: Normal Variation\",\"moves\":[\"d4\",\"Nf6\",\"c4\"],\"pgn\":\"1. d4 Nf6 2. c4\",\"fen\":\"rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 2\","
+  }
+]

@@ -1,0 +1,87 @@
+{
+  "url": "http://localhost:5173/build/white",
+  "text": "White openings\nBuild\n8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nWhite openings\nStart position\nPlans\nAnalyze \nSettings\nBack\nContinue building\n4% complete\nAutofill remaining gaps\nYour first move\nMasters\nEval\nPeer results\n1. e4\nKing's Pawn Game\nRemove\nDisable\n31%\n+0.3\nAdd an alternative move\nGo to your biggest gap",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "Plans",
+      "vis": true
+    },
+    {
+      "t": "Autofill remaining gaps",
+      "vis": true
+    },
+    {
+      "t": "1. e4 King's Pawn Game Remove Disable 31% +0.3",
+      "vis": true
+    },
+    {
+      "t": "Add an alternative move",
+      "vis": true
+    },
+    {
+      "t": "Go to your biggest gap",
+      "vis": true
+    }
+  ],
+  "inputs": []
+}

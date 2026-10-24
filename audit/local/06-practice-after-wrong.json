@@ -1,0 +1,79 @@
+{
+  "url": "http://localhost:5173/practice/white?mode=due",
+  "text": "White openings\nLearn\nPractice\n8\n7\n6\n5\n4\n3\n2\na\nb\nc\nd\ne\nf\ng\nh\n1\nKing's Knight Opening\n1. e4 e5\nAnalyze \nSettings\nBack\nPracticing moves\nPlay the correct move on the board.\n4 Due\n0\n1\n2.\n__\nI don't know, show me the answer\nView in build mode\nExit practice\n4% complete\n34% mastered\nNot quite. Try that position again.",
+  "buttons": [
+    {
+      "t": "8",
+      "vis": true
+    },
+    {
+      "t": "7",
+      "vis": true
+    },
+    {
+      "t": "6",
+      "vis": true
+    },
+    {
+      "t": "5",
+      "vis": true
+    },
+    {
+      "t": "4",
+      "vis": true
+    },
+    {
+      "t": "3",
+      "vis": true
+    },
+    {
+      "t": "2",
+      "vis": true
+    },
+    {
+      "t": "a",
+      "vis": true
+    },
+    {
+      "t": "b",
+      "vis": true
+    },
+    {
+      "t": "c",
+      "vis": true
+    },
+    {
+      "t": "d",
+      "vis": true
+    },
+    {
+      "t": "e",
+      "vis": true
+    },
+    {
+      "t": "f",
+      "vis": true
+    },
+    {
+      "t": "g",
+      "vis": true
+    },
+    {
+      "t": "h 1",
+      "vis": true
+    },
+    {
+      "t": "I don't know, show me the answer",
+      "vis": true
+    },
+    {
+      "t": "View in build mode",
+      "vis": true
+    },
+    {
+      "t": "Exit practice",
+      "vis": true
+    }
+  ],
+  "inputs": []
+}
